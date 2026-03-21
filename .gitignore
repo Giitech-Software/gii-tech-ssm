@@ -1,3 +1,49 @@
-giitech-ssm-mobile/scripts/serviceAccountKey.json
-.env
+# =========================
+# Node dependencies
+# =========================
 node_modules/
+
+# =========================
+# Environment & secret files
+# =========================
+.env
+.env.local
+.env*.local
+giitech-ssm-mobile/scripts/serviceAccountKey.json
+
+# =========================
+# Expo / React Native
+# =========================
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.ios/
+.android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro bundler
+.metro-health-check*
+
+# Debug / logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS files
+.DS_Store
+*.pem
+
+# TypeScript build
+*.tsbuildinfo
+
+# =========================
+# Web / frontend
+# =========================
+app-example/
+dist/
+build/

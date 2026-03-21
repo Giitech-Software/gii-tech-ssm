@@ -41,3 +41,7 @@ app-example
 # generated native folders
 /ios
 /android
+# Google Cloud service account key
+giitech-ssm-mobile/scripts/serviceAccountKey.json
+.env
+node_modules/
