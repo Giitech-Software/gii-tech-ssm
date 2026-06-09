@@ -11,13 +11,22 @@ import {
   updateDoc,
 } from "firebase/firestore";
 
+export interface FeeStructure {
+  id: string;
+  feeId: string;
+  name: string;
+  amount: number;
+  classId: string;
+  streamId?: string | null;
+}
+
 // 🔹 Fetch all fees
-export const fetchFees = async () => {
+export const fetchFees = async (): Promise<FeeStructure[]> => {
   const querySnapshot = await getDocs(collection(db, "fees"));
   return querySnapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
-  }));
+  })) as FeeStructure[];
 };
 
 // 🔹 Generate next fee ID (like FEE001, FEE002)

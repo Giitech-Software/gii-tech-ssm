@@ -1,119 +1,68 @@
+import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
+import type { QueryConstraint } from "firebase/firestore";
 import { db } from "../firebaseConfig";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-} from "firebase/firestore";
 
-/**
- * Fetch a student's complete report card data (with mock fallbacks)
- */
-export const fetchReportCardData = async (studentId: string) => {
-  try {
-    // --- 1. Fetch student details ---
-    const studentDoc = await getDoc(doc(db, "students", studentId));
-    if (!studentDoc.exists()) {
-      console.warn("Student not found:", studentId);
-      return getMockReportCard("Unknown Student");
-    }
+export interface ReportCardFilters {
+  academicYear?: string;
+  term?: string;
+}
 
-    const studentData = studentDoc.data();
-    const classId = studentData.classId ?? null;
-    const termId = studentData.termId ?? "term1";
-
-    // --- 2. Fetch class name ---
-    let className = "Unassigned Class";
-    if (classId) {
-      const classDoc = await getDoc(doc(db, "classes", classId));
-      if (classDoc.exists()) className = classDoc.data().name || className;
-    }
-
-    // --- 3. Fetch term name ---
-    let termName = "Term 1";
-    if (termId) {
-      const termDoc = await getDoc(doc(db, "terms", termId));
-      if (termDoc.exists()) termName = termDoc.data().name || termName;
-    }
-
-    // --- 4. Fetch exam results for student ---
-    const examQuery = query(
-      collection(db, "exams"),
-      where("studentId", "==", studentId)
-    );
-    const examSnap = await getDocs(examQuery);
-
-    const subjects: any[] = [];
-    let totalMarks = 0;
-
-    examSnap.forEach((d) => {
-      const data = d.data();
-      subjects.push({
-        name: data.subjectName || "Unknown Subject",
-        mark: data.mark ?? 0,
-        grade: getGrade(data.mark ?? 0),
-        remark: getRemark(data.mark ?? 0),
-      });
-      totalMarks += data.mark ?? 0;
-    });
-
-    // ✅ Mock fallback if no exams exist
-    if (subjects.length === 0) {
-      console.warn("No exam records found — using mock data");
-      subjects.push(
-        { name: "Mathematics", mark: 78, grade: "B", remark: "Very Good" },
-        { name: "English", mark: 85, grade: "A", remark: "Excellent" },
-        { name: "Science", mark: 69, grade: "C", remark: "Good" }
-      );
-      totalMarks = subjects.reduce((sum, s) => sum + s.mark, 0);
-    }
-
-    const average = subjects.length > 0 ? totalMarks / subjects.length : 0;
-
-    // --- 5. Fetch attendance data ---
-    const attendanceQuery = query(
-      collection(db, "attendance"),
-      where("studentId", "==", studentId)
-    );
-    const attendanceSnap = await getDocs(attendanceQuery);
-
-    let totalDays = 0;
-    let presentDays = 0;
-    attendanceSnap.forEach((d) => {
-      const data = d.data();
-      totalDays++;
-      if (data.status === "Present") presentDays++;
-    });
-
-    // ✅ Mock fallback if no attendance
-    if (totalDays === 0) {
-      totalDays = 50;
-      presentDays = 45;
-    }
-
-    // --- 6. Final formatted result ---
-    return {
-      studentName: studentData.name || "Unknown",
-      className,
-      termName,
-      subjects,
-      average,
-      attendance: {
-        present: presentDays,
-        total: totalDays,
-      },
-    };
-  } catch (error) {
-    console.error("Error fetching report card:", error);
-    return getMockReportCard("Error Student");
+export const fetchReportCardData = async (studentId: string, filters: ReportCardFilters = {}) => {
+  const studentDoc = await getDoc(doc(db, "students", studentId));
+  if (!studentDoc.exists()) {
+    console.warn("Student not found:", studentId);
+    return null;
   }
+
+  const studentData = studentDoc.data();
+  const classId = studentData.classId ?? null;
+  let className = "Unassigned Class";
+  if (classId) {
+    const classDoc = await getDoc(doc(db, "classes", classId));
+    if (classDoc.exists()) className = classDoc.data().name || className;
+  }
+
+  const termName = filters.term || "All terms";
+
+  const gradeConstraints: QueryConstraint[] = [where("studentId", "==", studentId)];
+  if (filters.academicYear) gradeConstraints.push(where("academicYear", "==", filters.academicYear));
+  if (filters.term) gradeConstraints.push(where("term", "==", filters.term));
+  const gradeQuery = query(collection(db, "grades"), ...gradeConstraints);
+  const gradeSnapshot = await getDocs(gradeQuery);
+  let totalMarks = 0;
+  const subjects = gradeSnapshot.docs.map((item) => {
+    const grade = item.data();
+    const mark = Number(grade.mark ?? grade.score ?? 0);
+    totalMarks += mark;
+    return {
+      name: grade.subject || grade.subjectName || grade.assignmentTitle || "Unknown Subject",
+      mark,
+      grade: getGrade(mark),
+      remark: getRemark(mark),
+    };
+  });
+
+  const attendanceQuery = query(collection(db, "attendance"), where("studentId", "==", studentId));
+  const attendanceSnapshot = await getDocs(attendanceQuery);
+  const presentDays = attendanceSnapshot.docs.filter((item) => {
+    const attendance = item.data();
+    return attendance.present === true || attendance.status === "Present";
+  }).length;
+
+  return {
+    studentName: studentData.displayName || studentData.name || studentData.studentName || "Unknown",
+    className,
+    termName,
+    academicYear: filters.academicYear || "All academic years",
+    subjects,
+    average: subjects.length ? totalMarks / subjects.length : 0,
+    attendance: {
+      present: presentDays,
+      total: attendanceSnapshot.size,
+    },
+  };
 };
 
-/**
- * Grade logic
- */
 function getGrade(mark: number): string {
   if (mark >= 80) return "A";
   if (mark >= 70) return "B";
@@ -123,9 +72,6 @@ function getGrade(mark: number): string {
   return "F";
 }
 
-/**
- * Remark logic
- */
 function getRemark(mark: number): string {
   if (mark >= 80) return "Excellent";
   if (mark >= 70) return "Very Good";
@@ -133,25 +79,4 @@ function getRemark(mark: number): string {
   if (mark >= 50) return "Fair";
   if (mark >= 40) return "Needs Improvement";
   return "Fail";
-}
-
-/**
- * Default mock report for missing data
- */
-function getMockReportCard(name: string) {
-  return {
-    studentName: name,
-    className: "Demo Class",
-    termName: "First Term",
-    subjects: [
-      { name: "Math", mark: 82, grade: "A", remark: "Excellent" },
-      { name: "English", mark: 75, grade: "B", remark: "Very Good" },
-      { name: "Science", mark: 65, grade: "C", remark: "Good" },
-    ],
-    average: 74,
-    attendance: {
-      present: 45,
-      total: 50,
-    },
-  };
 }

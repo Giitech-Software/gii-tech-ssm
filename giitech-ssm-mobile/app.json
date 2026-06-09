@@ -2,15 +2,15 @@
   "expo": {
     "name": "giitech-ssm-mobile",
     "slug": "giitech-ssm-mobile",
-   "extra": {
-    "apiKey": "AIzaSyBmKo8JeLv2ILRvPtwMqyUjy7jwvfkvnRI",
-    "authDomain": "giitech-ssm.firebaseapp.com",
-    "projectId": "giitech-ssm",
-    "storageBucket": "giitech-ssm.firebasestorage.app",
-    "messagingSenderId": "342915985863",
-    "appId": "1:342915985863:web:d5ed22998d2b095788e9e2",
-    "measurementId": "G-CYFJ7WY0KF"
-  },
+    "extra": {
+      "apiKey": "AIzaSyBmKo8JeLv2ILRvPtwMqyUjy7jwvfkvnRI",
+      "authDomain": "giitech-ssm.firebaseapp.com",
+      "projectId": "giitech-ssm",
+      "storageBucket": "giitech-ssm.firebasestorage.app",
+      "messagingSenderId": "342915985863",
+      "appId": "1:342915985863:web:d5ed22998d2b095788e9e2",
+      "measurementId": "G-CYFJ7WY0KF"
+    },
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -48,7 +48,9 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,

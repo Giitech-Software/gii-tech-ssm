@@ -4,11 +4,18 @@ import { fetchReportCardData } from "../../../services/ReportCardService";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+const currentAcademicYear = () => {
+  const year = new Date().getFullYear();
+  return `${year}/${year + 1}`;
+};
+
 const StudentReportCard: React.FC = () => {
   const [students, setStudents] = useState<any[]>([]);
   const [selectedStudent, setSelectedStudent] = useState("");
   const [loading, setLoading] = useState(false);
   const [reportData, setReportData] = useState<any | null>(null);
+  const [academicYear, setAcademicYear] = useState(currentAcademicYear());
+  const [term, setTerm] = useState("Term 1");
 
   useEffect(() => {
     const load = async () => {
@@ -27,7 +34,7 @@ const StudentReportCard: React.FC = () => {
     if (!selectedStudent) return alert("Please select a student first");
     setLoading(true);
     try {
-      const data = await fetchReportCardData(selectedStudent);
+      const data = await fetchReportCardData(selectedStudent, { academicYear, term });
 
       if (!data) {
         alert("No report data found for this student.");
@@ -43,10 +50,11 @@ const StudentReportCard: React.FC = () => {
       doc.text(`Name: ${data.studentName || "N/A"}`, 14, 30);
       doc.text(`Class: ${data.className || "N/A"}`, 14, 38);
       doc.text(`Term: ${data.termName || "N/A"}`, 14, 46);
+      doc.text(`Academic Year: ${data.academicYear || "N/A"}`, 14, 54);
 
       if (Array.isArray(data.subjects) && data.subjects.length > 0) {
         autoTable(doc, {
-          startY: 55,
+          startY: 63,
           head: [["Subject", "Mark", "Grade", "Remark"]],
           body: data.subjects.map((s: any) => [
             s.name || "-",
@@ -56,7 +64,7 @@ const StudentReportCard: React.FC = () => {
           ]),
         });
       } else {
-        doc.text("No subjects found.", 14, 60);
+        doc.text("No subjects found.", 14, 68);
       }
 
       const yPos = (doc as any).lastAutoTable?.finalY
@@ -87,7 +95,7 @@ const StudentReportCard: React.FC = () => {
 
     setLoading(true);
     try {
-      const data = await fetchReportCardData(selectedStudent);
+      const data = await fetchReportCardData(selectedStudent, { academicYear, term });
       if (!data) return alert("No report card data found for this student.");
 
       setReportData(data);
@@ -131,6 +139,7 @@ const StudentReportCard: React.FC = () => {
             <p><strong>Name:</strong> ${data.studentName}</p>
             <p><strong>Class:</strong> ${data.className}</p>
             <p><strong>Term:</strong> ${data.termName}</p>
+            <p><strong>Academic Year:</strong> ${data.academicYear}</p>
           </div>
           <table>
             <thead>
@@ -175,10 +184,24 @@ const StudentReportCard: React.FC = () => {
         >
           <option value="">Select Student</option>
           {students.map((s) => (
-            <option key={s.studentId} value={s.studentId}>
-              {s.name}
+            <option key={s.studentId || s.id} value={s.studentId || s.id}>
+              {s.displayName || s.name || s.studentName || s.studentId || s.id}
             </option>
           ))}
+        </select>
+
+        <input
+          value={academicYear}
+          onChange={(e) => setAcademicYear(e.target.value)}
+          className="border p-2 rounded"
+          placeholder="Academic year"
+        />
+
+        <select value={term} onChange={(e) => setTerm(e.target.value)} className="border p-2 rounded">
+          <option value="">All terms</option>
+          <option value="Term 1">Term 1</option>
+          <option value="Term 2">Term 2</option>
+          <option value="Term 3">Term 3</option>
         </select>
 
         <button
@@ -213,7 +236,7 @@ const StudentReportCard: React.FC = () => {
             Preview: {reportData.studentName}
           </h3>
           <p className="text-sm text-gray-600">
-            Class: {reportData.className} | Term: {reportData.termName}
+            Class: {reportData.className} | Term: {reportData.termName} | Academic Year: {reportData.academicYear}
           </p>
 
           <table className="mt-3 w-full text-sm border">

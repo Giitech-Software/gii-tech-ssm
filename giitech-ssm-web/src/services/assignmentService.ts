@@ -25,6 +25,9 @@ export interface Assignment {
   classId: string;
   subject?: string;
   teacherId?: string;
+  academicYear?: string;
+  term?: string;
+  termId?: string;
   dueDate: any; // accepts Firestore Timestamp, string, or Date for backwards compatibility
   fileUrl?: string;
 

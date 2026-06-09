@@ -31,6 +31,11 @@ interface ExtendedAssignment extends AssignmentType {
   }[];
 }
 
+const currentAcademicYear = () => {
+  const year = new Date().getFullYear();
+  return `${year}/${year + 1}`;
+};
+
 // ✅ Helper to format Firestore Timestamps safely
 const formatDueDate = (dueDate: any) => {
   if (!dueDate) return "—";
@@ -61,6 +66,8 @@ const TeacherAssignmentsPage: React.FC = () => {
     dueDate: "",
     classId: "",
     departmentId: "",
+    academicYear: currentAcademicYear(),
+    term: "Term 1",
     type: "short-answer",
     questions: [],
   });
@@ -126,6 +133,8 @@ const TeacherAssignmentsPage: React.FC = () => {
         dueDate: "",
         classId: "",
         departmentId: "",
+        academicYear: currentAcademicYear(),
+        term: "Term 1",
         type: "short-answer",
         questions: [],
       });
@@ -297,6 +306,28 @@ const TeacherAssignmentsPage: React.FC = () => {
               <p className="text-xs text-red-500 mt-1">Due date is required</p>
             )}
           </div>
+
+          <input
+            type="text"
+            placeholder="Academic year"
+            value={newAssignment.academicYear || ""}
+            onChange={(e) =>
+              setNewAssignment({ ...newAssignment, academicYear: e.target.value })
+            }
+            className={inputClass("academicYear")}
+          />
+
+          <select
+            value={newAssignment.term || ""}
+            onChange={(e) =>
+              setNewAssignment({ ...newAssignment, term: e.target.value })
+            }
+            className={inputClass("term")}
+          >
+            <option value="Term 1">Term 1</option>
+            <option value="Term 2">Term 2</option>
+            <option value="Term 3">Term 3</option>
+          </select>
 
           {/* Type */}
           <select

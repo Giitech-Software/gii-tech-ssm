@@ -1,0 +1,45 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function userProfile() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdminStaff() {
+      return signedIn() &&
+        (userProfile().role == "superadmin" || userProfile().role == "admin");
+    }
+
+    function isTeacher() {
+      return signedIn() && userProfile().role == "teacher";
+    }
+
+    function isOwnStudent(studentId) {
+      return signedIn() &&
+        firestore.exists(/databases/(default)/documents/students/$(studentId)) &&
+        firestore.get(/databases/(default)/documents/students/$(studentId)).data.userId == request.auth.uid;
+    }
+
+    function isAcceptedSubmission() {
+      return request.resource.size < 10 * 1024 * 1024 &&
+        request.resource.contentType.matches(
+          "application/pdf|application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document|text/.*|image/.*"
+        );
+    }
+
+    match /submissions/{studentId}/{fileName} {
+      allow read: if isAdminStaff() || isTeacher() || isOwnStudent(studentId);
+      allow create, update: if isOwnStudent(studentId) && isAcceptedSubmission();
+      allow delete: if isAdminStaff() || isOwnStudent(studentId);
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

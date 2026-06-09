@@ -1,4 +1,4 @@
-import { collection, getDocs, addDoc, query, where, Timestamp } from "firebase/firestore";
+import { collection, doc, getDocs, query, where, serverTimestamp, writeBatch } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
 // 🔹 Firestore structure example:
@@ -30,7 +30,7 @@ export const fetchAttendanceSummary = async (classId: string) => {
         };
       }
       summary[sid].total += 1;
-      if (r.present) summary[sid].present += 1;
+      if (r.present === true || r.status === "Present") summary[sid].present += 1;
     }
 
     return Object.values(summary);
@@ -57,7 +57,7 @@ export const getAttendanceByClass = async (classId: string) => {
         studentId: data.studentId,
         studentName: data.studentName || "Unknown",
         date: data.date,
-        status: data.present ? "Present" : "Absent",
+        status: data.present === true || data.status === "Present" ? "Present" : "Absent",
       });
     });
 
@@ -85,7 +85,7 @@ export const getStudentsByClass = async (classId: string) => {
       students.push({
         id: doc.id,
         studentId: data.studentId || doc.id,
-        studentName: data.studentName || data.name || "Unnamed Student",
+        studentName: data.displayName || data.studentName || data.name || "Unnamed Student",
       });
     });
 
@@ -103,20 +103,25 @@ export const getStudentsByClass = async (classId: string) => {
  */
 export const markAttendanceForClass = async (
   classId: string,
-  attendanceList: { studentId: string; studentName: string; present: boolean }[]
+  attendanceList: { studentId: string; studentName: string; status: "Present" | "Absent" }[]
 ) => {
   try {
     const attendanceCollection = collection(db, "attendance");
     const date = new Date().toISOString().split("T")[0];
+    const batch = writeBatch(db);
 
     for (const record of attendanceList) {
-      await addDoc(attendanceCollection, {
-        ...record,
+      batch.set(doc(attendanceCollection), {
+        studentId: record.studentId,
+        studentName: record.studentName,
+        present: record.status === "Present",
+        status: record.status,
         classId,
         date,
-        createdAt: Timestamp.now(),
+        createdAt: serverTimestamp(),
       });
     }
+    await batch.commit();
 
     console.log(`✅ Attendance marked for class ${classId}:`, attendanceList);
     return { success: true };

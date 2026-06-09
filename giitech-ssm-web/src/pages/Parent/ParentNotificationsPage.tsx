@@ -10,6 +10,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { exportToCSV, exportToPDF } from "../Admin/reports/utils/reportExports";
+import { getParentProfileByUserId } from "../../services/ParentService";
 import {
   Bell,
   FileDown,
@@ -41,12 +42,9 @@ export default function ParentNotificationsPage() {
       setLoading(true);
       try {
         // Fetch parent document to find their linked studentIds
-        const parentRef = collection(db, "parents");
-        const parentQuery = query(parentRef, where("__name__", "==", user.uid));
-        const parentSnap = await getDocs(parentQuery);
+        const parentData = await getParentProfileByUserId(user.uid);
 
-        if (!parentSnap.empty) {
-          const parentData = parentSnap.docs[0].data();
+        if (parentData) {
           const studentIds: string[] = parentData.studentIds || [];
 
           // Fetch notifications addressed to those students or global announcements

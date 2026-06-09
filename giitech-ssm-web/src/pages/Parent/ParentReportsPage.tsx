@@ -1,133 +1,68 @@
-//src/pages/Parent/ParentReportsPage.tsx
-import React, { useEffect, useState } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db, auth } from "../../firebaseConfig";
+import { useEffect, useState } from "react";
+import { Download, FileText } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 import { exportToCSV, exportToPDF } from "../Admin/reports/utils/reportExports";
-import { FileText, Download } from "lucide-react";
+import { getParentProfileByUserId } from "../../services/ParentService";
 import {
-  ResponsiveContainer,
-  BarChart,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  Bar,
-} from "recharts";
+  fetchPublishedReportsByStudentIds,
+  type PublishedStudentReport,
+} from "../../services/ReportPublicationService";
 
-// ✅ Local Tailwind-based UI elements
-const Button = ({ onClick, children, variant = "primary" }: any) => (
-  <button
-    onClick={onClick}
-    className={`px-4 py-2 rounded-md font-medium flex items-center gap-2 transition-all duration-200 ${
-      variant === "outline"
-        ? "border border-gray-300 text-gray-700 hover:bg-gray-100"
-        : "bg-indigo-600 text-white hover:bg-indigo-700"
-    }`}
-  >
-    {children}
-  </button>
-);
-
-const Card = ({ children }: any) => (
-  <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
-    {children}
-  </div>
-);
-
-const CardContent = ({ children }: any) => (
-  <div className="p-5">{children}</div>
-);
-
-const ParentReportsPage: React.FC = () => {
-  const [reports, setReports] = useState<any[]>([]);
+export default function ParentReportsPage() {
+  const { user } = useAuth();
+  const [reports, setReports] = useState<PublishedStudentReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchReports = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
+    if (!user) return;
+    const loadReports = async () => {
       try {
-        const q = query(
-          collection(db, "studentReports"),
-          where("parentEmail", "==", user.email)
-        );
-        const snapshot = await getDocs(q);
-        const fetched = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setReports(fetched);
-      } catch (err) {
-        console.error("Error loading reports:", err);
+        const parent = await getParentProfileByUserId(user.uid);
+        setReports(await fetchPublishedReportsByStudentIds(parent?.studentIds || []));
+      } catch (loadError) {
+        console.error(loadError);
+        setError("Unable to load released reports.");
       } finally {
         setLoading(false);
       }
     };
-    fetchReports();
-  }, []);
-
-  const handleExportCSV = () => exportToCSV(reports, "Student_Reports");
-  const handleExportPDF = () => exportToPDF(reports, "Student_Reports");
+    loadReports();
+  }, [user]);
 
   return (
-    <div className="p-6 space-y-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
-      <div className="flex justify-between items-center flex-wrap gap-3">
-        <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-          <FileText className="text-indigo-500" />
-          Student Reports
-        </h1>
-        <div className="flex gap-3">
-          <Button onClick={handleExportCSV} variant="outline">
-            <Download className="w-4 h-4" /> CSV
-          </Button>
-          <Button onClick={handleExportPDF}>
-            <Download className="w-4 h-4" /> PDF
-          </Button>
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900"><FileText size={24} /> Released Reports</h1>
+          <p className="mt-1 text-sm text-gray-600">View term report snapshots released by the school.</p>
+        </div>
+        <div className="flex gap-2">
+          <button disabled={!reports.length} onClick={() => exportToCSV(reports, "Released_Student_Reports")} className="flex items-center gap-2 rounded-md border bg-white px-3 py-2 text-sm font-medium text-gray-700 disabled:opacity-50"><Download size={16} /> CSV</button>
+          <button disabled={!reports.length} onClick={() => exportToPDF(reports, "Released_Student_Reports")} className="flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"><Download size={16} /> PDF</button>
         </div>
       </div>
-
-      {loading ? (
-        <p className="text-gray-500 text-center mt-10">Loading reports...</p>
-      ) : reports.length === 0 ? (
-        <p className="text-gray-500 text-center mt-10">
-          No reports available yet.
-        </p>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      {loading ? <p className="py-10 text-center text-sm text-gray-500">Loading reports...</p> : (
+        <div className="grid gap-4 xl:grid-cols-2">
           {reports.map((report) => (
-            <Card key={report.id}>
-              <CardContent>
-                <h2 className="text-xl font-semibold text-indigo-700 mb-2">
-                  {report.studentName}
-                </h2>
-                <p className="text-sm text-gray-600 mb-1">
-                  <strong>Class:</strong> {report.class}
-                </p>
-                <p className="text-sm text-gray-600 mb-1">
-                  <strong>Term:</strong> {report.term}
-                </p>
-                <p className="text-sm text-gray-600 mb-3">
-                  <strong>Average Grade:</strong> {report.averageGrade}%
-                </p>
-
-                {report.subjects && Array.isArray(report.subjects) && (
-                  <ResponsiveContainer width="100%" height={200}>
-                    <BarChart data={report.subjects}>
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="score" fill="#6366f1" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                )}
-              </CardContent>
-            </Card>
+            <article key={report.id} className="border bg-white p-4">
+              <div className="flex flex-wrap items-start justify-between gap-2 border-b pb-3">
+                <div><h2 className="font-semibold text-gray-900">{report.studentName}</h2><p className="text-xs text-gray-500">{report.studentId} | {report.className}</p></div>
+                <div className="text-right"><p className="text-sm font-medium">{report.term}</p><p className="text-xs text-gray-500">{report.academicYear}</p></div>
+              </div>
+              <div className="grid grid-cols-2 gap-3 py-3 text-sm">
+                <div><p className="text-xs uppercase text-gray-500">Average</p><p className="text-xl font-bold text-indigo-700">{report.averageGrade.toFixed(2)}%</p></div>
+                <div><p className="text-xs uppercase text-gray-500">Attendance</p><p className="text-xl font-bold text-gray-900">{report.attendance.present}/{report.attendance.total}</p></div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full text-left text-sm"><thead className="bg-gray-50 text-xs uppercase text-gray-500"><tr><th className="px-3 py-2">Subject</th><th className="px-3 py-2">Mark</th><th className="px-3 py-2">Grade</th></tr></thead><tbody className="divide-y">{report.subjects.map((subject) => <tr key={subject.name}><td className="px-3 py-2">{subject.name}</td><td className="px-3 py-2">{subject.mark}</td><td className="px-3 py-2">{subject.grade}</td></tr>)}</tbody></table>
+              </div>
+            </article>
           ))}
+          {!reports.length && <p className="border bg-white px-4 py-10 text-center text-sm text-gray-500 xl:col-span-2">No released reports are available yet.</p>}
         </div>
       )}
     </div>
   );
-};
-
-export default ParentReportsPage;
+}

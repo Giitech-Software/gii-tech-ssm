@@ -7,6 +7,8 @@ node_modules/
 # Environment & secret files
 # =========================
 .env
+.env.*
+!.env.example
 .env.local
 .env*.local
 giitech-ssm-mobile/scripts/serviceAccountKey.json
@@ -30,6 +32,8 @@ expo-env.d.ts
 .metro-health-check*
 
 # Debug / logs
+logs/
+*.log
 npm-debug.*
 yarn-debug.*
 yarn-error.*
@@ -47,3 +51,10 @@ yarn-error.*
 app-example/
 dist/
 build/
+.firebase/
+
+# =========================
+# Editor / local workspace
+# =========================
+.vscode/
+.idea/

@@ -15,12 +15,12 @@ import { auth, db, firebaseConfig } from "../firebaseConfig";
 import {
   doc,
   getDoc,
-  setDoc,
   query,
   collection,
   where,
   getDocs,
   serverTimestamp,
+  writeBatch,
 } from "firebase/firestore";
 import { idToEmail } from "../utils/idToEmail";
 import { generateUserId } from "../utils/idGenerator";
@@ -38,10 +38,23 @@ interface AuthContextType {
     role: string,
     displayName: string,
     extraData?: Record<string, any> // 🆕 new optional parameter
-  ) => Promise<void>;
+  ) => Promise<string>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+function signupError(error: unknown, action: string): Error {
+  const message = error instanceof Error ? error.message : String(error);
+  if (
+    (typeof error === "object" && error && "code" in error && error.code === "permission-denied") ||
+    message.includes("Missing or insufficient permissions")
+  ) {
+    return new Error(
+      `Permission denied while ${action}. Confirm the signed-in account is a super admin and that the latest Firestore rules are deployed.`
+    );
+  }
+  return error instanceof Error ? error : new Error(message);
+}
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -105,14 +118,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Ensure unique ID or auto-generate
     let finalId = id;
-    if (!id || id.trim() === "") {
-      finalId = await generateUserId(roleName);
-    } else {
-      const q = query(collection(db, "users"), where("id", "==", id));
-      const existing = await getDocs(q);
-      if (!existing.empty) {
-        throw new Error(`User ID "${id}" already exists.`);
+    try {
+      if (!id || id.trim() === "") {
+        finalId = await generateUserId(roleName);
+      } else {
+        const q = query(collection(db, "users"), where("id", "==", id));
+        const existing = await getDocs(q);
+        if (!existing.empty) {
+          throw new Error(`User ID "${id}" already exists.`);
+        }
       }
+    } catch (error) {
+      throw signupError(error, id.trim() ? "checking the user ID" : "generating the user ID");
     }
 
     const email = idToEmail(finalId);
@@ -121,6 +138,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const secondaryAuth = getAuthInstance(secondaryApp);
 
     let createdUser: User | null = null;
+    let signupStep = "creating the authentication account";
 
     try {
       // 1️⃣ Create Firebase Auth user
@@ -131,8 +149,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       );
       createdUser = uc.user;
 
-      // 2️⃣ Add to main users collection
-      await setDoc(doc(db, "users", createdUser.uid), {
+      // 2️⃣ Add the user and role profile atomically
+      signupStep = "saving the user profile";
+      const batch = writeBatch(db);
+      batch.set(doc(db, "users", createdUser.uid), {
         uid: createdUser.uid,
         id: finalId,
         role: roleName,
@@ -153,7 +173,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const role = roleName.toLowerCase();
 
       if (role === "student") {
-        await setDoc(doc(db, "students", finalId), {
+        batch.set(doc(db, "students", finalId), {
           ...baseProfile,
           studentId: finalId,
           classId: extraData.classId || "",
@@ -165,31 +185,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           parentId: extraData.parentId || "",
         });
       } else if (role === "teacher") {
-        await setDoc(doc(db, "teachers", finalId), {
+        batch.set(doc(db, "teachers", finalId), {
           ...baseProfile,
           teacherId: finalId,
           department: extraData.department || "",
           subject: extraData.subject || "",
         });
       } else if (role === "admin") {
-        await setDoc(doc(db, "admins", finalId), {
+        batch.set(doc(db, "admins", finalId), {
           ...baseProfile,
           adminId: finalId,
         });
       } else if (role === "parent") {
-        await setDoc(doc(db, "parents", finalId), {
+        batch.set(doc(db, "parents", finalId), {
           ...baseProfile,
           parentId: finalId,
           studentIds: extraData.studentIds || [],
         });
       }
 
-      // 4️⃣ Sync displayName in Auth
+      await batch.commit();
+
+      // 3️⃣ Sync displayName in Auth
       try {
         await updateProfile(createdUser, { displayName: displayNameParam });
       } catch (uErr) {
         console.warn("Failed to update displayName:", uErr);
       }
+
+      return finalId;
     } catch (err: any) {
       if (createdUser) {
         try {
@@ -198,7 +222,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           console.warn("Failed to delete orphaned Auth user:", delErr);
         }
       }
-      throw err;
+      throw signupError(err, signupStep);
     } finally {
       try {
         await secondaryAuth.signOut();

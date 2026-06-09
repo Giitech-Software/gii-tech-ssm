@@ -18,6 +18,7 @@ import {
   markAttendanceForClass,
   getStudentsByClass, // ✅ new helper (add this to AttendanceService or StudentService)
 } from "../../services/AttendanceService";
+import { fetchClasses } from "../../services/ClassService";
 import { exportToCSV, exportToPDF } from "../Admin/reports/utils/reportExports";
 
 export default function TeacherAttendancePage() {
@@ -28,7 +29,16 @@ export default function TeacherAttendancePage() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
-  const classOptions = ["Class A", "Class B", "Class C"]; // Replace with dynamic fetch
+  const [classOptions, setClassOptions] = useState<{ id: string; name?: string; classId?: string }[]>([]);
+
+  useEffect(() => {
+    fetchClasses()
+      .then((classes) => setClassOptions(classes as { id: string; name?: string; classId?: string }[]))
+      .catch((err) => {
+        console.error("Failed to fetch classes:", err);
+        setError("Failed to load classes.");
+      });
+  }, []);
 
   const loadAttendance = async () => {
     if (!selectedClass) return;
@@ -69,6 +79,7 @@ export default function TeacherAttendancePage() {
       const today = new Date().toISOString().split("T")[0];
       setAttendanceData(
         students.map((s: any) => ({
+          studentId: s.studentId,
           studentName: s.studentName,
           date: today,
           status: "Pending",
@@ -76,19 +87,8 @@ export default function TeacherAttendancePage() {
       );
     } catch (err) {
       console.error(err);
-      // fallback mock
-      const students = [
-        { studentName: "John Doe" },
-        { studentName: "Mary Smith" },
-        { studentName: "David Johnson" },
-      ];
-      setAttendanceData(
-        students.map((s) => ({
-          studentName: s.studentName,
-          date: new Date().toISOString().split("T")[0],
-          status: "Pending",
-        }))
-      );
+      setError("Failed to load students for this class.");
+      setMarking(false);
     } finally {
       setLoading(false);
     }
@@ -115,8 +115,16 @@ export default function TeacherAttendancePage() {
     setLoading(true);
     setError(null);
     setMessage(null);
+    const records = attendanceData.filter(
+      (record) => record.studentId && (record.status === "Present" || record.status === "Absent")
+    );
+    if (records.length !== attendanceData.length) {
+      setError("Mark every student as present or absent before submitting.");
+      setLoading(false);
+      return;
+    }
     try {
-      await markAttendanceForClass(selectedClass, attendanceData);
+      await markAttendanceForClass(selectedClass, records);
       setMarking(false);
       await loadAttendance();
       setMessage("✅ Attendance submitted successfully!");
@@ -173,8 +181,8 @@ export default function TeacherAttendancePage() {
         >
           <option value="">Select a Class</option>
           {classOptions.map((cls) => (
-            <option key={cls} value={cls}>
-              {cls}
+            <option key={cls.id} value={cls.classId || cls.id}>
+              {cls.name || cls.classId || cls.id}
             </option>
           ))}
         </select>

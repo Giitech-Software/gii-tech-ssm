@@ -1,0 +1,231 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function hasUserProfile() {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function userProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function hasRole(expectedRole) {
+      return hasUserProfile() && userProfile().role == expectedRole;
+    }
+
+    function isSuperAdmin() {
+      return hasRole("superadmin");
+    }
+
+    function isAdmin() {
+      return hasRole("admin");
+    }
+
+    function isAdminStaff() {
+      return isSuperAdmin() || isAdmin();
+    }
+
+    function isTeacher() {
+      return hasRole("teacher");
+    }
+
+    function isStudent() {
+      return hasRole("student");
+    }
+
+    function isParent() {
+      return hasRole("parent");
+    }
+
+    function studentExists(studentId) {
+      return exists(/databases/$(database)/documents/students/$(studentId));
+    }
+
+    function isOwnStudent(studentId) {
+      return isStudent() &&
+        (studentId == request.auth.uid ||
+          (studentExists(studentId) &&
+            get(/databases/$(database)/documents/students/$(studentId)).data.userId == request.auth.uid));
+    }
+
+    function parentOwnsStudent(studentId) {
+      return isParent() &&
+        studentExists(studentId) &&
+        get(/databases/$(database)/documents/students/$(studentId)).data.parentId == userProfile().id;
+    }
+
+    function canReadStudentRecord(studentId) {
+      return isAdminStaff() || isTeacher() || isOwnStudent(studentId) || parentOwnsStudent(studentId);
+    }
+
+    function audienceMatchesUser() {
+      return resource.data.audience == "all" || resource.data.audience == userProfile().role;
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn() && (request.auth.uid == userId || isAdminStaff());
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin() ||
+        (signedIn() && request.auth.uid == userId &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(["displayName"]));
+      allow delete: if isSuperAdmin();
+    }
+
+    match /admins/{adminId} {
+      allow read: if isAdminStaff() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow write: if isSuperAdmin();
+    }
+
+    match /teachers/{teacherId} {
+      allow read: if isAdminStaff() || isTeacher() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow write: if isAdminStaff();
+    }
+
+    match /students/{studentId} {
+      allow read: if isAdminStaff() || isTeacher() || isOwnStudent(studentId) ||
+        (isParent() && resource.data.parentId == userProfile().id);
+      allow write: if isAdminStaff();
+    }
+
+    match /parents/{parentId} {
+      allow read: if isAdminStaff() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow write: if isAdminStaff();
+    }
+
+    match /counters/{counterId} {
+      allow read, write: if isAdminStaff();
+    }
+
+    match /departments/{departmentId} {
+      allow read: if signedIn();
+      allow write: if isAdminStaff();
+    }
+
+    match /classes/{classId} {
+      allow read: if signedIn();
+      allow write: if isAdminStaff();
+    }
+
+    match /streams/{streamId} {
+      allow read: if signedIn();
+      allow write: if isAdminStaff();
+    }
+
+    match /subjects/{subjectId} {
+      allow read: if signedIn();
+      allow write: if isAdminStaff();
+    }
+
+    match /terms/{termId} {
+      allow read: if signedIn();
+      allow write: if isAdminStaff();
+    }
+
+    match /exams/{examId} {
+      allow read: if signedIn();
+      allow write: if isAdminStaff() || isTeacher();
+    }
+
+    match /assignments/{assignmentId} {
+      allow read: if signedIn();
+      allow create: if isAdminStaff() ||
+        (isTeacher() && request.resource.data.teacherId == request.auth.uid);
+      allow update, delete: if isAdminStaff() ||
+        (isTeacher() && resource.data.teacherId == request.auth.uid);
+    }
+
+    match /submissions/{submissionId} {
+      allow read: if isAdminStaff() || isTeacher() ||
+        (isStudent() &&
+          (resource.data.studentUid == request.auth.uid || isOwnStudent(resource.data.studentId)));
+      allow create: if isStudent() && request.resource.data.studentUid == request.auth.uid;
+      allow update: if isAdminStaff() || isTeacher() ||
+        (isStudent() && resource.data.studentUid == request.auth.uid &&
+          request.resource.data.studentUid == request.auth.uid);
+      allow delete: if isAdminStaff() ||
+        (isStudent() && resource.data.studentUid == request.auth.uid);
+    }
+
+    match /grades/{gradeId} {
+      allow read: if canReadStudentRecord(resource.data.studentId);
+      allow write: if isAdminStaff() || isTeacher();
+    }
+
+    match /attendance/{attendanceId} {
+      allow read: if canReadStudentRecord(resource.data.studentId);
+      allow write: if isAdminStaff() || isTeacher();
+    }
+
+    match /fees/{feeId} {
+      allow read: if signedIn();
+      allow write: if isAdminStaff();
+    }
+
+    match /studentCharges/{chargeId} {
+      allow read: if canReadStudentRecord(resource.data.studentId);
+      allow write: if isAdminStaff();
+    }
+
+    match /feePayments/{paymentId} {
+      allow read: if canReadStudentRecord(resource.data.studentId);
+      allow write: if isAdminStaff();
+    }
+
+    match /promotionHistory/{promotionId} {
+      allow read, write: if isAdminStaff();
+    }
+
+    match /activityLogs/{activityId} {
+      allow read: if isAdminStaff();
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /schoolAnnouncements/{announcementId} {
+      allow read: if isAdminStaff() ||
+        (hasUserProfile() && resource.data.published == true && audienceMatchesUser());
+      allow write: if isAdminStaff();
+    }
+
+    match /calendarEvents/{eventId} {
+      allow read: if isAdminStaff() || (hasUserProfile() && audienceMatchesUser());
+      allow write: if isAdminStaff();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isAdminStaff() ||
+        (hasUserProfile() &&
+          (resource.data.target == "all" ||
+            resource.data.get("recipientUserId", "") == request.auth.uid ||
+            userProfile().role in resource.data.get("recipientRoles", []) ||
+            isOwnStudent(resource.data.get("target", "")) ||
+            parentOwnsStudent(resource.data.get("target", ""))));
+      allow write: if isAdminStaff();
+    }
+
+    match /messages/{messageId} {
+      allow read: if signedIn() && request.auth.token.email in resource.data.participants;
+      allow create: if signedIn() &&
+        request.auth.token.email in request.resource.data.participants &&
+        request.resource.data.sender == request.auth.token.email;
+      allow update, delete: if false;
+    }
+
+    match /studentReports/{reportId} {
+      allow read: if isAdminStaff() || isTeacher() ||
+        (resource.data.published == true &&
+          (parentOwnsStudent(resource.data.studentId) ||
+            (isParent() && resource.data.parentEmail == request.auth.token.email)));
+      allow write: if isAdminStaff();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

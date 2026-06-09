@@ -15,7 +15,7 @@ export default {
         neutral: "#64748B",   // Slate gray
         dark: "#0F172A",      // Navy black
 
-        red: "#DC2626",       // 🔴 Red (Tailwind red-600)
+        danger: "#DC2626",    // Red
       },
     },
   },

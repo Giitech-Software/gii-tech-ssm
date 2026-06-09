@@ -1,9 +1,11 @@
 // src/pages/Student/StudentGradesPage.tsx
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
 import { useAuth } from "../../contexts/AuthContext";
 import { exportToCSV, exportToPDF } from "../Admin/reports/utils/reportExports";
+import {
+  fetchGradesByStudentId,
+  fetchStudentProfileByUserId,
+} from "../../services/AcademicRecordService";
 
 interface GradeData {
   id: string;
@@ -25,13 +27,8 @@ export default function StudentGradesPage() {
       if (!user) return;
 
       try {
-        const q = query(collection(db, "grades"), where("studentId", "==", user.uid));
-        const snapshot = await getDocs(q);
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as GradeData[];
-        setGrades(data);
+        const student = await fetchStudentProfileByUserId(user.uid);
+        setGrades(student ? (await fetchGradesByStudentId(student.studentId)) as GradeData[] : []);
       } catch (error) {
         console.error("Error loading student grades:", error);
       } finally {

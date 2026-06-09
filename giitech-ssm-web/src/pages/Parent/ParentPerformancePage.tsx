@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import { db } from "../../firebaseConfig";
 import { useAuth } from "../../contexts/AuthContext";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { getParentProfileByUserId } from "../../services/ParentService";
+import {
+  fetchGradesByStudentIds,
+  fetchStudentProfilesByIds,
+} from "../../services/AcademicRecordService";
 import { exportToCSV, exportToPDF } from "../Admin/reports/utils/reportExports";
 import { BarChart3, FileDown, FileText } from "lucide-react";
 import {
@@ -16,7 +19,7 @@ import {
 
 interface Student {
   id: string;
-  name: string;
+  displayName: string;
   className?: string;
   stream?: string;
 }
@@ -43,37 +46,17 @@ export default function ParentPerformancePage() {
       setLoading(true);
       try {
         // Get parent info
-        const parentRef = collection(db, "parents");
-        const parentQuery = query(parentRef, where("__name__", "==", user.uid));
-        const parentSnap = await getDocs(parentQuery);
+        const parentData = await getParentProfileByUserId(user.uid);
 
-        if (!parentSnap.empty) {
-          const parentData = parentSnap.docs[0].data();
+        if (parentData) {
           const studentIds = parentData.studentIds || [];
 
           // Fetch linked students
           if (studentIds.length > 0) {
-            const studentQuery = query(
-              collection(db, "students"),
-              where("__name__", "in", studentIds)
-            );
-            const studentSnaps = await getDocs(studentQuery);
-            const studentList = studentSnaps.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            })) as Student[];
+            const studentList = await fetchStudentProfilesByIds(studentIds) as Student[];
             setStudents(studentList);
 
-            // Fetch grades for linked students
-            const gradeQuery = query(
-              collection(db, "grades"),
-              where("studentId", "in", studentIds)
-            );
-            const gradeSnaps = await getDocs(gradeQuery);
-            const gradeList = gradeSnaps.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            })) as Grade[];
+            const gradeList = await fetchGradesByStudentIds(studentIds) as Grade[];
             setGrades(gradeList);
           }
         }
@@ -139,7 +122,7 @@ export default function ParentPerformancePage() {
               className="bg-white rounded-2xl shadow p-5 border border-gray-100 hover:shadow-md transition"
             >
               <h3 className="text-lg font-semibold text-indigo-700">
-                {s.name}
+                {s.displayName}
               </h3>
               <p className="text-gray-600 text-sm mt-1">
                 Class: {s.className || "—"} | Stream: {s.stream || "—"}
@@ -200,7 +183,7 @@ export default function ParentPerformancePage() {
                   >
                     <td className="px-4 py-2">
                       {g.studentName ||
-                        students.find((s) => s.id === g.studentId)?.name ||
+                        students.find((s) => s.id === g.studentId)?.displayName ||
                         "—"}
                     </td>
                     <td className="px-4 py-2">{g.subject || "N/A"}</td>

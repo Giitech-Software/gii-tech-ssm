@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
-import { db } from "../../firebaseConfig";
 import { useAuth } from "../../contexts/AuthContext";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { getParentProfileByUserId } from "../../services/ParentService";
+import {
+  fetchAttendanceByStudentIds,
+  fetchStudentProfilesByIds,
+} from "../../services/AcademicRecordService";
 import { exportToCSV, exportToPDF } from "../Admin/reports/utils/reportExports";
 import {
   BarChart,
@@ -16,7 +19,7 @@ import { CalendarCheck2, FileDown, FileText } from "lucide-react";
 
 interface Student {
   id: string;
-  name: string;
+  displayName: string;
   className?: string;
   stream?: string;
 }
@@ -41,37 +44,17 @@ export default function ParentAttendancePage() {
       setLoading(true);
       try {
         // Find parent info
-        const parentRef = collection(db, "parents");
-        const parentQuery = query(parentRef, where("__name__", "==", user.uid));
-        const parentSnap = await getDocs(parentQuery);
+        const parentData = await getParentProfileByUserId(user.uid);
 
-        if (!parentSnap.empty) {
-          const parentData = parentSnap.docs[0].data();
+        if (parentData) {
           const studentIds = parentData.studentIds || [];
 
           // Fetch student details
           if (studentIds.length > 0) {
-            const studentQuery = query(
-              collection(db, "students"),
-              where("__name__", "in", studentIds)
-            );
-            const studentSnaps = await getDocs(studentQuery);
-            const studentList = studentSnaps.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            })) as Student[];
+            const studentList = await fetchStudentProfilesByIds(studentIds) as Student[];
             setStudents(studentList);
 
-            // Fetch attendance data
-            const attendanceQuery = query(
-              collection(db, "attendance"),
-              where("studentId", "in", studentIds)
-            );
-            const attendanceSnaps = await getDocs(attendanceQuery);
-            const attendanceList = attendanceSnaps.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            })) as AttendanceRecord[];
+            const attendanceList = await fetchAttendanceByStudentIds(studentIds);
             setAttendance(attendanceList);
           }
         }
@@ -99,7 +82,7 @@ export default function ParentAttendancePage() {
     const present = records.filter((a) => a.status === "Present").length;
     const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
     return {
-      name: s.name,
+      name: s.displayName,
       className: s.className,
       stream: s.stream,
       percentage,
@@ -211,7 +194,7 @@ export default function ParentAttendancePage() {
                     className="border-t border-gray-100 hover:bg-gray-50"
                   >
                     <td className="px-4 py-2">
-                      {students.find((s) => s.id === a.studentId)?.name || "—"}
+                      {students.find((s) => s.id === a.studentId)?.displayName || "—"}
                     </td>
                     <td className="px-4 py-2 text-gray-600">
                       {new Date(a.date).toLocaleDateString()}

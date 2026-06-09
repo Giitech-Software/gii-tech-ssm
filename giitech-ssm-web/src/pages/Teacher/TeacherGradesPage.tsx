@@ -5,12 +5,11 @@ import {
   query,
   where,
   orderBy,
-  updateDoc,
-  doc,
 } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { useAuth } from "../../contexts/AuthContext";
 import toast from "react-hot-toast";
+import { saveSubmissionGrade } from "../../services/GradeService";
 import {
   ClipboardCheck,
   Star,
@@ -23,7 +22,12 @@ import {
 interface Assignment {
   id: string;
   title: string;
-  className: string;
+  className?: string;
+  classId?: string;
+  subject?: string;
+  academicYear?: string;
+  term?: string;
+  termId?: string;
 }
 
 interface Submission {
@@ -32,6 +36,7 @@ interface Submission {
   studentId: string;
   assignmentId: string;
   fileUrl?: string;
+  submissionUrl?: string;
   grade?: string;
   feedback?: string;
   submittedAt?: string;
@@ -103,8 +108,11 @@ const TeacherGradesPage: React.FC = () => {
   ) => {
     setGrading(submissionId);
     try {
-      const ref = doc(db, "submissions", submissionId);
-      await updateDoc(ref, { grade, feedback, status: "graded" });
+      const assignment = assignments.find((item) => item.id === selectedAssignment);
+      const submission = submissions.find((item) => item.id === submissionId);
+      if (!assignment || !submission || !user) throw new Error("Unable to resolve grading context.");
+      const mark = Number(grade);
+      await saveSubmissionGrade(assignment, submission, mark, feedback, user.uid);
       toast.success("Grade saved!");
       setSubmissions((prev) =>
         prev.map((s) =>
@@ -113,7 +121,7 @@ const TeacherGradesPage: React.FC = () => {
       );
     } catch (error) {
       console.error("Error saving grade:", error);
-      toast.error("Failed to save grade");
+      toast.error(error instanceof Error ? error.message : "Failed to save grade");
     } finally {
       setGrading(null);
     }
@@ -225,9 +233,9 @@ const TeacherGradesPage: React.FC = () => {
                       {s.studentName || s.studentId}
                     </td>
                     <td className="px-4 py-3">
-                      {s.fileUrl ? (
+                      {s.submissionUrl || s.fileUrl ? (
                         <a
-                          href={s.fileUrl}
+                          href={s.submissionUrl || s.fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-indigo-600 hover:underline"
@@ -240,7 +248,9 @@ const TeacherGradesPage: React.FC = () => {
                     </td>
                     <td className="px-4 py-3">
                       <input
-                        type="text"
+                        type="number"
+                        min="0"
+                        max="100"
                         defaultValue={s.grade || ""}
                         id={`grade-${s.id}`}
                         placeholder="Grade"

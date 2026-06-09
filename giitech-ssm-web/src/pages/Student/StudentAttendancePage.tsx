@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../../firebaseConfig";
 import { useAuth } from "../../contexts/AuthContext";
 import { exportToCSV, exportToPDF } from "../Admin/reports/utils/reportExports";
+import {
+  fetchAttendanceByStudentId,
+  fetchStudentProfileByUserId,
+} from "../../services/AcademicRecordService";
 
 interface AttendanceRecord {
   id: string;
@@ -22,16 +24,8 @@ export default function StudentAttendancePage() {
       if (!user) return;
 
       try {
-        const q = query(
-          collection(db, "attendance"),
-          where("studentId", "==", user.uid)
-        );
-        const snapshot = await getDocs(q);
-        const data = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as AttendanceRecord[];
-        setAttendance(data);
+        const student = await fetchStudentProfileByUserId(user.uid);
+        setAttendance(student ? await fetchAttendanceByStudentId(student.studentId) : []);
       } catch (error) {
         console.error("Error fetching attendance:", error);
       } finally {
