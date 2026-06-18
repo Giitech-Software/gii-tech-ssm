@@ -69,7 +69,7 @@ const adminTools = [
   ["Family links", "Connect parent and student profiles.", "./admin/family-links"],
   ["Fee structures", "Define class-based school fees.", "./admin/fees"],
   ["Finance ledger", "Track student charges and payments.", "./admin/finance"],
-  ["Reports", "Compare school indicators and open detailed student records.", "./admin/analytics"],
+  ["Reports", "Open student, performance, attendance, and report-card views.", "./admin/reports"],
   ["Student QR identity", "Generate student lookup identity cards.", "./admin/student-qr"],
 ] as const;
 
