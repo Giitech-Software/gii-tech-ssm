@@ -44,8 +44,8 @@ export default function RoleDashboard({ role }: RoleDashboardProps) {
     void load();
   }, [load]);
 
-  if (!data && loading) return <p className="py-12 text-center text-sm text-gray-500">Loading dashboard...</p>;
-  if (!data) return <p className="border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</p>;
+  if (!data && loading) return <div className="surface flex min-h-64 items-center justify-center text-sm text-slate-500"><RefreshCw className="mr-2 animate-spin text-accent1" size={17} />Loading dashboard...</div>;
+  if (!data) return <p className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">{error}</p>;
 
   return (
     <div className="space-y-6">
@@ -59,13 +59,13 @@ export default function RoleDashboard({ role }: RoleDashboardProps) {
       </header>
       {error && <p className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{error}</p>}
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {data.metrics.map((metric) => <div key={metric.label} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-md"><p className="text-xs font-semibold uppercase tracking-wide text-primary">{metric.label}</p><p className="mt-2 text-2xl font-bold tracking-tight text-dark">{metric.value}</p><p className="mt-1 text-xs text-slate-500">{metric.detail}</p></div>)}
+        {data.metrics.map((metric) => <div key={metric.label} className="surface surface-hover p-5"><p className="eyebrow">{metric.label}</p><p className="mt-2 text-2xl font-black tracking-tight text-dark">{metric.value}</p><p className="mt-1 text-xs text-slate-500">{metric.detail}</p></div>)}
       </section>
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
         <div>
           <h2 className="text-base font-semibold text-gray-950">Action queue</h2>
           <p className="mb-3 text-sm text-gray-500">The next work items that deserve attention.</p>
-          <div className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
             {data.queues.map((item) => <Link key={item.label} to={item.route} className="flex items-center gap-3 p-4 hover:bg-gray-50"><span className="min-w-0 flex-1"><span className="block text-sm font-medium text-gray-950">{item.label}</span><span className="mt-1 block text-xs text-gray-500">{item.detail}</span></span><strong className="text-sm text-gray-900">{item.value}</strong><ArrowRight size={16} className="text-gray-400" /></Link>)}
           </div>
         </div>
@@ -74,7 +74,7 @@ export default function RoleDashboard({ role }: RoleDashboardProps) {
             <div><h2 className="text-base font-semibold text-gray-950">Notifications</h2><p className="mb-3 text-sm text-gray-500">Active workflow alerts and school notices.</p></div>
             <Link to="/notifications" title="Open notifications" className="text-gray-500 hover:text-gray-900"><Bell size={18} /></Link>
           </div>
-          <div className="divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="divide-y divide-slate-100 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
             {data.notifications.slice(0, 4).map((item) => <Link key={item.id} to={item.route || "/notifications"} className="block p-4 hover:bg-gray-50"><p className="text-sm font-medium text-gray-950">{item.title}</p><p className="mt-1 text-xs text-gray-500">{item.message}</p></Link>)}
             {!data.notifications.length && <p className="p-4 text-sm text-gray-500">No active notifications.</p>}
           </div>
@@ -83,7 +83,7 @@ export default function RoleDashboard({ role }: RoleDashboardProps) {
       <section>
         <h2 className="text-base font-semibold text-gray-950">Workspace</h2>
         <p className="mb-3 text-sm text-gray-500">Frequently used tools for your role.</p>
-        <div className="grid gap-3 sm:grid-cols-3">{data.links.map((item) => <Link key={item.label} to={item.route} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-blue-200 hover:bg-blue-50/60 hover:shadow-md"><p className="text-sm font-semibold text-dark">{item.label}</p><p className="mt-1 text-xs text-slate-500">{item.detail}</p></Link>)}</div>
+        <div className="grid gap-4 sm:grid-cols-3">{data.links.map((item) => <Link key={item.label} to={item.route} className="surface surface-hover p-5"><p className="text-sm font-bold text-dark">{item.label}</p><p className="mt-1 text-xs leading-5 text-slate-500">{item.detail}</p></Link>)}</div>
       </section>
     </div>
   );

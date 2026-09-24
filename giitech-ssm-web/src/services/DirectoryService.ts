@@ -34,6 +34,7 @@ export interface StaffDirectoryRecord {
   subject?: string;
   subjectId?: string;
   phone?: string;
+  ssnitNumber?: string;
   status?: DirectoryStatus;
 }
 

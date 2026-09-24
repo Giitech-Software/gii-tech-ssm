@@ -1,0 +1,22 @@
+import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
+import { db } from "../firebaseConfig";
+
+export type GradeBand = { grade: string; label: string; min: number; max: number; points: number };
+export type EducationLevel = "preschool" | "shs" | "primary_jhs";
+export type GradingConfiguration = { id: string; name: string; educationLevel?: EducationLevel; bands: GradeBand[]; classScoreWeight?: number; examScoreWeight?: number; updatedAt?: unknown };
+export const defaultGradeBands: GradeBand[] = [
+  { grade: "A", label: "Excellent", min: 80, max: 100, points: 4 }, { grade: "B", label: "Very good", min: 70, max: 79, points: 3 }, { grade: "C", label: "Good", min: 60, max: 69, points: 2 }, { grade: "D", label: "Pass", min: 50, max: 59, points: 1 }, { grade: "F", label: "Needs improvement", min: 0, max: 49, points: 0 },
+];
+export const shsGradeBands: GradeBand[] = [
+  { grade: "A+", label: "Excellent", min: 90, max: 100, points: 4 }, { grade: "A", label: "Excellent", min: 85, max: 89.99, points: 4 }, { grade: "B+", label: "Very Good", min: 80, max: 84.99, points: 3 }, { grade: "B", label: "Very Good", min: 75, max: 79.99, points: 3 }, { grade: "C+", label: "Good", min: 70, max: 74.99, points: 2 }, { grade: "C", label: "Average", min: 65, max: 69.99, points: 2 }, { grade: "D+", label: "Pass", min: 60, max: 64.99, points: 1 }, { grade: "D", label: "Below Average", min: 55, max: 59.99, points: 1 }, { grade: "E", label: "Below Average", min: 50, max: 54.99, points: 0 }, { grade: "F", label: "Fail", min: 0, max: 49.99, points: 0 },
+];
+export const primaryJhsGradeBands: GradeBand[] = [
+  { grade: "1", label: "Excellent", min: 90, max: 100, points: 1 }, { grade: "2", label: "Very Good", min: 80, max: 89.99, points: 2 }, { grade: "3", label: "Good", min: 70, max: 79.99, points: 3 }, { grade: "4", label: "Average", min: 60, max: 69.99, points: 4 }, { grade: "5", label: "Pass", min: 55, max: 59.99, points: 5 }, { grade: "6", label: "Pass", min: 50, max: 54.99, points: 6 }, { grade: "7", label: "Below Average", min: 40, max: 49.99, points: 7 }, { grade: "8", label: "Below Average", min: 30, max: 39.99, points: 8 }, { grade: "9", label: "Fail", min: 0, max: 29.99, points: 9 },
+];
+export const preschoolGradeBands: GradeBand[] = [
+  { grade: "E", label: "Excellent", min: 90, max: 100, points: 1 }, { grade: "VG", label: "Very Good", min: 75, max: 89.99, points: 2 }, { grade: "G", label: "Good", min: 60, max: 74.99, points: 3 }, { grade: "D", label: "Developing", min: 40, max: 59.99, points: 4 }, { grade: "B", label: "Beginning", min: 0, max: 39.99, points: 5 },
+];
+export async function getGradingConfiguration() { const snapshot = await getDoc(doc(db, "gradingSystems", "default")); if (!snapshot.exists()) return { id: "default", name: "SHS grading system", educationLevel: "shs" as EducationLevel, bands: shsGradeBands, classScoreWeight: 30, examScoreWeight: 70 }; const data = snapshot.data(); const educationLevel: EducationLevel = data.educationLevel === "primary_jhs" || data.educationLevel === "preschool" ? data.educationLevel : "shs"; const defaults = educationLevel === "primary_jhs" ? primaryJhsGradeBands : educationLevel === "preschool" ? preschoolGradeBands : shsGradeBands; const bands = data.educationLevel ? ((data.bands as GradeBand[]) || defaults) : shsGradeBands; return { id: snapshot.id, name: String(data.name || `${educationLevel} grading system`), educationLevel, bands, classScoreWeight: Number(data.classScoreWeight ?? 30), examScoreWeight: Number(data.examScoreWeight ?? 70) }; }
+export async function saveGradingConfiguration(configuration: Omit<GradingConfiguration, "id">) { await setDoc(doc(db, "gradingSystems", "default"), { ...configuration, updatedAt: serverTimestamp() }, { merge: true }); }
+export function calculateFinalScore(classScore: number | undefined, examScore: number | undefined, configuration: Pick<GradingConfiguration, "classScoreWeight" | "examScoreWeight">) { const classWeight = configuration.classScoreWeight ?? 30; const examWeight = configuration.examScoreWeight ?? 70; if (classScore == null && examScore == null) return 0; if (classScore == null) return examScore || 0; if (examScore == null) return classScore || 0; return Number(((classScore * classWeight + examScore * examWeight) / 100).toFixed(2)); }
+export function gradeForScore(score: number, bands: GradeBand[]) { return bands.find(band => score >= band.min && score <= band.max) || bands[bands.length - 1]; }

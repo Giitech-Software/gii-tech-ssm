@@ -1,10 +1,15 @@
-import { collection, doc, getDocs, query, serverTimestamp, setDoc, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { fetchReportCardData } from "./ReportCardService";
+import { fetchClassSubjectSetup, missingRequiredSubjects } from "./SubjectSetupService";
+import { fetchReportApproval } from "./ReportApprovalService";
 
 export interface PublishedSubject {
   name: string;
   mark: number;
+  classScore?: number;
+  examScore?: number;
+  finalScore?: number;
   grade: string;
   remark: string;
 }
@@ -18,8 +23,15 @@ export interface PublishedStudentReport {
   term: string;
   subjects: PublishedSubject[];
   averageGrade: number;
+  gpa?: number;
+  positions?: { class: { position: number; total: number } | null; stream: { position: number; total: number } | null; department: { position: number; total: number } | null; overall: { position: number; total: number } | null };
+  interests?: string;
+  conductRemark?: string;
+  attendanceRemark?: string;
+  nextSteps?: string;
   attendance: { present: number; total: number };
   published: boolean;
+  approvalStatus?: "approved";
   publishedAt?: unknown;
   publishedBy?: string;
 }
@@ -35,7 +47,12 @@ export async function publishStudentReport(
 ) {
   const reportCard = await fetchReportCardData(studentId, { academicYear, term });
   if (!reportCard) throw new Error("Student record not found.");
+  const approval = await fetchReportApproval(studentId, academicYear, term);
+  if (approval.status !== "approved") throw new Error("Report must be approved and locked before publication.");
   if (!reportCard.subjects.length) throw new Error("No grades found for this student and term.");
+  const studentSnapshot = await getDoc(doc(db, "students", studentId));
+  const classId = studentSnapshot.exists() ? studentSnapshot.data().classId as string | undefined : undefined;
+  if (classId) { const setup = await fetchClassSubjectSetup(classId); const missing = missingRequiredSubjects(setup.subjects, reportCard.subjects.map(subject => subject.name)); if (missing.length) throw new Error(`Cannot publish: missing subjects — ${missing.join(", ")}.`); }
 
   const report: Omit<PublishedStudentReport, "id"> = {
     studentId,
@@ -45,8 +62,15 @@ export async function publishStudentReport(
     term,
     subjects: reportCard.subjects,
     averageGrade: reportCard.average,
+    gpa: reportCard.gpa,
+    positions: reportCard.positions,
+    interests: reportCard.interests,
+    conductRemark: reportCard.conductRemark,
+    attendanceRemark: reportCard.attendanceRemark,
+    nextSteps: reportCard.nextSteps,
     attendance: reportCard.attendance,
     published: true,
+    approvalStatus: "approved",
     publishedBy,
   };
 
@@ -84,4 +108,3 @@ export async function fetchPublishedReports() {
   const snapshot = await getDocs(collection(db, "studentReports"));
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as PublishedStudentReport);
 }
-

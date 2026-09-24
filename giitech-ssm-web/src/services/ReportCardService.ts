@@ -1,6 +1,9 @@
 import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
 import type { QueryConstraint } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { calculateFinalScore, getGradingConfiguration, gradeForScore } from "./GradingConfigurationService";
+import { calculateRankings } from "./RankingService";
+import { fetchTermComments } from "./TermCommentsService";
 
 export interface ReportCardFilters {
   academicYear?: string;
@@ -15,6 +18,7 @@ export const fetchReportCardData = async (studentId: string, filters: ReportCard
   }
 
   const studentData = studentDoc.data();
+  const gradingConfiguration = await getGradingConfiguration();
   const classId = studentData.classId ?? null;
   let className = "Unassigned Class";
   if (classId) {
@@ -23,6 +27,8 @@ export const fetchReportCardData = async (studentId: string, filters: ReportCard
   }
 
   const termName = filters.term || "All terms";
+  const streamId = String(studentData.streamId || studentData.stream || "");
+  const departmentId = String(studentData.departmentId || studentData.department || "");
 
   const gradeConstraints: QueryConstraint[] = [where("studentId", "==", studentId)];
   if (filters.academicYear) gradeConstraints.push(where("academicYear", "==", filters.academicYear));
@@ -32,13 +38,19 @@ export const fetchReportCardData = async (studentId: string, filters: ReportCard
   let totalMarks = 0;
   const subjects = gradeSnapshot.docs.map((item) => {
     const grade = item.data();
-    const mark = Number(grade.mark ?? grade.score ?? 0);
+    const classScore = grade.classScore ?? grade.classMark;
+    const examScore = grade.examScore ?? grade.examMark;
+    const mark = calculateFinalScore(classScore == null ? undefined : Number(classScore), examScore == null ? undefined : Number(examScore), gradingConfiguration);
     totalMarks += mark;
     return {
       name: grade.subject || grade.subjectName || grade.assignmentTitle || "Unknown Subject",
       mark,
-      grade: getGrade(mark),
-      remark: getRemark(mark),
+      classScore: classScore == null ? undefined : Number(classScore),
+      examScore: examScore == null ? undefined : Number(examScore),
+      finalScore: Number(grade.finalScore ?? mark),
+      grade: gradeForScore(mark, gradingConfiguration.bands).grade,
+      remark: gradeForScore(mark, gradingConfiguration.bands).label,
+      points: gradeForScore(mark, gradingConfiguration.bands).points,
     };
   });
 
@@ -48,35 +60,45 @@ export const fetchReportCardData = async (studentId: string, filters: ReportCard
     const attendance = item.data();
     return attendance.present === true || attendance.status === "Present";
   }).length;
+  const rankingFilters = { academicYear: filters.academicYear, term: filters.term };
+  const [classRankings, streamRankings, departmentRankings, overallRankings] = await Promise.all([
+    calculateRankings({ ...rankingFilters, classId: classId || undefined }),
+    streamId ? calculateRankings({ ...rankingFilters, streamId }) : Promise.resolve([]),
+    departmentId ? calculateRankings({ ...rankingFilters, departmentId }) : Promise.resolve([]),
+    calculateRankings(rankingFilters),
+  ]);
+  const ranking = classRankings.find(item => item.studentId === studentId);
+  const streamRanking = streamRankings.find(item => item.studentId === studentId);
+  const departmentRanking = departmentRankings.find(item => item.studentId === studentId);
+  const overallRanking = overallRankings.find(item => item.studentId === studentId);
+  const gpa = subjects.length ? subjects.reduce((sum, subject) => sum + subject.points, 0) / subjects.length : 0;
+  const comments = filters.academicYear && filters.term ? await fetchTermComments(studentId, filters.academicYear, filters.term) : null;
 
   return {
     studentName: studentData.displayName || studentData.name || studentData.studentName || "Unknown",
     className,
+    streamName: studentData.streamName || studentData.stream || streamId || "Not assigned",
+    departmentName: studentData.departmentName || studentData.department || departmentId || "Not assigned",
     termName,
     academicYear: filters.academicYear || "All academic years",
     subjects,
     average: subjects.length ? totalMarks / subjects.length : 0,
+    gpa,
+    rank: ranking?.rank || null,
+    rankedStudents: classRankings.length,
+    positions: {
+      class: ranking ? { position: ranking.rank, total: classRankings.length } : null,
+      stream: streamRanking ? { position: streamRanking.rank, total: streamRankings.length } : null,
+      department: departmentRanking ? { position: departmentRanking.rank, total: departmentRankings.length } : null,
+      overall: overallRanking ? { position: overallRanking.rank, total: overallRankings.length } : null,
+    },
+    interests: comments?.interests || studentData.interests || studentData.interest || "",
+    conductRemark: comments?.conductRemark || studentData.conductRemark || studentData.remarks || "",
+    attendanceRemark: comments?.attendanceRemark || "",
+    nextSteps: comments?.nextSteps || "",
     attendance: {
       present: presentDays,
       total: attendanceSnapshot.size,
     },
   };
 };
-
-function getGrade(mark: number): string {
-  if (mark >= 80) return "A";
-  if (mark >= 70) return "B";
-  if (mark >= 60) return "C";
-  if (mark >= 50) return "D";
-  if (mark >= 40) return "E";
-  return "F";
-}
-
-function getRemark(mark: number): string {
-  if (mark >= 80) return "Excellent";
-  if (mark >= 70) return "Very Good";
-  if (mark >= 60) return "Good";
-  if (mark >= 50) return "Fair";
-  if (mark >= 40) return "Needs Improvement";
-  return "Fail";
-}

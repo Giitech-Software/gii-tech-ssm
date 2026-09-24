@@ -10,6 +10,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { calculateFinalScore, getGradingConfiguration } from "./GradingConfigurationService";
 
 export interface AcademicTerm {
   id: string;
@@ -41,6 +42,8 @@ export interface ExamGradeEntry {
   studentId: string;
   studentName: string;
   mark: number;
+  classScore?: number;
+  examScore?: number;
 }
 
 export async function fetchTerms(): Promise<AcademicTerm[]> {
@@ -109,11 +112,12 @@ export async function saveExamGrades(
 ) {
   const cleanSubject = subject.trim();
   if (!cleanSubject) throw new Error("Subject is required.");
-  if (entries.some((entry) => !Number.isFinite(entry.mark) || entry.mark < 0 || entry.mark > 100)) {
+  if (entries.some((entry) => !Number.isFinite(entry.mark) || entry.mark < 0 || entry.mark > 100 || (entry.classScore != null && (!Number.isFinite(entry.classScore) || entry.classScore < 0 || entry.classScore > 100)) || (entry.examScore != null && (!Number.isFinite(entry.examScore) || entry.examScore < 0 || entry.examScore > 100)))) {
     throw new Error("Every mark must be between 0 and 100.");
   }
 
   const batch = writeBatch(db);
+  const gradingConfiguration = await getGradingConfiguration();
   entries.forEach((entry) => {
     batch.set(
       doc(db, "grades", gradeId(exam.id, cleanSubject, entry.studentId)),
@@ -131,6 +135,9 @@ export async function saveExamGrades(
         teacherId,
         mark: entry.mark,
         score: entry.mark,
+        classScore: entry.classScore,
+        examScore: entry.examScore,
+        finalScore: calculateFinalScore(entry.classScore, entry.examScore, gradingConfiguration),
         total: 100,
         updatedAt: serverTimestamp(),
       },
@@ -139,4 +146,3 @@ export async function saveExamGrades(
   });
   await batch.commit();
 }
-

@@ -3,27 +3,37 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   BarChart3,
   Activity,
+  AlertTriangle,
+  CalendarRange,
   ArrowUpRight,
   Bell,
   BookOpen,
   Building,
   Calendar,
   ChevronLeft,
+  ChevronDown,
+  Clock3,
   ClipboardList,
   ClipboardCheck,
   DollarSign,
   FileBarChart2,
   FileText,
+  ReceiptText,
   GraduationCap,
   Home,
   Layers,
   Link2,
+  LibraryBig,
+  WalletCards,
   LogOut,
   Menu,
   Megaphone,
   MessageCircle,
   Send,
   ShieldCheck,
+  ScanLine,
+  ScanFace,
+  Sparkles,
   UploadCloud,
   Users,
   UserCog,
@@ -48,12 +58,14 @@ const roleTitles: Record<string, string> = {
   teacher: "Teacher",
   student: "Student",
   parent: "Parent",
+  staff: "Non-Teaching Staff",
 };
 
 const SharedLayout = () => {
   const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [openAdminGroup, setOpenAdminGroup] = useState<string | null>(null);
   const { user, role, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -87,10 +99,26 @@ const SharedLayout = () => {
 
   const navItems: NavItem[] = [
     { to: "/admin/departments", label: "Departments", icon: <Building size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/academic-years", label: "Academic Years", icon: <CalendarRange size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/classes", label: "Classes", icon: <Layers size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/streams", label: "Streams", icon: <GraduationCap size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/students", label: "Students", icon: <GraduationCap size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/staff", label: "Staff", icon: <Users size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/create-staff", label: "Create Staff", icon: <UserPlus size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/staff-attendance", label: "Staff Attendance", icon: <Calendar size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/qr-attendance", label: "QR Attendance", icon: <ScanLine size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/qr-identities", label: "Student QR Cards", icon: <ScanLine size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/face-enrollment", label: "Face Enrollment", icon: <ScanFace size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/attendance-analytics", label: "Attendance Analytics", icon: <BarChart3 size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/grading", label: "Grading Configuration", icon: <BookOpen size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/rankings", label: "Student Rankings", icon: <BarChart3 size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/payment-intents", label: "Payment Intents", icon: <DollarSign size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/ai-audit", label: "AI Grading Audit", icon: <ShieldCheck size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/ai-settings", label: "AI Usage Settings", icon: <ShieldCheck size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/ai-usage", label: "AI Usage Report", icon: <BarChart3 size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/ai-costs", label: "AI Cost Controls", icon: <DollarSign size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/ai-alerts", label: "AI Budget Alerts", icon: <AlertTriangle size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/ai-monthly-costs", label: "AI Monthly Costs", icon: <BarChart3 size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/activity", label: "Activity Logs", icon: <Activity size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/communications", label: "Communications", icon: <Megaphone size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/promotions", label: "Student Promotion", icon: <ArrowUpRight size={18} />, roles: ["superadmin", "admin"] },
@@ -99,33 +127,80 @@ const SharedLayout = () => {
     { to: "/admin/identity-links", label: "Family Links", icon: <Link2 size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/fees", label: "Fee Structures", icon: <DollarSign size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/finance", label: "Student Ledger", icon: <DollarSign size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/library", label: "School Library", icon: <LibraryBig size={18} />, roles: ["superadmin", "admin"] },
+  { to: "/admin/staff-finance", label: "Staff Financial Records", icon: <WalletCards size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/staff-loan-repayments", label: "Staff Loan Repayments", icon: <WalletCards size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/staff-finance-reports", label: "Staff Finance Reports", icon: <FileBarChart2 size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/ssnit-report", label: "SSNIT Contribution Report", icon: <FileBarChart2 size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/ssnit-remittance", label: "SSNIT Remittance Tracking", icon: <ShieldCheck size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/staff-attendance-settings", label: "Staff Attendance Times", icon: <Clock3 size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/staff-qr-identities", label: "Staff QR Identity Cards", icon: <ScanLine size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/staff-movement-report", label: "Early Departure Report", icon: <AlertTriangle size={18} />, roles: ["superadmin", "admin"] },
     { to: "/superadmin/users", label: "User Management", icon: <UserCog size={18} />, roles: ["superadmin"] },
     { to: "/superadmin/create-user", label: "Create User", icon: <UserPlus size={18} />, roles: ["superadmin"] },
     { to: "/admin/reports", label: "Reports", icon: <FileBarChart2 size={18} />, roles: ["superadmin", "admin"] },
     { to: "/teacher/assignments", label: "Assignments", icon: <ClipboardList size={18} />, roles: ["teacher"] },
+    { to: "/teacher/materials", label: "Learning Materials", icon: <BookOpen size={18} />, roles: ["teacher"] },
+    { to: "/teacher/assessment-summary", label: "Assessment Summary", icon: <BarChart3 size={18} />, roles: ["teacher"] },
+    { to: "/teacher/ai-review", label: "AI Mark Review", icon: <Sparkles size={18} />, roles: ["teacher"] },
     { to: "/teacher/submissions", label: "Submissions", icon: <UploadCloud size={18} />, roles: ["teacher"] },
     { to: "/teacher/grades", label: "Grades", icon: <BookOpen size={18} />, roles: ["teacher"] },
     { to: "/teacher/exam-grades", label: "Exam Grades", icon: <ClipboardCheck size={18} />, roles: ["teacher"] },
     { to: "/teacher/grade-summary", label: "Grade Summary", icon: <BarChart3 size={18} />, roles: ["teacher"] },
     { to: "/teacher/attendance", label: "Attendance", icon: <Calendar size={18} />, roles: ["teacher"] },
+    { to: "/teacher/qr-attendance", label: "QR Attendance", icon: <ScanLine size={18} />, roles: ["teacher"] },
     { to: "/teacher/feedback", label: "Feedback", icon: <Send size={18} />, roles: ["teacher"] },
     { to: "/teacher/messages", label: "Messages", icon: <MessageCircle size={18} />, roles: ["teacher"], badge: unreadCount },
     { to: "/student/assignments", label: "Assignments", icon: <FileText size={18} />, roles: ["student"] },
+    { to: "/student/materials", label: "Learning Materials", icon: <BookOpen size={18} />, roles: ["student"] },
     { to: "/student/submissions", label: "Submissions", icon: <UploadCloud size={18} />, roles: ["student"] },
     { to: "/student/grades", label: "My Grades", icon: <ClipboardList size={18} />, roles: ["student"] },
     { to: "/student/attendance", label: "My Attendance", icon: <Calendar size={18} />, roles: ["student"] },
+    { to: "/student/library", label: "My Library", icon: <LibraryBig size={18} />, roles: ["student"] },
     { to: "/parent/performance", label: "Performance", icon: <BarChart3 size={18} />, roles: ["parent"] },
     { to: "/parent/attendance", label: "Attendance", icon: <Calendar size={18} />, roles: ["parent"] },
     { to: "/parent/reports", label: "Reports", icon: <FileText size={18} />, roles: ["parent"] },
-    { to: "/notifications", label: "Notifications", icon: <Bell size={18} />, roles: ["superadmin", "admin", "teacher", "student", "parent"] },
+    { to: "/notifications", label: "Notifications", icon: <Bell size={18} />, roles: ["superadmin", "admin", "teacher", "student", "parent", "staff"] },
+    { to: "/notification-preferences", label: "Delivery Preferences", icon: <Bell size={18} />, roles: ["superadmin", "admin", "teacher", "student", "parent", "staff"] },
     { to: "/parent/messages", label: "Messages", icon: <MessageCircle size={18} />, roles: ["parent"], badge: unreadCount },
     { to: "/parent/fees", label: "Fees", icon: <DollarSign size={18} />, roles: ["parent"] },
-    { to: "/announcements", label: "Announcements", icon: <Bell size={18} />, roles: ["superadmin", "admin", "teacher", "student", "parent"] },
-    { to: "/calendar", label: "Calendar", icon: <Calendar size={18} />, roles: ["superadmin", "admin", "teacher", "student", "parent"] },
+    { to: "/staff/attendance", label: "Attendance", icon: <Calendar size={18} />, roles: ["staff"] },
+    { to: "/staff/qr-attendance", label: "QR Attendance", icon: <ScanLine size={18} />, roles: ["staff"] },
+    { to: "/staff/messages", label: "Communication", icon: <MessageCircle size={18} />, roles: ["staff"], badge: unreadCount },
+    { to: "/staff/finance", label: "My Financial Records", icon: <WalletCards size={18} />, roles: ["staff"] },
+    { to: "/staff/payslips", label: "My Payslips", icon: <ReceiptText size={18} />, roles: ["staff"] },
+    { to: "/announcements", label: "Announcements", icon: <Bell size={18} />, roles: ["superadmin", "admin", "teacher", "student", "parent", "staff"] },
+    { to: "/calendar", label: "Calendar", icon: <Calendar size={18} />, roles: ["superadmin", "admin", "teacher", "student", "parent", "staff"] },
   ];
 
   const visibleItems = navItems.filter((item) => role && item.roles.includes(role));
   const displayName = user?.displayName || user?.email || "User";
+
+  const renderNavItems = (items: NavItem[]) => items.map((item) => (
+    <NavLink
+      key={item.to}
+      to={item.to}
+      title={item.label}
+      className={({ isActive }) =>
+        `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
+          isActive ? "bg-blue-50 font-semibold text-primary" : "text-slate-600 hover:bg-slate-50"
+        }`
+      }
+    >
+      {item.icon}
+      <span className={`flex-1 ${desktopCollapsed ? "md:hidden" : ""}`}>{item.label}</span>
+      {!!item.badge && <span className={`rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white ${desktopCollapsed ? "md:hidden" : ""}`}>{item.badge}</span>}
+    </NavLink>
+  ));
+
+  const renderAdminGroup = (key: string, label: string, icon: React.ReactNode, items: NavItem[]) => (
+    <div className="space-y-1" key={key}>
+      <button type="button" onClick={() => setOpenAdminGroup(openAdminGroup === key ? null : key)} className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition ${openAdminGroup === key ? "border-indigo-200 bg-indigo-50 text-indigo-800" : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"}`}>
+        <span className="text-primary">{icon}</span><span className={`flex-1 ${desktopCollapsed ? "md:hidden" : ""}`}>{label}</span><ChevronDown className={`transition-transform ${openAdminGroup === key ? "rotate-180" : ""} ${desktopCollapsed ? "md:hidden" : ""}`} size={16} />
+      </button>
+      {openAdminGroup === key && <div className="ml-2 space-y-1 border-l border-indigo-100 pl-2">{renderNavItems(items)}</div>}
+    </div>
+  );
 
   const handleLogout = async () => {
     await logout();
@@ -136,8 +211,8 @@ const SharedLayout = () => {
     <div className="flex h-full flex-col bg-white">
       <div className="flex h-16 items-center justify-between border-b px-4">
         <div className={`min-w-0 ${desktopCollapsed ? "md:hidden" : ""}`}>
-          <p className="truncate text-base font-bold text-gray-900">Giitech-SSM</p>
-          <p className="truncate text-xs text-gray-500">{roleTitles[role || ""] || "School Manager"}</p>
+          <p className="truncate text-base font-black tracking-tight text-primary">ASTEM-SSM</p>
+          <p className="truncate text-xs font-medium text-slate-500">{roleTitles[role || ""] || "School Manager"}</p>
         </div>
         <button
           type="button"
@@ -156,8 +231,8 @@ const SharedLayout = () => {
           end
           title="Dashboard"
           className={({ isActive }) =>
-            `flex items-center gap-3 rounded-md px-3 py-2 text-sm transition ${
-              isActive ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-100"
+            `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
+              isActive ? "bg-blue-50 font-semibold text-primary" : "text-slate-600 hover:bg-slate-50"
             }`
           }
         >
@@ -165,26 +240,11 @@ const SharedLayout = () => {
           <span className={desktopCollapsed ? "md:hidden" : ""}>Dashboard</span>
         </NavLink>
 
-        {visibleItems.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            title={item.label}
-            className={({ isActive }) =>
-              `flex items-center gap-3 rounded-md px-3 py-2 text-sm transition ${
-                isActive ? "bg-indigo-50 font-medium text-indigo-700" : "text-gray-700 hover:bg-gray-100"
-              }`
-            }
-          >
-            {item.icon}
-            <span className={`flex-1 ${desktopCollapsed ? "md:hidden" : ""}`}>{item.label}</span>
-            {!!item.badge && (
-              <span className={`rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white ${desktopCollapsed ? "md:hidden" : ""}`}>
-                {item.badge}
-              </span>
-            )}
-          </NavLink>
-        ))}
+        {role === "admin" || role === "superadmin" ? <>
+          {renderAdminGroup("academic", "Academic operations", <GraduationCap size={18} />, visibleItems.filter(item => ["Departments", "Academic Years", "Classes", "Streams", "Students", "Staff", "Staff Attendance", "QR Attendance", "Student QR Cards", "Attendance Analytics", "Grading Configuration", "Student Rankings"].includes(item.label)))}
+          {renderAdminGroup("finance", "Finance and AI controls", <DollarSign size={18} />, visibleItems.filter(item => ["Payment Intents", "Fee Structures", "Student Ledger", "AI Grading Audit", "AI Usage Settings", "AI Usage Report", "AI Cost Controls", "AI Budget Alerts", "AI Monthly Costs"].includes(item.label)))}
+          {renderAdminGroup("school", "School administration", <ShieldCheck size={18} />, visibleItems.filter(item => !["Departments", "Academic Years", "Classes", "Streams", "Students", "Staff", "Staff Attendance", "QR Attendance", "Student QR Cards", "Attendance Analytics", "Grading Configuration", "Student Rankings", "Payment Intents", "Fee Structures", "Student Ledger", "School Library", "Staff Financial Records", "AI Grading Audit", "AI Usage Settings", "AI Usage Report", "AI Cost Controls", "AI Budget Alerts", "AI Monthly Costs"].includes(item.label)))}
+        </> : renderNavItems(visibleItems)}
       </nav>
 
       <div className="space-y-1 border-t p-3">
@@ -211,7 +271,7 @@ const SharedLayout = () => {
   );
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-slate-50">
       {mobileOpen && (
         <button
           type="button"
@@ -229,7 +289,7 @@ const SharedLayout = () => {
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex h-16 items-center justify-between border-b bg-white px-4">
+        <header className="flex h-16 items-center justify-between border-b border-slate-200/80 bg-white/95 px-4 shadow-sm backdrop-blur">
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
@@ -247,8 +307,12 @@ const SharedLayout = () => {
           </div>
         </header>
 
-        <main className="flex-1 overflow-auto bg-gray-50 p-4 sm:p-6">
+        <main className="flex-1 overflow-auto bg-slate-50 p-4 sm:p-7">
           <Outlet />
+          <footer className="mt-8 border-t border-slate-200 px-2 py-5 text-center text-xs text-slate-500">
+            <p>ASTEM-SSM, all rights reserved.</p>
+            <p className="mt-1">Powered by ASTEM Software Lab.</p>
+          </footer>
         </main>
       </div>
     </div>

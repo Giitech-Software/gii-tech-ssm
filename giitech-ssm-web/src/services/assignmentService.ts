@@ -30,12 +30,14 @@ export interface Assignment {
   termId?: string;
   dueDate: any; // accepts Firestore Timestamp, string, or Date for backwards compatibility
   fileUrl?: string;
+  durationMinutes?: number;
+  maxAttempts?: number;
 
   /** 🔹 Type of assignment: short-answer | objective | essay */
   type?: "short-answer" | "objective" | "essay";
 
   /** 🔹 Questions with optional answers/options (for objective/short-answer) */
-  questions?: { question: string; answer?: string; options?: string[] }[];
+  questions?: { question: string; answer?: string; options?: string[]; questionType?: "multiple-choice" | "true-false" | "fill-blank" }[];
 
   createdAt?: any;
 }

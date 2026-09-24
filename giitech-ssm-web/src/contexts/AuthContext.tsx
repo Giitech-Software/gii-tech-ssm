@@ -9,6 +9,7 @@ import {
   createUserWithEmailAndPassword,
   deleteUser as deleteAuthUser,
   getAuth as getAuthInstance,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { initializeApp, deleteApp } from "firebase/app";
 import { auth, db, firebaseConfig } from "../firebaseConfig";
@@ -31,6 +32,7 @@ interface AuthContextType {
   displayName: string | null;
   loading: boolean;
   login: (id: string, password: string) => Promise<void>;
+  resetPassword: (id: string) => Promise<void>;
   logout: () => Promise<void>;
   signup: (
     id: string,
@@ -97,7 +99,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async (id: string, password: string) => {
     const email = idToEmail(id);
-    await signInWithEmailAndPassword(auth, email, password);
+    const credentials = await signInWithEmailAndPassword(auth, email, password);
+    const profile = await getDoc(doc(db, "users", credentials.user.uid));
+    const data = profile.data() as Record<string, any> | undefined;
+    if (data?.status === "disabled" || data?.locked === true) {
+      await signOut(auth);
+      throw new Error("This account is currently disabled. Contact your administrator.");
+    }
+  };
+
+  const resetPassword = async (id: string) => {
+    const normalizedId = id.trim();
+    if (!normalizedId) throw new Error("Enter your User ID first.");
+    await sendPasswordResetEmail(auth, idToEmail(normalizedId));
   };
 
   /**
@@ -159,6 +173,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email,
         displayName: displayNameParam,
         createdAt: serverTimestamp(),
+        status: "active",
         ...extraData, // 🆕 add dropdown data (class, stream, subject, etc.)
       });
 
@@ -202,6 +217,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           parentId: finalId,
           studentIds: extraData.studentIds || [],
         });
+      } else if (role === "staff") {
+        batch.set(doc(db, "staff", finalId), {
+          ...baseProfile,
+          staffId: finalId,
+          department: extraData.department || "",
+        });
       }
 
       await batch.commit();
@@ -238,7 +259,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const value = useMemo(
-    () => ({ user, role, displayName, loading, login, logout, signup }),
+    () => ({ user, role, displayName, loading, login, resetPassword, logout, signup }),
     [user, role, displayName, loading]
   );
 

@@ -42,6 +42,16 @@ service cloud.firestore {
       return hasRole("parent");
     }
 
+    function isStaff() {
+      return hasRole("staff");
+    }
+
+    function teacherOwnsAssignment(assignmentId) {
+      return isTeacher() &&
+        exists(/databases/$(database)/documents/assignments/$(assignmentId)) &&
+        get(/databases/$(database)/documents/assignments/$(assignmentId)).data.teacherId == request.auth.uid;
+    }
+
     function studentExists(studentId) {
       return exists(/databases/$(database)/documents/students/$(studentId));
     }
@@ -60,7 +70,7 @@ service cloud.firestore {
     }
 
     function canReadStudentRecord(studentId) {
-      return isAdminStaff() || isTeacher() || isOwnStudent(studentId) || parentOwnsStudent(studentId);
+      return isAdminStaff() || isTeacher() || isStaff() || isOwnStudent(studentId) || parentOwnsStudent(studentId);
     }
 
     function audienceMatchesUser() {
@@ -69,10 +79,10 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if signedIn() && (request.auth.uid == userId || isAdminStaff());
-      allow create: if isSuperAdmin();
+      allow create: if isSuperAdmin() || (isAdmin() && request.resource.data.role == "staff");
       allow update: if isSuperAdmin() ||
         (signedIn() && request.auth.uid == userId &&
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(["displayName"]));
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(["displayName", "notificationPreferences", "pushTokens"]));
       allow delete: if isSuperAdmin();
     }
 
@@ -83,6 +93,11 @@ service cloud.firestore {
 
     match /teachers/{teacherId} {
       allow read: if isAdminStaff() || isTeacher() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow write: if isAdminStaff();
+    }
+
+    match /staff/{staffId} {
+      allow read: if isAdminStaff() || (isStaff() && resource.data.userId == request.auth.uid);
       allow write: if isAdminStaff();
     }
 
@@ -126,6 +141,16 @@ service cloud.firestore {
       allow write: if isAdminStaff();
     }
 
+    match /gradingSystems/{systemId} {
+      allow read: if signedIn();
+      allow write: if isAdminStaff();
+    }
+
+    match /academicYears/{yearId} {
+      allow read: if signedIn();
+      allow write: if isAdminStaff();
+    }
+
     match /exams/{examId} {
       allow read: if signedIn();
       allow write: if isAdminStaff() || isTeacher();
@@ -135,30 +160,86 @@ service cloud.firestore {
       allow read: if signedIn();
       allow create: if isAdminStaff() ||
         (isTeacher() && request.resource.data.teacherId == request.auth.uid);
-      allow update, delete: if isAdminStaff() ||
+      allow update: if isAdminStaff() ||
+        (isTeacher() && resource.data.teacherId == request.auth.uid && request.resource.data.teacherId == request.auth.uid);
+      allow delete: if isAdminStaff() ||
         (isTeacher() && resource.data.teacherId == request.auth.uid);
     }
 
+    match /learningMaterials/{materialId} {
+      allow read: if signedIn();
+      allow create: if isAdminStaff() || (isTeacher() && request.resource.data.teacherId == request.auth.uid);
+      allow update: if isAdminStaff() || (isTeacher() && resource.data.teacherId == request.auth.uid && request.resource.data.teacherId == request.auth.uid);
+      allow delete: if isAdminStaff() || (isTeacher() && resource.data.teacherId == request.auth.uid);
+    }
+
     match /submissions/{submissionId} {
-      allow read: if isAdminStaff() || isTeacher() ||
+      allow read: if isAdminStaff() || teacherOwnsAssignment(resource.data.assignmentId) ||
         (isStudent() &&
           (resource.data.studentUid == request.auth.uid || isOwnStudent(resource.data.studentId)));
-      allow create: if isStudent() && request.resource.data.studentUid == request.auth.uid;
-      allow update: if isAdminStaff() || isTeacher() ||
+      allow create: if isStudent() &&
+        request.resource.data.studentUid == request.auth.uid &&
+        isOwnStudent(request.resource.data.studentId) &&
+        !request.resource.data.keys().hasAny(["score", "grade", "feedback", "aiSuggestion", "aiApprovedBy", "aiApprovedAt", "aiRejectedBy", "aiRejectedAt"]);
+      allow update: if isAdminStaff() ||
+        (teacherOwnsAssignment(resource.data.assignmentId) &&
+          request.resource.data.assignmentId == resource.data.assignmentId &&
+          request.resource.data.studentUid == resource.data.studentUid &&
+          request.resource.data.studentId == resource.data.studentId) ||
         (isStudent() && resource.data.studentUid == request.auth.uid &&
-          request.resource.data.studentUid == request.auth.uid);
+          request.resource.data.studentUid == request.auth.uid &&
+          request.resource.data.studentId == resource.data.studentId &&
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(["responseText", "responses", "submissionUrl", "submittedAt", "status", "attempts", "createdAt", "syncedAt"]));
       allow delete: if isAdminStaff() ||
         (isStudent() && resource.data.studentUid == request.auth.uid);
     }
 
     match /grades/{gradeId} {
-      allow read: if canReadStudentRecord(resource.data.studentId);
+      allow read: if isAdminStaff() ||
+        (isTeacher() && resource.data.teacherId == request.auth.uid) ||
+        isStaff() || isOwnStudent(resource.data.studentId) || parentOwnsStudent(resource.data.studentId);
+      allow create: if isAdminStaff() ||
+        (isTeacher() && request.resource.data.teacherId == request.auth.uid);
+      allow update: if isAdminStaff() ||
+        (isTeacher() && resource.data.teacherId == request.auth.uid && request.resource.data.teacherId == request.auth.uid);
+      allow delete: if isAdminStaff() || (isTeacher() && resource.data.teacherId == request.auth.uid);
+    }
+
+    match /classSubjects/{classId} {
+      allow read: if signedIn();
+      allow write: if isAdminStaff();
+    }
+
+    match /termComments/{commentId} {
+      allow read: if isAdminStaff() || isTeacher();
       allow write: if isAdminStaff() || isTeacher();
+    }
+
+    match /reportApprovals/{approvalId} {
+      allow read: if isAdminStaff() || isTeacher();
+      allow write: if isAdminStaff();
     }
 
     match /attendance/{attendanceId} {
       allow read: if canReadStudentRecord(resource.data.studentId);
-      allow write: if isAdminStaff() || isTeacher();
+      allow create: if isAdminStaff() ||
+        (isTeacher() && request.resource.data.teacherId == request.auth.uid) ||
+        isStaff();
+      allow update: if isAdminStaff() ||
+        (isTeacher() && resource.data.teacherId == request.auth.uid && request.resource.data.teacherId == request.auth.uid) ||
+        isStaff();
+      allow delete: if isAdminStaff() || isStaff() || (isTeacher() && resource.data.teacherId == request.auth.uid);
+    }
+
+    match /staffAttendance/{attendanceId} {
+      allow read: if isAdminStaff() || (isStaff() && (resource.data.userId == request.auth.uid || resource.data.staffId == request.auth.uid));
+      allow create, update: if isAdminStaff() || (isStaff() && request.resource.data.userId == request.auth.uid);
+      allow delete: if isAdminStaff();
+    }
+
+    match /staffAttendanceSettings/{settingId} {
+      allow read: if signedIn();
+      allow write: if isAdminStaff();
     }
 
     match /fees/{feeId} {
@@ -174,6 +255,48 @@ service cloud.firestore {
     match /feePayments/{paymentId} {
       allow read: if canReadStudentRecord(resource.data.studentId);
       allow write: if isAdminStaff();
+    }
+
+    match /libraryBooks/{bookId} {
+      allow read: if signedIn();
+      allow create: if isAdminStaff();
+      allow update: if isAdminStaff();
+      allow delete: if isAdminStaff();
+    }
+
+    match /libraryLoans/{loanId} {
+      allow read: if isAdminStaff() || (signedIn() && resource.data.borrowerId == request.auth.uid);
+      allow create: if isAdminStaff();
+      allow update: if isAdminStaff();
+      allow delete: if false;
+    }
+
+    match /staffPayroll/{recordId} {
+      allow read: if isAdminStaff() || (isStaff() && resource.data.staffId == request.auth.uid);
+      allow write: if isAdminStaff();
+    }
+
+    match /staffLoans/{recordId} {
+      allow read: if isAdminStaff() || (isStaff() && resource.data.staffId == request.auth.uid);
+      allow create: if isAdminStaff();
+      allow update: if isAdminStaff();
+      allow delete: if false;
+    }
+
+    match /staffWelfare/{recordId} {
+      allow read: if isAdminStaff() || (isStaff() && resource.data.staffId == request.auth.uid);
+      allow create: if isAdminStaff() || (isStaff() && request.resource.data.staffId == request.auth.uid);
+      allow update: if isAdminStaff();
+      allow delete: if false;
+    }
+
+    match /ssnitRemittances/{periodId} {
+      allow read, write: if isAdminStaff();
+    }
+
+    match /paymentIntents/{intentId} {
+      allow read: if isAdminStaff() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow write: if false;
     }
 
     match /promotionHistory/{promotionId} {
@@ -221,7 +344,27 @@ service cloud.firestore {
         (resource.data.published == true &&
           (parentOwnsStudent(resource.data.studentId) ||
             (isParent() && resource.data.parentEmail == request.auth.token.email)));
-      allow write: if isAdminStaff();
+      allow create, update: if isAdminStaff() && request.resource.data.approvalStatus == "approved";
+      allow delete: if isAdminStaff();
+    }
+
+    match /aiSettings/{settingId} {
+      allow read, write: if isAdminStaff();
+    }
+
+    match /aiUsage/{usageId} {
+      allow read: if isAdminStaff();
+      allow write: if false;
+    }
+
+    match /aiUsageMonths/{usageId} {
+      allow read: if isAdminStaff();
+      allow write: if false;
+    }
+
+    match /aiBudgetAlerts/{alertId} {
+      allow read: if isAdminStaff();
+      allow write: if false;
     }
 
     match /{document=**} {

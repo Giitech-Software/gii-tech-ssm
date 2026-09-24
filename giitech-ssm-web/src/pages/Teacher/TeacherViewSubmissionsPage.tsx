@@ -117,23 +117,20 @@ const TeacherViewSubmissionsPage: React.FC = () => {
     const load = async () => {
       setLoading(true);
       try {
-        let qRef;
+        let data: Submission[];
         if (!selectedAssignment) {
-          // Load ALL submissions (most recent first)
-          qRef = query(collection(db, "submissions"), orderBy("submittedAt", "desc"));
-          // Clear selected assignment data in UI
+          const snapshots = await Promise.all(assignments.map((assignment) => getDocs(query(collection(db, "submissions"), where("assignmentId", "==", assignment.id), orderBy("submittedAt", "desc")))));
+          data = snapshots.flatMap((snapshot) => snapshot.docs.map((d) => ({ id: d.id, ...(d.data() as any) } as Submission))).sort((a, b) => String(b.submittedAt || "").localeCompare(String(a.submittedAt || "")));
           setSelectedAssignmentData(null);
         } else {
-          // Load only submissions for selected assignment
-          qRef = query(
+          const qRef = query(
             collection(db, "submissions"),
             where("assignmentId", "==", selectedAssignment),
             orderBy("submittedAt", "desc")
           );
+          const snap = await getDocs(qRef);
+          data = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as Submission[];
         }
-
-        const snap = await getDocs(qRef);
-        let data = snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) })) as Submission[];
 
         // If assignment selected → load assignment data & auto-grade if appropriate
         if (selectedAssignment) {
@@ -202,7 +199,7 @@ return sub;
     };
 
     load();
-  }, [selectedAssignment]);
+  }, [selectedAssignment, assignments]);
 
   // ===========================
   // Recalculate Scores

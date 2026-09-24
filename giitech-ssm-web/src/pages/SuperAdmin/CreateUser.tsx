@@ -84,8 +84,8 @@ export default function Signup() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (currentRole !== "superadmin") {
-      setError("Only Super Admins can create accounts.");
+    if (currentRole !== "superadmin" && !(currentRole === "admin" && role === "staff")) {
+      setError("Administrators can create staff accounts. Super Admin access is required for other account types.");
       return;
     }
 
@@ -201,6 +201,7 @@ export default function Signup() {
               <option value="parent">Parent</option>
               <option value="teacher">Teacher</option>
               <option value="admin">Admin</option>
+              <option value="staff">Non-Teaching Staff</option>
             </select>
           </div>
 

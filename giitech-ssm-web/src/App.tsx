@@ -49,11 +49,49 @@ import TeacherFeedbackPage from "./pages/Teacher/TeacherFeedbackPage";
 import TeacherMessagesPage from "./pages/Teacher/TeacherMessagesPage";
 import TeacherExamGradesPage from "./pages/Teacher/TeacherExamGradesPage";
 import SharedLayout from "./components/SharedLayout";
+import AcademicYearsPage from "./pages/Admin/AcademicYearsPage";
+import StaffDashboard from "./pages/Staff/StaffDashboard";
+import StaffAttendancePage from "./pages/Staff/StaffAttendancePage";
+import StaffAttendanceReportPage from "./pages/Admin/StaffAttendanceReportPage";
+import QrAttendancePage from "./pages/Shared/QrAttendancePage";
+import StudentQrIdentityPage from "./pages/Admin/StudentQrIdentityPage";
+import AttendanceAnalyticsPage from "./pages/Admin/AttendanceAnalyticsPage";
+import NotificationPreferencesPage from "./pages/Shared/NotificationPreferencesPage";
+import TeacherMaterialsPage from "./pages/Teacher/TeacherMaterialsPage";
+import LearningMaterialsPage from "./pages/Student/LearningMaterialsPage";
+import TeacherAssessmentSummaryPage from "./pages/Teacher/TeacherAssessmentSummaryPage";
+import GradingConfigurationPage from "./pages/Admin/GradingConfigurationPage";
+import RankingsPage from "./pages/Admin/RankingsPage";
+import PaymentIntentsPage from "./pages/Admin/PaymentIntentsPage";
+import AiAssessmentReviewPage from "./pages/Teacher/AiAssessmentReviewPage";
+import AiAssessmentAuditPage from "./pages/Admin/AiAssessmentAuditPage";
+import AiUsageSettingsPage from "./pages/Admin/AiUsageSettingsPage";
+import AiUsageReportPage from "./pages/Admin/AiUsageReportPage";
+import AiCostSettingsPage from "./pages/Admin/AiCostSettingsPage";
+import AiBudgetAlertsPage from "./pages/Admin/AiBudgetAlertsPage";
+import AiMonthlyCostReportPage from "./pages/Admin/AiMonthlyCostReportPage";
+import LibraryPage from "./pages/Admin/LibraryPage";
+import StaffFinancePage from "./pages/Admin/StaffFinancePage";
+import StaffLoanRepaymentsPage from "./pages/Admin/StaffLoanRepaymentsPage";
+import StaffFinanceSelfServicePage from "./pages/Staff/StaffFinancePage";
+import StaffFinanceReportPage from "./pages/Admin/StaffFinanceReportPage";
+import StaffPayslipsPage from "./pages/Staff/StaffPayslipsPage";
+import SsnitReportPage from "./pages/Admin/SsnitReportPage";
+import SsnitRemittancePage from "./pages/Admin/SsnitRemittancePage";
+import StaffAttendanceSettingsPage from "./pages/Admin/StaffAttendanceSettingsPage";
+import StaffQrIdentityPage from "./pages/Admin/StaffQrIdentityPage";
+import StaffMovementReportPage from "./pages/Admin/StaffMovementReportPage";
+import LibraryRecordsPage from "./pages/Student/LibraryRecordsPage";
+import ClassSubjectSetupPage from "./pages/Admin/ClassSubjectSetupPage";
+import TermCommentsPage from "./pages/Admin/TermCommentsPage";
+import ReportApprovalPage from "./pages/Admin/ReportApprovalPage";
+import ReportReadinessPage from "./pages/Admin/ReportReadinessPage";
+import AttendanceFaceEnrollmentPage from "./pages/Admin/AttendanceFaceEnrollmentPage";
 
 function LoadingScreen() {
   return (
     <div className="flex h-screen items-center justify-center text-lg text-gray-600">
-      Loading Giitech-SSM...
+      Loading ASTEM-SSM...
     </div>
   );
 }
@@ -87,6 +125,8 @@ function RoleRouter() {
       return <StudentDashboard />;
     case "parent":
       return <ParentDashboard />;
+    case "staff":
+      return <StaffDashboard />;
     default:
       return <div className="p-6 text-red-600">No role assigned. Contact your administrator.</div>;
   }
@@ -111,6 +151,7 @@ export default function App() {
             <Route path="announcements" element={<AnnouncementsPage />} />
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
+            <Route path="notification-preferences" element={<NotificationPreferencesPage />} />
 
             <Route element={<RoleProtectedRoute allowedRoles={["superadmin"]} />}>
               <Route path="superadmin" element={<SuperAdminDashboard />} />
@@ -118,13 +159,41 @@ export default function App() {
               <Route path="superadmin/create-user" element={<Signup />} />
             </Route>
 
+            <Route element={<RoleProtectedRoute allowedRoles={["staff"]} />}>
+              <Route path="staff" element={<StaffDashboard />} />
+              <Route path="staff/attendance" element={<StaffAttendancePage />} />
+              <Route path="staff/qr-attendance" element={<QrAttendancePage />} />
+              <Route path="staff/messages" element={<TeacherMessagesPage />} />
+              <Route path="staff/finance" element={<StaffFinanceSelfServicePage />} />
+              <Route path="staff/payslips" element={<StaffPayslipsPage />} />
+            </Route>
+
             <Route element={<RoleProtectedRoute allowedRoles={["superadmin", "admin"]} />}>
               <Route path="admin" element={<AdminDashboard />} />
               <Route path="admin/departments" element={<DepartmentsPage />} />
+              <Route path="admin/academic-years" element={<AcademicYearsPage />} />
               <Route path="admin/classes" element={<ClassesPage />} />
+              <Route path="admin/class-subjects" element={<ClassSubjectSetupPage />} />
+              <Route path="admin/term-comments" element={<TermCommentsPage />} />
+              <Route path="admin/report-approval" element={<ReportApprovalPage />} />
+              <Route path="admin/report-readiness" element={<ReportReadinessPage />} />
               <Route path="admin/streams" element={<StreamPage />} />
               <Route path="admin/students" element={<StudentsDirectoryPage />} />
               <Route path="admin/staff" element={<StaffDirectoryPage />} />
+              <Route path="admin/create-staff" element={<Signup />} />
+              <Route path="admin/staff-attendance" element={<StaffAttendanceReportPage />} />
+              <Route path="admin/qr-attendance" element={<QrAttendancePage />} />
+              <Route path="admin/qr-identities" element={<StudentQrIdentityPage />} />
+              <Route path="admin/attendance-analytics" element={<AttendanceAnalyticsPage />} />
+              <Route path="admin/grading" element={<GradingConfigurationPage />} />
+              <Route path="admin/rankings" element={<RankingsPage />} />
+              <Route path="admin/payment-intents" element={<PaymentIntentsPage />} />
+              <Route path="admin/ai-audit" element={<AiAssessmentAuditPage />} />
+              <Route path="admin/ai-settings" element={<AiUsageSettingsPage />} />
+              <Route path="admin/ai-usage" element={<AiUsageReportPage />} />
+              <Route path="admin/ai-costs" element={<AiCostSettingsPage />} />
+              <Route path="admin/ai-alerts" element={<AiBudgetAlertsPage />} />
+              <Route path="admin/ai-monthly-costs" element={<AiMonthlyCostReportPage />} />
               <Route path="admin/activity" element={<ActivityLogsPage />} />
               <Route path="admin/communications" element={<CommunicationsPage />} />
               <Route path="admin/promotions" element={<PromotionsPage />} />
@@ -133,6 +202,16 @@ export default function App() {
               <Route path="admin/identity-links" element={<IdentityLinksPage />} />
               <Route path="admin/fees" element={<FeesPage />} />
               <Route path="admin/finance" element={<FinanceLedgerPage />} />
+              <Route path="admin/library" element={<LibraryPage />} />
+              <Route path="admin/staff-finance" element={<StaffFinancePage />} />
+              <Route path="admin/staff-loan-repayments" element={<StaffLoanRepaymentsPage />} />
+              <Route path="admin/staff-finance-reports" element={<StaffFinanceReportPage />} />
+              <Route path="admin/ssnit-report" element={<SsnitReportPage />} />
+              <Route path="admin/ssnit-remittance" element={<SsnitRemittancePage />} />
+              <Route path="admin/staff-attendance-settings" element={<StaffAttendanceSettingsPage />} />
+              <Route path="admin/staff-qr-identities" element={<StaffQrIdentityPage />} />
+              <Route path="admin/staff-movement-report" element={<StaffMovementReportPage />} />
+              <Route path="admin/face-enrollment" element={<AttendanceFaceEnrollmentPage />} />
               <Route path="admin/reports" element={<ReportsPage />} />
               <Route path="admin/reports/student" element={<StudentReport />} />
               <Route path="admin/reports/performance" element={<PerformanceReport />} />
@@ -143,11 +222,15 @@ export default function App() {
             <Route element={<RoleProtectedRoute allowedRoles={["teacher"]} />}>
               <Route path="teacher" element={<TeacherDashboard />} />
               <Route path="teacher/assignments" element={<TeacherAssignmentsPage />} />
+              <Route path="teacher/materials" element={<TeacherMaterialsPage />} />
+              <Route path="teacher/assessment-summary" element={<TeacherAssessmentSummaryPage />} />
+              <Route path="teacher/ai-review" element={<AiAssessmentReviewPage />} />
               <Route path="teacher/submissions" element={<TeacherViewSubmissionsPage />} />
               <Route path="teacher/grades" element={<TeacherGradesPage />} />
               <Route path="teacher/exam-grades" element={<TeacherExamGradesPage />} />
               <Route path="teacher/grade-summary" element={<GradeSummaryReportPage />} />
               <Route path="teacher/attendance" element={<TeacherAttendancePage />} />
+              <Route path="teacher/qr-attendance" element={<QrAttendancePage />} />
               <Route path="teacher/feedback" element={<TeacherFeedbackPage />} />
               <Route path="teacher/messages" element={<TeacherMessagesPage />} />
             </Route>
@@ -155,9 +238,11 @@ export default function App() {
             <Route element={<RoleProtectedRoute allowedRoles={["student"]} />}>
               <Route path="student" element={<StudentDashboard />} />
               <Route path="student/assignments" element={<AssignmentsListPage />} />
+              <Route path="student/materials" element={<LearningMaterialsPage />} />
               <Route path="student/submissions" element={<SubmissionsPage />} />
               <Route path="student/grades" element={<StudentGradesPage />} />
               <Route path="student/attendance" element={<StudentAttendancePage />} />
+              <Route path="student/library" element={<LibraryRecordsPage />} />
             </Route>
 
             <Route element={<RoleProtectedRoute allowedRoles={["parent"]} />}>

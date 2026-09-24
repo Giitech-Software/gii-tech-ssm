@@ -103,7 +103,8 @@ export const getStudentsByClass = async (classId: string) => {
  */
 export const markAttendanceForClass = async (
   classId: string,
-  attendanceList: { studentId: string; studentName: string; status: "Present" | "Absent" }[]
+  attendanceList: { studentId: string; studentName: string; status: "Present" | "Absent" }[],
+  teacherId: string,
 ) => {
   try {
     const attendanceCollection = collection(db, "attendance");
@@ -117,6 +118,7 @@ export const markAttendanceForClass = async (
         present: record.status === "Present",
         status: record.status,
         classId,
+        teacherId,
         date,
         createdAt: serverTimestamp(),
       });

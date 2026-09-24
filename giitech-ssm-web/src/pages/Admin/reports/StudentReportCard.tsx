@@ -51,14 +51,20 @@ const StudentReportCard: React.FC = () => {
       doc.text(`Class: ${data.className || "N/A"}`, 14, 38);
       doc.text(`Term: ${data.termName || "N/A"}`, 14, 46);
       doc.text(`Academic Year: ${data.academicYear || "N/A"}`, 14, 54);
+      doc.text(`Position: ${data.rank ? `${data.rank} of ${data.rankedStudents}` : "N/A"}`, 110, 30);
+      doc.text(`GPA: ${(data.gpa ?? 0).toFixed(2)}`, 110, 38);
+      doc.text(`Stream: ${data.positions?.stream ? `${data.positions.stream.position} of ${data.positions.stream.total}` : "N/A"}`, 110, 46);
+      doc.text(`Department: ${data.positions?.department ? `${data.positions.department.position} of ${data.positions.department.total}` : "N/A"}`, 110, 54);
 
       if (Array.isArray(data.subjects) && data.subjects.length > 0) {
         autoTable(doc, {
           startY: 63,
-          head: [["Subject", "Mark", "Grade", "Remark"]],
+          head: [["Subject", "Class", "Exam", "Final", "Grade", "Remark"]],
           body: data.subjects.map((s: any) => [
             s.name || "-",
-            s.mark?.toString() ?? "-",
+            s.classScore?.toString() ?? "-",
+            s.examScore?.toString() ?? s.mark?.toString() ?? "-",
+            s.finalScore?.toString() ?? s.mark?.toString() ?? "-",
             s.grade || "-",
             s.remark || "-",
           ]),
@@ -72,13 +78,18 @@ const StudentReportCard: React.FC = () => {
         : 70;
 
       doc.text(`Average: ${(data.average ?? 0).toFixed(2)}%`, 14, yPos);
+      doc.text(`GPA: ${(data.gpa ?? 0).toFixed(2)}`, 14, yPos + 8);
       doc.text(
         `Attendance: ${data.attendance?.present ?? 0}/${
           data.attendance?.total ?? 0
         }`,
         14,
-        yPos + 8
+        yPos + 16
       );
+      doc.text(`Interest: ${data.interests || "N/A"}`, 14, yPos + 24);
+      doc.text(`Conduct: ${data.conductRemark || "N/A"}`, 14, yPos + 32);
+      doc.text(`Attendance remark: ${data.attendanceRemark || "N/A"}`, 14, yPos + 40);
+      doc.text(`Next steps: ${data.nextSteps || "N/A"}`, 14, yPos + 48);
 
       doc.save(`${data.studentName || "student"}_ReportCard.pdf`);
     } catch (error) {
@@ -111,7 +122,7 @@ const StudentReportCard: React.FC = () => {
           (s: any) => `
             <tr>
               <td>${s.name}</td>
-              <td>${s.mark}</td>
+              <td>${s.classScore ?? "-"}</td><td>${s.examScore ?? s.mark}</td><td>${s.finalScore ?? s.mark}</td>
               <td>${s.grade}</td>
               <td>${s.remark}</td>
             </tr>`
@@ -143,13 +154,16 @@ const StudentReportCard: React.FC = () => {
           </div>
           <table>
             <thead>
-              <tr><th>Subject</th><th>Mark</th><th>Grade</th><th>Remark</th></tr>
+              <tr><th>Subject</th><th>Class</th><th>Exam</th><th>Final</th><th>Grade</th><th>Remark</th></tr>
             </thead>
             <tbody>${subjectsRows}</tbody>
           </table>
           <div class="summary">
             <p><strong>Average:</strong> ${(data.average ?? 0).toFixed(2)}%</p>
+            <p><strong>GPA / Points:</strong> ${(data.gpa ?? 0).toFixed(2)}</p>
+            <p><strong>Positions:</strong> Class ${data.positions?.class ? `${data.positions.class.position}/${data.positions.class.total}` : "-"}; Stream ${data.positions?.stream ? `${data.positions.stream.position}/${data.positions.stream.total}` : "-"}; Department ${data.positions?.department ? `${data.positions.department.position}/${data.positions.department.total}` : "-"}</p>
             <p><strong>Attendance:</strong> ${data.attendance?.present ?? 0}/${data.attendance?.total ?? 0}</p>
+            <p><strong>Interest:</strong> ${data.interests || "-"}</p><p><strong>Conduct:</strong> ${data.conductRemark || "-"}</p><p><strong>Attendance remark:</strong> ${data.attendanceRemark || "-"}</p><p><strong>Next steps:</strong> ${data.nextSteps || "-"}</p>
           </div>
           <div class="footer">
             <p>Generated on ${new Date().toLocaleDateString()}</p>
@@ -243,7 +257,7 @@ const StudentReportCard: React.FC = () => {
             <thead className="bg-gray-100">
               <tr>
                 <th className="border p-2">Subject</th>
-                <th className="border p-2">Mark</th>
+                <th className="border p-2">Class</th><th className="border p-2">Exam</th><th className="border p-2">Final</th>
                 <th className="border p-2">Grade</th>
                 <th className="border p-2">Remark</th>
               </tr>
@@ -252,7 +266,7 @@ const StudentReportCard: React.FC = () => {
               {reportData.subjects?.map((s: any, i: number) => (
                 <tr key={i}>
                   <td className="border p-2">{s.name}</td>
-                  <td className="border p-2">{s.mark}</td>
+                  <td className="border p-2">{s.classScore ?? "-"}</td><td className="border p-2">{s.examScore ?? s.mark}</td><td className="border p-2">{s.finalScore ?? s.mark}</td>
                   <td className="border p-2">{s.grade}</td>
                   <td className="border p-2">{s.remark}</td>
                 </tr>
@@ -262,6 +276,12 @@ const StudentReportCard: React.FC = () => {
 
           <div className="mt-3 text-sm text-gray-700">
             <p>Average: {reportData.average?.toFixed(2)}%</p>
+            <p>GPA / Points: {reportData.gpa?.toFixed(2)}</p>
+            <p>Class position: {reportData.rank ? `${reportData.rank} of ${reportData.rankedStudents}` : "Not ranked"}</p>
+            <p>Stream position: {reportData.positions?.stream ? `${reportData.positions.stream.position} of ${reportData.positions.stream.total}` : "Not ranked"}</p>
+            <p>Department position: {reportData.positions?.department ? `${reportData.positions.department.position} of ${reportData.positions.department.total}` : "Not ranked"}</p>
+            <p>Overall position: {reportData.positions?.overall ? `${reportData.positions.overall.position} of ${reportData.positions.overall.total}` : "Not ranked"}</p>
+            <p>Interest: {reportData.interests || "Not provided"}</p><p>Conduct: {reportData.conductRemark || "Not provided"}</p><p>Attendance remark: {reportData.attendanceRemark || "Not provided"}</p><p>Next steps: {reportData.nextSteps || "Not provided"}</p>
             <p>
               Attendance: {reportData.attendance.present}/
               {reportData.attendance.total}

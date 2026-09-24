@@ -84,16 +84,16 @@ export default function StaffDirectoryPage() {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div><h1 className="text-2xl font-bold text-gray-900">Staff Directory</h1><p className="mt-1 text-sm text-gray-600">Maintain teaching staff profiles and assignments.</p></div>
-        {role === "superadmin" && <Link to="/superadmin/create-user" className="flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700"><UserPlus size={17} /> Add Staff</Link>}
+        <div><p className="eyebrow">Academic operations</p><h1 className="mt-1 text-3xl font-black tracking-tight text-dark">Staff directory</h1><p className="mt-1 text-sm text-slate-500">Maintain teaching staff profiles and assignments.</p></div>
+        {role === "superadmin" && <Link to="/superadmin/create-user" className="btn-primary"><UserPlus size={17} /> Add Staff</Link>}
       </div>
-      <div className="grid gap-3 border-y bg-white py-4 sm:grid-cols-3">
+      <div className="surface grid gap-3 p-4 sm:grid-cols-3">
         <label className="relative"><Search className="absolute left-3 top-2.5 text-gray-400" size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name, ID, or email" className="w-full rounded-md border py-2 pl-9 pr-3 text-sm" /></label>
         <select value={departmentId} onChange={(event) => setDepartmentId(event.target.value)} className="rounded-md border px-3 py-2 text-sm"><option value="">All departments</option>{departments.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select>
         <select value={status} onChange={(event) => setStatus(event.target.value)} className="rounded-md border px-3 py-2 text-sm"><option value="">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option><option value="archived">Archived</option></select>
       </div>
-      {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-      <div className="overflow-x-auto border bg-white">
+      {error && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+      <div className="table-container">
         <table className="min-w-full text-left text-sm"><thead className="bg-gray-50 text-xs uppercase text-gray-500"><tr><th className="px-4 py-3">Staff Member</th><th className="px-4 py-3">Department</th><th className="px-4 py-3">Subject</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Actions</th></tr></thead>
           <tbody className="divide-y">
             {!loading && filteredStaff.map((member) => <tr key={member.id} className="hover:bg-gray-50"><td className="px-4 py-3"><p className="font-medium text-gray-900">{member.displayName}</p><p className="text-xs text-gray-500">{member.teacherId || member.id} | {member.email || "No email"}</p></td><td className="px-4 py-3">{departmentName(member)}</td><td className="px-4 py-3 text-gray-600">{member.subject || member.subjectId || "-"}</td><td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs font-medium ${statusOf(member) === "active" ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-600"}`}>{statusOf(member)}</span></td><td className="px-4 py-3"><div className="flex justify-end gap-1"><button title="Edit staff member" onClick={() => setEditing(member)} className="rounded-md p-2 text-indigo-600 hover:bg-indigo-50"><Pencil size={16} /></button>{statusOf(member) !== "archived" && <button title="Archive staff member" onClick={() => archiveStaff(member)} className="rounded-md p-2 text-red-600 hover:bg-red-50"><Archive size={16} /></button>}</div></td></tr>)}
@@ -105,6 +105,7 @@ export default function StaffDirectoryPage() {
       {editing && <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 p-4"><div className="w-full max-w-2xl bg-white shadow-xl"><div className="flex items-center justify-between border-b px-5 py-4"><h2 className="font-semibold">Edit Staff Profile</h2><button title="Close" onClick={() => setEditing(null)} className="rounded-md p-1 hover:bg-gray-100"><X size={18} /></button></div><div className="grid gap-4 p-5 sm:grid-cols-2">
         <Field label="Full name"><input value={editing.displayName || ""} onChange={(event) => setEditing({ ...editing, displayName: event.target.value })} className="w-full rounded-md border px-3 py-2" /></Field>
         <Field label="Phone"><input value={editing.phone || ""} onChange={(event) => setEditing({ ...editing, phone: event.target.value })} className="w-full rounded-md border px-3 py-2" /></Field>
+        <Field label="SSNIT number"><input value={editing.ssnitNumber || ""} onChange={(event) => setEditing({ ...editing, ssnitNumber: event.target.value })} placeholder="e.g. C000000000000" className="w-full rounded-md border px-3 py-2" /></Field>
         <Field label="Department"><select value={editing.departmentId || editing.department || ""} onChange={(event) => setEditing({ ...editing, departmentId: event.target.value, department: event.target.value })} className="w-full rounded-md border px-3 py-2"><option value="">Unassigned</option>{departments.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></Field>
         <Field label="Subject"><input value={editing.subject || ""} onChange={(event) => setEditing({ ...editing, subject: event.target.value })} className="w-full rounded-md border px-3 py-2" /></Field>
         <Field label="Status"><select value={statusOf(editing)} onChange={(event) => setEditing({ ...editing, status: event.target.value as StaffDirectoryRecord["status"] })} className="w-full rounded-md border px-3 py-2"><option value="active">Active</option><option value="inactive">Inactive</option><option value="archived">Archived</option></select></Field>

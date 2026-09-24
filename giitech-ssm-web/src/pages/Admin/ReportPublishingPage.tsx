@@ -7,6 +7,7 @@ import {
   publishStudentReport,
   type PublishedStudentReport,
 } from "../../services/ReportPublicationService";
+import { fetchReportApproval } from "../../services/ReportApprovalService";
 
 const currentAcademicYear = () => {
   const year = new Date().getFullYear();
@@ -56,6 +57,7 @@ export default function ReportPublishingPage() {
       setSaving(false);
     }
   };
+  const publishAllApproved = async () => { if (!user) return; setSaving(true); setMessage(""); let published = 0; let skipped = 0; try { for (const student of students) { const id = student.studentId || student.id; const approval = await fetchReportApproval(id, academicYear.trim(), term); if (approval.status !== "approved") { skipped += 1; continue; } try { await publishStudentReport(id, academicYear.trim(), term, user.uid); published += 1; } catch { skipped += 1; } } await loadData(); setMessage(`Bulk publishing complete: ${published} published, ${skipped} skipped or incomplete.`); } catch (error) { setMessage(error instanceof Error ? error.message : "Bulk publishing failed."); } finally { setSaving(false); } };
 
   return (
     <div className="space-y-5">
@@ -73,6 +75,7 @@ export default function ReportPublishingPage() {
         <select value={term} onChange={(event) => setTerm(event.target.value)} className="rounded-md border px-3 py-2"><option>Term 1</option><option>Term 2</option><option>Term 3</option></select>
         <button disabled={saving} className="flex items-center justify-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"><Send size={16} /> {saving ? "Publishing..." : "Publish"}</button>
       </form>
+      <div className="flex justify-end"><button disabled={saving || !students.length} onClick={() => void publishAllApproved()} className="rounded-md border border-indigo-300 px-4 py-2 text-sm font-semibold text-indigo-700 disabled:opacity-50">{saving ? "Publishing approved reports..." : "Publish all approved reports"}</button></div>
       <section className="overflow-x-auto border bg-white">
         <div className="border-b px-4 py-3"><h2 className="flex items-center gap-2 font-semibold"><FileCheck2 size={18} /> Released Reports</h2></div>
         <table className="min-w-full text-left text-sm">
@@ -86,4 +89,3 @@ export default function ReportPublishingPage() {
     </div>
   );
 }
-

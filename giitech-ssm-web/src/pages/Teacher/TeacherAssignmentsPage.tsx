@@ -28,6 +28,7 @@ interface ExtendedAssignment extends AssignmentType {
     question: string;
     answer: string;
     options?: string[];
+    questionType?: "multiple-choice" | "true-false" | "fill-blank";
   }[];
 }
 
@@ -179,14 +180,14 @@ const TeacherAssignmentsPage: React.FC = () => {
       ...prev,
       questions: [
         ...(prev.questions || []),
-        { question: "", answer: "", options: ["", "", "", ""] },
+        { question: "", answer: "", options: ["", "", "", ""], questionType: "multiple-choice" },
       ],
     }));
   };
 
   const handleQuestionChange = (
     index: number,
-    field: "question" | "answer" | "options",
+    field: "question" | "answer" | "options" | "questionType",
     value: any
   ) => {
     const updated = [...(newAssignment.questions || [])];
@@ -345,6 +346,8 @@ const TeacherAssignmentsPage: React.FC = () => {
             <option value="objective">Objective (MCQ)</option>
             <option value="essay">Essay</option>
           </select>
+          <input type="number" min="0" placeholder="Quiz time limit (minutes, optional)" value={newAssignment.durationMinutes || ""} onChange={(e) => setNewAssignment({ ...newAssignment, durationMinutes: e.target.value ? Number(e.target.value) : undefined })} className="border border-gray-300 p-2 rounded-lg w-full" />
+          <input type="number" min="1" placeholder="Maximum attempts (optional)" value={newAssignment.maxAttempts || ""} onChange={(e) => setNewAssignment({ ...newAssignment, maxAttempts: e.target.value ? Number(e.target.value) : undefined })} className="border border-gray-300 p-2 rounded-lg w-full" />
         </div>
 
         {/* Description */}
@@ -388,7 +391,8 @@ const TeacherAssignmentsPage: React.FC = () => {
                   }
                   className="border p-2 rounded w-full mb-2"
                 />
-                {newAssignment.type === "objective" &&
+                {newAssignment.type === "objective" && <select value={q.questionType || "multiple-choice"} onChange={(e) => { const nextType = e.target.value as "multiple-choice" | "true-false" | "fill-blank"; handleQuestionChange(i, "questionType", nextType); handleQuestionChange(i, "options", nextType === "true-false" ? ["True", "False"] : nextType === "multiple-choice" ? ["", "", "", ""] : []); }} className="mb-2 rounded border p-2 text-sm"><option value="multiple-choice">Multiple choice</option><option value="true-false">True / False</option><option value="fill-blank">Fill in the blank</option></select>}
+                {newAssignment.type === "objective" && (q.questionType || "multiple-choice") !== "fill-blank" &&
                   q.options?.map((opt, idx) => (
                     <input
                       key={idx}

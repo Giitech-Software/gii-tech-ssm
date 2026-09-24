@@ -53,6 +53,7 @@ const TeacherGradesPage: React.FC = () => {
   // ✅ Load teacher's assignments
   useEffect(() => {
     const fetchAssignments = async () => {
+      if (!user?.uid) return;
       try {
         const q = query(
           collection(db, "assignments"),

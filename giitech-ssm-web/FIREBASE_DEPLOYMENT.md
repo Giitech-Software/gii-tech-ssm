@@ -72,3 +72,20 @@ firebase functions:artifacts:setpolicy --location africa-south1 --days 7 --force
 
 The rules default to deny for unknown Firestore collections and Storage paths.
 Add an explicit rule whenever a new backend collection or upload path is added.
+
+## AI Assessment Provider Configuration
+
+AI assessment suggestions are generated server-side by the
+`generateAiAssessmentSuggestion` callable. The OpenAI key is never placed in
+the Vite web environment or sent to the browser. Configure the Functions
+runtime before enabling the teacher AI review screen:
+
+The function declares both values through Firebase Functions Parameters:
+`OPENAI_API_KEY` is a Secret Manager secret and `OPENAI_ASSESSMENT_MODEL` is a
+deploy-time string parameter with a `gpt-4.1-mini` default. Complete the
+Firebase deployment prompts, then redeploy Functions. Do not commit either
+value to `.env`, source control, or the frontend bundle.
+
+The callable intentionally stores suggestions as `pending`; a teacher must
+approve the result before a submission becomes graded. Administrators can
+review generation and decision metadata at `/admin/ai-audit`.

@@ -29,6 +29,13 @@ service firebase.storage {
       return request.resource.size < 10 * 1024 * 1024 &&
         request.resource.contentType.matches(
           "application/pdf|application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document|text/.*|image/.*"
+      );
+    }
+
+    function isAcceptedMaterial() {
+      return request.resource.size < 50 * 1024 * 1024 &&
+        request.resource.contentType.matches(
+          "application/pdf|application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document|text/.*|image/.*|video/.*|audio/.*"
         );
     }
 
@@ -36,6 +43,13 @@ service firebase.storage {
       allow read: if isAdminStaff() || isTeacher() || isOwnStudent(studentId);
       allow create, update: if isOwnStudent(studentId) && isAcceptedSubmission();
       allow delete: if isAdminStaff() || isOwnStudent(studentId);
+    }
+
+    match /materials/{teacherId}/{fileName} {
+      allow read: if signedIn();
+      allow create, update: if isAcceptedMaterial() &&
+        (isAdminStaff() || (isTeacher() && request.auth.uid == teacherId));
+      allow delete: if isAdminStaff() || (isTeacher() && request.auth.uid == teacherId);
     }
 
     match /{allPaths=**} {

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { db } from "../../firebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { useAuth } from "../../contexts/AuthContext";
 import { exportToCSV, exportToPDF } from "../Admin/reports/utils/reportExports";
 import {
   BarChart,
@@ -24,6 +25,7 @@ interface GradeRecord {
 }
 
 const GradeSummaryReportPage: React.FC = () => {
+  const { user } = useAuth();
   const [grades, setGrades] = useState<GradeRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [groupBy, setGroupBy] = useState<"student" | "class">("student");
@@ -31,8 +33,9 @@ const GradeSummaryReportPage: React.FC = () => {
 
   useEffect(() => {
     const fetchGrades = async () => {
+      if (!user?.uid) return;
       try {
-        const snapshot = await getDocs(collection(db, "grades"));
+        const snapshot = await getDocs(query(collection(db, "grades"), where("teacherId", "==", user?.uid)));
         const data = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
@@ -47,7 +50,7 @@ const GradeSummaryReportPage: React.FC = () => {
     };
 
     fetchGrades();
-  }, []);
+  }, [user]);
 
   const aggregateData = () => {
     const map = new Map<string, { total: number; count: number }>();

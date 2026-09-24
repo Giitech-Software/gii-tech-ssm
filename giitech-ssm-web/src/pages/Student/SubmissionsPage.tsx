@@ -26,6 +26,7 @@ import {
 import toast from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
 import { runFirestorePermissionDiagnostics } from "../../utils/firestoreDiagnostics";
+import { getQueuedQuizSubmissions, getQuizDraft, queueQuizSubmission, removeQueuedQuizSubmission, saveQuizDraft } from "../../services/OfflineQuizService";
 
 runFirestorePermissionDiagnostics();
 
@@ -36,7 +37,9 @@ interface Assignment {
   classId: string;
   type?: "essay" | "file" | "short-answer" | "quiz" | "objective";
   description?: string;
-  questions?: { question: string; options?: string[]; answer?: string }[];
+  durationMinutes?: number;
+  maxAttempts?: number;
+  questions?: { question: string; options?: string[]; answer?: string; questionType?: "multiple-choice" | "true-false" | "fill-blank" }[];
 }
 
 interface Submission {
@@ -56,6 +59,7 @@ interface Submission {
   status?: string;
   feedback?: string;
   grade?: string;
+  attempts?: number;
 }
 
 const SubmissionsPage: React.FC = () => {
@@ -75,7 +79,8 @@ const SubmissionsPage: React.FC = () => {
   const [perQuestionFeedback, setPerQuestionFeedback] = useState<Record<number, boolean | null>>({});
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
-const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [timeLeft, setTimeLeft] = useState<number | null>(null);
 
 
   const formatSubmittedAt = (val: any) => {
@@ -140,6 +145,33 @@ const [previewImage, setPreviewImage] = useState<string | null>(null);
     };
     fetchAssignments();
   }, [studentClass, assignmentIdFromUrl]);
+
+  useEffect(() => {
+    if (!selectedAssignment || !studentId) return;
+    void getQuizDraft(selectedAssignment, studentId).then((draft) => {
+      if (!draft) return;
+      setPerQuestionResponses(draft.responses);
+      setEssayText(draft.essayText);
+    });
+  }, [selectedAssignment, studentId]);
+
+  useEffect(() => {
+    const synchronizeQueuedSubmissions = async () => {
+      if (!navigator.onLine || !user) return;
+      const queued = await getQueuedQuizSubmissions();
+      for (const item of queued) {
+        try {
+          await addDoc(collection(db, "submissions"), { ...item.queuedSubmission, status: "submitted", syncedAt: serverTimestamp() });
+          await removeQueuedQuizSubmission(item.key);
+        } catch (syncError) {
+          console.warn("Queued quiz submission remains pending:", syncError);
+        }
+      }
+    };
+    void synchronizeQueuedSubmissions();
+    window.addEventListener("online", synchronizeQueuedSubmissions);
+    return () => window.removeEventListener("online", synchronizeQueuedSubmissions);
+  }, [user]);
 
   /** 🔹 Fetch submissions */
   useEffect(() => {
@@ -217,7 +249,11 @@ const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   /** 🔹 Answer change handler */
   const handleAnswerChange = (index: number, value: string, correctAnswer?: string) => {
-    setPerQuestionResponses((prev) => ({ ...prev, [index]: value }));
+    setPerQuestionResponses((prev) => {
+      const next = { ...prev, [index]: value };
+      if (selectedAssignment && studentId) void saveQuizDraft({ assignmentId: selectedAssignment, studentId, responses: next, essayText, savedAt: new Date().toISOString() });
+      return next;
+    });
     if (typeof correctAnswer !== "undefined") {
       const isCorrect =
         (value || "").trim().toLowerCase() === (correctAnswer || "").trim().toLowerCase();
@@ -234,12 +270,17 @@ const [previewImage, setPreviewImage] = useState<string | null>(null);
   }
 
   const selected = assignments.find((a) => a.id === selectedAssignment);
+  useEffect(() => {
+    if (!selected?.durationMinutes || !selectedAssignment) { setTimeLeft(null); return; }
+    setTimeLeft(selected.durationMinutes * 60);
+    const timer = window.setInterval(() => setTimeLeft(value => value === null ? null : Math.max(0, value - 1)), 1000);
+    return () => window.clearInterval(timer);
+  }, [selected?.durationMinutes, selectedAssignment]);
   if (!selected) return;
 
   setUploading(true);
   try {
     let uploadedFileUrl: string | null = null;
-    let score = 0;
     let responses: { question: string; selected: string; correct: boolean }[] = [];
 
     // 🔹 File upload (safe)
@@ -254,31 +295,23 @@ const [previewImage, setPreviewImage] = useState<string | null>(null);
       (selected.type === "quiz" || selected.type === "objective") &&
       selected.questions?.length
     ) {
-      const total = selected.questions.length;
-      let correct = 0;
       responses = selected.questions.map((q, i) => {
         const selectedValue = (perQuestionResponses[i] || "").toString();
         const isCorrect =
           (selectedValue || "").trim().toLowerCase() ===
           (q.answer || "").trim().toLowerCase();
-        if (isCorrect) correct++;
         return { question: q.question, selected: selectedValue, correct: isCorrect };
       });
-      score = Math.round((correct / total) * 100);
     }
 
     // 🔹 Short-answer auto-check
     if (selected.type === "short-answer" && selected.questions?.length) {
-      const total = selected.questions.length;
-      let correct = 0;
       responses = selected.questions.map((q, i) => {
         const studentAns = (perQuestionResponses[i] || "").trim().toLowerCase();
         const correctAns = (q.answer || "").trim().toLowerCase();
         const isCorrect = studentAns !== "" && studentAns === correctAns;
-        if (isCorrect) correct++;
         return { question: q.question, selected: perQuestionResponses[i] || "", correct: isCorrect };
       });
-      score = Math.round((correct / total) * 100);
     }
 
     // 🔹 Prepare submission data safely (no undefined fields)
@@ -288,6 +321,11 @@ const [previewImage, setPreviewImage] = useState<string | null>(null);
       where("assignmentId", "==", selectedAssignment)
     );
     const existingSnap = await getDocs(existingQ);
+    const previous = existingSnap.docs[0]?.data() as Submission | undefined;
+    if (selected.maxAttempts && (previous?.attempts || 0) >= selected.maxAttempts) {
+      toast.error(`You have reached the maximum of ${selected.maxAttempts} attempt${selected.maxAttempts === 1 ? "" : "s"}.`);
+      return;
+    }
 
     const submissionData: Submission = {
       assignmentId: selectedAssignment,
@@ -299,10 +337,10 @@ const [previewImage, setPreviewImage] = useState<string | null>(null);
       ...(uploadedFileUrl ? { submissionUrl: uploadedFileUrl } : {}), // ✅ only if defined
       ...(selected.type === "essay" && essayText ? { responseText: essayText } : {}),
       ...(responses.length ? { responses } : {}),
-      ...(Number.isFinite(score) ? { score } : {}),
       submittedAt: new Date().toISOString(),
       createdAt: serverTimestamp(),
       status: "submitted",
+      attempts: (previous?.attempts || 0) + 1,
     };
 
     if (!existingSnap.empty) {
@@ -321,7 +359,8 @@ const [previewImage, setPreviewImage] = useState<string | null>(null);
     setSelectedAssignment("");
   } catch (err) {
     console.error("Upload error:", err);
-    toast.error("Submission failed.");
+    await queueQuizSubmission({ assignmentId: selectedAssignment, studentId, studentUid: user.uid, classId: studentClass, responses: perQuestionResponses, essayText, queuedAt: new Date().toISOString() });
+    toast.error("Offline: your responses were saved for later synchronization.");
   } finally {
     setUploading(false);
   }
@@ -451,7 +490,9 @@ const [previewImage, setPreviewImage] = useState<string | null>(null);
                         {index + 1}. {q.question || "Untitled Question"}
                       </p>
 
-                      {selected.type === "quiz" &&
+                      {selected.type === "quiz" && (q.questionType === "fill-blank" ? (
+                        <textarea placeholder="Type the missing answer" value={perQuestionResponses[index] || ""} onChange={(e) => handleAnswerChange(index, e.target.value, q.answer)} className="w-full rounded-lg border border-gray-300 p-2" />
+                      ) :
                         Array.isArray(q.options) &&
                         q.options.length > 0 && (
                           <div className="space-y-2">
@@ -490,7 +531,7 @@ const [previewImage, setPreviewImage] = useState<string | null>(null);
                               );
                             })}
                           </div>
-                        )}
+                        ))}
 
                       {selected.type === "short-answer" && (
                         <textarea
@@ -555,6 +596,7 @@ const [previewImage, setPreviewImage] = useState<string | null>(null);
               ))}
             </select>
 
+            {selected && timeLeft !== null && <div className={`rounded-lg p-3 text-sm font-semibold ${timeLeft < 60 ? "bg-red-50 text-red-700" : "bg-indigo-50 text-indigo-700"}`}>Time remaining: {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, "0")}</div>}
             {selected?.type === "essay" &&
               !(
                 (Array.isArray(selected?.questions) &&
@@ -664,14 +706,14 @@ const [previewImage, setPreviewImage] = useState<string | null>(null);
 
             <button
               onClick={handleSubmit}
-              disabled={uploading}
+              disabled={uploading || timeLeft === 0}
               className={`px-6 py-2 rounded-lg text-white font-medium transition ${
                 uploading
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-blue-600 hover:bg-blue-700"
               }`}
             >
-              {uploading ? "Submitting..." : "Submit"}
+              {timeLeft === 0 ? "Time expired" : uploading ? "Submitting..." : "Submit"}
             </button>
           </div>
         </div>

@@ -20,8 +20,10 @@ import {
 } from "../../services/AttendanceService";
 import { fetchClasses } from "../../services/ClassService";
 import { exportToCSV, exportToPDF } from "../Admin/reports/utils/reportExports";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function TeacherAttendancePage() {
+  const { user } = useAuth();
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
   const [selectedClass, setSelectedClass] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -124,7 +126,7 @@ export default function TeacherAttendancePage() {
       return;
     }
     try {
-      await markAttendanceForClass(selectedClass, records);
+      await markAttendanceForClass(selectedClass, records, user?.uid || "");
       setMarking(false);
       await loadAttendance();
       setMessage("✅ Attendance submitted successfully!");

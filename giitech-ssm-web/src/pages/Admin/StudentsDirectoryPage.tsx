@@ -100,26 +100,26 @@ export default function StudentsDirectoryPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Student Directory</h1>
-          <p className="mt-1 text-sm text-gray-600">Maintain enrollment profiles and academic placement.</p>
+          <p className="eyebrow">Academic operations</p><h1 className="mt-1 text-3xl font-black tracking-tight text-dark">Student directory</h1>
+          <p className="mt-1 text-sm text-slate-500">Maintain enrollment profiles and academic placement.</p>
         </div>
         {role === "superadmin" && (
-          <Link to="/superadmin/create-user" className="flex items-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white hover:bg-indigo-700">
+          <Link to="/superadmin/create-user" className="btn-primary">
             <UserPlus size={17} /> Add Student
           </Link>
         )}
       </div>
 
-      <div className="grid gap-3 border-y bg-white py-4 sm:grid-cols-3">
+      <div className="surface grid gap-3 p-4 sm:grid-cols-3">
         <label className="relative">
           <Search className="absolute left-3 top-2.5 text-gray-400" size={17} />
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name, ID, or email" className="w-full rounded-md border py-2 pl-9 pr-3 text-sm" />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name, ID, or email" className="input pl-9" />
         </label>
-        <select value={classId} onChange={(event) => setClassId(event.target.value)} className="rounded-md border px-3 py-2 text-sm">
+        <select value={classId} onChange={(event) => setClassId(event.target.value)} className="input">
           <option value="">All classes</option>
           {options.classes.map((item) => <option key={item.id} value={item.classId || item.id}>{item.name}</option>)}
         </select>
-        <select value={status} onChange={(event) => setStatus(event.target.value)} className="rounded-md border px-3 py-2 text-sm">
+        <select value={status} onChange={(event) => setStatus(event.target.value)} className="input">
           <option value="">All statuses</option>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
@@ -127,9 +127,9 @@ export default function StudentsDirectoryPage() {
         </select>
       </div>
 
-      {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+      {error && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
-      <div className="overflow-x-auto border bg-white">
+      <div className="table-container">
         <table className="min-w-full text-left text-sm">
           <thead className="bg-gray-50 text-xs uppercase text-gray-500">
             <tr><th className="px-4 py-3">Student</th><th className="px-4 py-3">Placement</th><th className="px-4 py-3">Parent ID</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Actions</th></tr>
@@ -144,8 +144,8 @@ export default function StudentsDirectoryPage() {
                 <td className="px-4 py-3"><div className="flex justify-end gap-1"><button title="Edit student" onClick={() => setEditing(student)} className="rounded-md p-2 text-indigo-600 hover:bg-indigo-50"><Pencil size={16} /></button>{statusOf(student) !== "archived" && <button title="Archive student" onClick={() => archiveStudent(student)} className="rounded-md p-2 text-red-600 hover:bg-red-50"><Archive size={16} /></button>}</div></td>
               </tr>
             ))}
-            {loading && <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-500">Loading students...</td></tr>}
-            {!loading && !filteredStudents.length && <tr><td colSpan={5} className="px-4 py-10 text-center text-gray-500"><Users className="mx-auto mb-2" size={20} />No students match the selected filters.</td></tr>}
+            {loading && <tr><td colSpan={5} className="px-4 py-10 text-center text-slate-500">Loading students...</td></tr>}
+            {!loading && !filteredStudents.length && <tr><td colSpan={5} className="px-4 py-10 text-center text-slate-500"><Users className="mx-auto mb-2" size={20} />No students match the selected filters.</td></tr>}
           </tbody>
         </table>
       </div>
