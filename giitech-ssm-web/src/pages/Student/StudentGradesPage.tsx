@@ -48,19 +48,19 @@ export default function StudentGradesPage() {
       : "0";
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       {/* Header */}
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">My Grades 🧾</h1>
+      <h1 className="text-3xl font-bold text-slate-800 mb-6">My grades</h1>
 
       {loading ? (
-        <div className="text-gray-500 text-center mt-10">Loading your grades...</div>
+        <div className="text-slate-500 text-center mt-10">Loading your grades...</div>
       ) : grades.length === 0 ? (
-        <p className="text-gray-500">No grades found yet.</p>
+        <p className="text-slate-500">No grades found yet.</p>
       ) : (
         <>
           {/* Summary + Export */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3">
-            <h2 className="text-lg font-semibold text-gray-700">
+            <h2 className="text-lg font-semibold text-slate-700">
               Overall Average:{" "}
               <span className="text-blue-600 font-bold">{averageScore}%</span>
             </h2>
@@ -82,9 +82,9 @@ export default function StudentGradesPage() {
           </div>
 
           {/* Table */}
-          <div className="overflow-x-auto bg-white shadow-md rounded-xl border border-gray-200">
+          <div className="overflow-x-auto bg-white shadow-md rounded-xl border border-slate-200">
             <table className="min-w-full border-collapse">
-              <thead className="bg-gray-100 text-gray-700">
+              <thead className="bg-slate-100 text-slate-700">
                 <tr>
                   <th className="px-4 py-2 border text-left">Assignment</th>
                   <th className="px-4 py-2 border text-left">Class</th>
@@ -98,7 +98,7 @@ export default function StudentGradesPage() {
                 {grades.map((grade) => (
                   <tr
                     key={grade.id}
-                    className="hover:bg-gray-50 transition border-b last:border-none"
+                    className="hover:bg-slate-50 transition border-b last:border-none"
                   >
                     <td className="px-4 py-2 border">{grade.assignmentTitle || "—"}</td>
                     <td className="px-4 py-2 border">{grade.className || "—"}</td>
@@ -106,10 +106,10 @@ export default function StudentGradesPage() {
                       {grade.score ?? "—"}
                     </td>
                     <td className="px-4 py-2 border text-center">{grade.total ?? "—"}</td>
-                    <td className="px-4 py-2 border text-gray-700">
+                    <td className="px-4 py-2 border text-slate-700">
                       {grade.feedback || "—"}
                     </td>
-                    <td className="px-4 py-2 border text-gray-700">
+                    <td className="px-4 py-2 border text-slate-700">
                       {grade.teacherName || "—"}
                     </td>
                   </tr>

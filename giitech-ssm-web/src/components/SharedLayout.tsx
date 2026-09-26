@@ -3,6 +3,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   BarChart3,
   Activity,
+  ArchiveRestore,
   AlertTriangle,
   CalendarRange,
   ArrowUpRight,
@@ -107,6 +108,7 @@ const SharedLayout = () => {
     { to: "/admin/staff", label: "Staff", icon: <Users size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/create-staff", label: "Create Staff", icon: <UserPlus size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/attendance", label: "Attendance Workspace", icon: <CalendarCheck2 size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/archive", label: "Archive", icon: <ArchiveRestore size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/staff-attendance", label: "Staff Attendance", icon: <Calendar size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/qr-attendance", label: "QR Attendance", icon: <ScanLine size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/qr-identities", label: "Student QR Cards", icon: <ScanLine size={18} />, roles: ["superadmin", "admin"] },
@@ -220,7 +222,7 @@ const SharedLayout = () => {
           type="button"
           title="Close menu"
           onClick={() => setMobileOpen(false)}
-          className="rounded-md p-2 text-gray-600 hover:bg-gray-100 md:hidden"
+          className="rounded-md p-2 text-slate-600 hover:bg-slate-100 md:hidden"
         >
           <X size={18} />
         </button>
@@ -247,7 +249,7 @@ const SharedLayout = () => {
           {renderAdminGroup("attendance", "Attendance", <CalendarCheck2 size={18} />, visibleItems.filter(item => ["Attendance Workspace", "Staff Attendance", "QR Attendance", "Student QR Cards", "Face Enrollment", "Attendance Analytics", "Staff Attendance Times", "Staff QR Identity Cards", "Early Departure Report"].includes(item.label)))}
           {renderAdminGroup("finance", "Finance", <DollarSign size={18} />, visibleItems.filter(item => ["Payment Intents", "Fee Structures", "Student Ledger"].includes(item.label)))}
           {renderAdminGroup("ai", "AI controls", <Sparkles size={18} />, visibleItems.filter(item => ["AI Grading Audit", "AI Usage Settings", "AI Usage Report", "AI Cost Controls", "AI Budget Alerts", "AI Monthly Costs"].includes(item.label)))}
-          {renderAdminGroup("school", "School administration", <ShieldCheck size={18} />, visibleItems.filter(item => !["Departments", "Academic Years", "Classes", "Streams", "Students", "Staff", "Attendance Workspace", "Staff Attendance", "QR Attendance", "Student QR Cards", "Face Enrollment", "Attendance Analytics", "Staff Attendance Times", "Staff QR Identity Cards", "Early Departure Report", "Grading Configuration", "Student Rankings", "Payment Intents", "Fee Structures", "Student Ledger", "School Library", "Staff Financial Records", "AI Grading Audit", "AI Usage Settings", "AI Usage Report", "AI Cost Controls", "AI Budget Alerts", "AI Monthly Costs"].includes(item.label)))}
+          {renderAdminGroup("school", "School administration", <ShieldCheck size={18} />, visibleItems.filter(item => !["Departments", "Academic Years", "Classes", "Streams", "Students", "Staff", "Attendance Workspace", "Archive", "Staff Attendance", "QR Attendance", "Student QR Cards", "Face Enrollment", "Attendance Analytics", "Staff Attendance Times", "Staff QR Identity Cards", "Early Departure Report", "Grading Configuration", "Student Rankings", "Payment Intents", "Fee Structures", "Student Ledger", "School Library", "Staff Financial Records", "AI Grading Audit", "AI Usage Settings", "AI Usage Report", "AI Cost Controls", "AI Budget Alerts", "AI Monthly Costs"].includes(item.label)))}
         </> : renderNavItems(visibleItems)}
       </nav>
 
@@ -256,7 +258,7 @@ const SharedLayout = () => {
           type="button"
           title={desktopCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           onClick={() => setDesktopCollapsed((value) => !value)}
-          className="hidden w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 md:flex"
+          className="hidden w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100 md:flex"
         >
           <ChevronLeft className={desktopCollapsed ? "rotate-180" : ""} size={18} />
           <span className={desktopCollapsed ? "md:hidden" : ""}>Collapse</span>
@@ -281,7 +283,7 @@ const SharedLayout = () => {
           type="button"
           aria-label="Close menu"
           onClick={() => setMobileOpen(false)}
-          className="fixed inset-0 z-30 bg-gray-900/40 md:hidden"
+          className="fixed inset-0 z-30 bg-slate-900/40 md:hidden"
         />
       )}
       <aside
@@ -299,15 +301,15 @@ const SharedLayout = () => {
               type="button"
               title="Open menu"
               onClick={() => setMobileOpen(true)}
-              className="rounded-md p-2 text-gray-700 hover:bg-gray-100 md:hidden"
+              className="rounded-md p-2 text-slate-700 hover:bg-slate-100 md:hidden"
             >
               <Menu size={20} />
             </button>
-            <p className="truncate text-sm font-semibold text-gray-800">{roleTitles[role || ""] || "Dashboard"}</p>
+            <p className="truncate text-sm font-semibold text-slate-800">{roleTitles[role || ""] || "Dashboard"}</p>
           </div>
           <div className="min-w-0 text-right">
-            <p className="truncate text-sm font-medium text-gray-800">{displayName}</p>
-            <p className="truncate text-xs capitalize text-gray-500">{role || "user"}</p>
+            <p className="truncate text-sm font-medium text-slate-800">{displayName}</p>
+            <p className="truncate text-xs capitalize text-slate-500">{role || "user"}</p>
           </div>
         </header>
 

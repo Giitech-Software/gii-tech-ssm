@@ -26,7 +26,7 @@ const AttendanceReport: React.FC = () => {
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">Attendance Report</h2>
+      <h2 className="text-2xl font-bold mb-4 text-slate-800">Attendance Report</h2>
 
       <div className="flex gap-3 mb-4">
         <select
@@ -56,7 +56,7 @@ const AttendanceReport: React.FC = () => {
       ) : (
         <>
           <table className="min-w-full border text-sm">
-            <thead className="bg-gray-100">
+            <thead className="bg-slate-100">
               <tr>
                 <th className="p-2 border">Student</th>
                 <th className="p-2 border">Days Present</th>

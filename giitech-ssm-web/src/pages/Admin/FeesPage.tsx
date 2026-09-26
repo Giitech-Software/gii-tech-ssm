@@ -134,8 +134,8 @@ const FeesPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-gray-700">Manage Fees</h1>
+    <div className="p-6 bg-slate-50 min-h-screen">
+      <h1 className="text-3xl font-bold mb-6 text-slate-700">Manage Fees</h1>
 
       {error && <p className="text-red-600 mb-3">{error}</p>}
       {success && <p className="text-green-600 mb-3">{success}</p>}
@@ -215,7 +215,7 @@ const FeesPage: React.FC = () => {
         <p>Loading fees...</p>
       ) : (
         <table className="w-full bg-white shadow rounded">
-          <thead className="bg-gray-100 text-gray-700 text-sm uppercase">
+          <thead className="bg-slate-100 text-slate-700 text-sm uppercase">
             <tr>
               <th className="p-2 border">Fee ID</th>
               <th className="p-2 border">Name</th>
@@ -228,16 +228,16 @@ const FeesPage: React.FC = () => {
           <tbody>
             {fees.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-3 text-center text-gray-500">
+                <td colSpan={6} className="p-3 text-center text-slate-500">
                   No fees found.
                 </td>
               </tr>
             ) : (
               fees.map((fee) => (
-                <tr key={fee.feeId} className="text-sm border-b hover:bg-gray-50">
+                <tr key={fee.feeId} className="text-sm border-b hover:bg-slate-50">
                   {editFeeId === fee.feeId ? (
                     <>
-                      <td className="p-2 border text-gray-500">{fee.feeId}</td>
+                      <td className="p-2 border text-slate-500">{fee.feeId}</td>
                       <td className="p-2 border">
                         <input
                           value={editData.name}
@@ -303,7 +303,7 @@ const FeesPage: React.FC = () => {
                         </button>
                         <button
                           onClick={() => setEditFeeId(null)}
-                          className="text-gray-500 hover:text-gray-700"
+                          className="text-slate-500 hover:text-slate-700"
                         >
                           Cancel
                         </button>
@@ -311,7 +311,7 @@ const FeesPage: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <td className="p-2 border text-gray-500">{fee.feeId}</td>
+                      <td className="p-2 border text-slate-500">{fee.feeId}</td>
                       <td className="p-2 border">{fee.name}</td>
                       <td className="p-2 border">{fee.amount}</td>
                       <td className="p-2 border">

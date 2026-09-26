@@ -88,10 +88,11 @@ import ReportApprovalPage from "./pages/Admin/ReportApprovalPage";
 import ReportReadinessPage from "./pages/Admin/ReportReadinessPage";
 import AttendanceFaceEnrollmentPage from "./pages/Admin/AttendanceFaceEnrollmentPage";
 import AttendanceWorkspacePage from "./pages/Admin/AttendanceWorkspacePage";
+import ArchivePage from "./pages/Admin/ArchivePage";
 
 function LoadingScreen() {
   return (
-    <div className="flex h-screen items-center justify-center text-lg text-gray-600">
+    <div className="flex h-screen items-center justify-center text-lg text-slate-600">
       Loading ASTEM-SSM...
     </div>
   );
@@ -184,6 +185,8 @@ export default function App() {
               <Route path="admin/create-staff" element={<Signup />} />
               <Route path="admin/staff-attendance" element={<StaffAttendanceReportPage />} />
               <Route path="admin/attendance" element={<AttendanceWorkspacePage />} />
+              <Route path="admin/take-attendance" element={<TeacherAttendancePage />} />
+              <Route path="admin/archive" element={<ArchivePage />} />
               <Route path="admin/qr-attendance" element={<QrAttendancePage />} />
               <Route path="admin/qr-identities" element={<StudentQrIdentityPage />} />
               <Route path="admin/attendance-analytics" element={<AttendanceAnalyticsPage />} />

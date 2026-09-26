@@ -32,7 +32,7 @@ interface AuthContextType {
   role: string | null;
   displayName: string | null;
   loading: boolean;
-  login: (id: string, password: string) => Promise<void>;
+  login: (id: string, password: string) => Promise<string>;
   resetPassword: (id: string) => Promise<void>;
   logout: () => Promise<void>;
   signup: (
@@ -107,6 +107,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await signOut(auth);
       throw new Error("This account is currently disabled. Contact your administrator.");
     }
+    return String(data?.role || "");
   };
 
   const resetPassword = async (id: string) => {

@@ -114,7 +114,7 @@ export default function ClassesPage() {
 
       {/* --- Table --- */}
       {loading ? (
-        <p className="text-gray-500">Loading classes...</p>
+        <p className="text-slate-500">Loading classes...</p>
       ) : (
         <table className="w-full bg-white shadow rounded">
           <thead className="bg-blue-100">
@@ -129,7 +129,7 @@ export default function ClassesPage() {
           <tbody>
             {classes.length === 0 ? (
               <tr>
-                <td colSpan={5} className="p-4 text-center text-gray-500">
+                <td colSpan={5} className="p-4 text-center text-slate-500">
                   No classes found.
                 </td>
               </tr>
@@ -139,8 +139,8 @@ export default function ClassesPage() {
                   (d) => d.departmentId === cls.departmentId
                 );
                 return (
-                  <tr key={cls.id} className="border-b hover:bg-gray-50">
-                    <td className="p-3 text-gray-500">{cls.classId || cls.id}</td>
+                  <tr key={cls.id} className="border-b hover:bg-slate-50">
+                    <td className="p-3 text-slate-500">{cls.classId || cls.id}</td>
                     <td className="p-3">{cls.name}</td>
                     <td className="p-3">
                       {relatedDept

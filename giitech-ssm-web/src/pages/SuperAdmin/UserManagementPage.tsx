@@ -79,7 +79,7 @@ export default function UserManagementPage() {
   if (loading)
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-gray-600 animate-pulse">Loading users...</p>
+        <p className="text-slate-600 animate-pulse">Loading users...</p>
       </div>
     );
 
@@ -116,30 +116,30 @@ export default function UserManagementPage() {
       {/* Table */}
       <div className="overflow-x-auto bg-white rounded-xl shadow">
         <table className="min-w-full text-sm">
-          <thead className="bg-gray-100 text-left">
+          <thead className="bg-slate-100 text-left">
             <tr>
-              <th className="px-4 py-2 font-semibold text-gray-700">#</th>
-              <th className="px-4 py-2 font-semibold text-gray-700">Name</th>
-              <th className="px-4 py-2 font-semibold text-gray-700">Email</th>
-              <th className="px-4 py-2 font-semibold text-gray-700">Role</th>
-              <th className="px-4 py-2 font-semibold text-gray-700">Security</th>
-              <th className="px-4 py-2 font-semibold text-gray-700">Created</th>
-              <th className="px-4 py-2 font-semibold text-gray-700">Actions</th>
+              <th className="px-4 py-2 font-semibold text-slate-700">#</th>
+              <th className="px-4 py-2 font-semibold text-slate-700">Name</th>
+              <th className="px-4 py-2 font-semibold text-slate-700">Email</th>
+              <th className="px-4 py-2 font-semibold text-slate-700">Role</th>
+              <th className="px-4 py-2 font-semibold text-slate-700">Security</th>
+              <th className="px-4 py-2 font-semibold text-slate-700">Created</th>
+              <th className="px-4 py-2 font-semibold text-slate-700">Actions</th>
             </tr>
           </thead>
           <tbody>
             {filteredUsers.length === 0 ? (
               <tr>
-                <td colSpan={7} className="text-center py-6 text-gray-500">
+                <td colSpan={7} className="text-center py-6 text-slate-500">
                   No users found.
                 </td>
               </tr>
             ) : (
               filteredUsers.map((u, i) => (
-                <tr key={u.uid} className="border-t hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-2 text-gray-600">{i + 1}</td>
+                <tr key={u.uid} className="border-t hover:bg-slate-50 transition-colors">
+                  <td className="px-4 py-2 text-slate-600">{i + 1}</td>
                   <td className="px-4 py-2">{u.displayName}</td>
-                  <td className="px-4 py-2 text-gray-600">{u.email}</td>
+                  <td className="px-4 py-2 text-slate-600">{u.email}</td>
                   <td className="px-4 py-2 capitalize">{u.role}</td>
                   <td className="px-4 py-2">
                     <div className="mb-2 flex flex-wrap gap-1">
@@ -147,11 +147,11 @@ export default function UserManagementPage() {
                       {u.locked && <span className="rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">Locked</span>}
                     </div>
                     <div className="flex flex-wrap gap-2 text-xs font-medium">
-                      <button disabled={savingUid === u.uid || u.uid === user?.uid} onClick={() => void handleSecurity(u, { status: u.status === "disabled" ? "active" : "disabled" })} className="text-indigo-700 disabled:opacity-40">{u.status === "disabled" ? "Reactivate" : "Disable"}</button>
+                      <button disabled={savingUid === u.uid || u.uid === user?.uid} onClick={() => void handleSecurity(u, { status: u.status === "disabled" ? "active" : "disabled" })} className="text-primary disabled:opacity-40">{u.status === "disabled" ? "Reactivate" : "Disable"}</button>
                       <button disabled={savingUid === u.uid || u.uid === user?.uid} onClick={() => void handleSecurity(u, { locked: !u.locked })} className="text-amber-700 disabled:opacity-40">{u.locked ? "Unlock" : "Lock"}</button>
                     </div>
                   </td>
-                  <td className="px-4 py-2 text-gray-500">
+                  <td className="px-4 py-2 text-slate-500">
                     {u.createdAt
                       ? new Date(u.createdAt).toLocaleDateString()
                       : "—"}

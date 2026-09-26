@@ -42,9 +42,9 @@ const reports = [
 
 const ReportsPage: React.FC = () => {
   return (
-    <div className="p-6 min-h-screen bg-gray-50">
-      <h1 className="text-3xl font-bold text-gray-800 mb-2">Reports</h1>
-      <p className="text-gray-600 mb-8">
+    <div className="p-6 min-h-screen bg-slate-50">
+      <h1 className="text-3xl font-bold text-slate-800 mb-2">Reports</h1>
+      <p className="text-slate-600 mb-8">
         Access and manage all academic and administrative reports from one
         place.
       </p>
@@ -61,10 +61,10 @@ const ReportsPage: React.FC = () => {
               <div className="p-3 bg-white rounded-full shadow-sm">
                 {report.icon}
               </div>
-              <h2 className="text-lg font-semibold text-gray-800">
+              <h2 className="text-lg font-semibold text-slate-800">
                 {report.title}
               </h2>
-              <p className="text-gray-600 text-sm leading-relaxed">
+              <p className="text-slate-600 text-sm leading-relaxed">
                 {report.description}
               </p>
               <span className="mt-3 text-blue-600 font-medium hover:underline">

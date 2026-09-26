@@ -70,8 +70,8 @@ export default function StreamPage() {
   };
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-gray-700">Manage Streams</h1>
+    <div className="p-6 bg-slate-50 min-h-screen">
+      <h1 className="text-3xl font-bold mb-6 text-slate-700">Manage Streams</h1>
 
       {message && (
         <div className="mb-4 p-3 bg-blue-100 text-blue-700 rounded">{message}</div>
@@ -112,7 +112,7 @@ export default function StreamPage() {
 
       {/* --- Table --- */}
       {loading ? (
-        <p className="text-gray-500">Loading streams...</p>
+        <p className="text-slate-500">Loading streams...</p>
       ) : (
         <table className="w-full bg-white shadow rounded">
           <thead className="bg-blue-100">
@@ -127,7 +127,7 @@ export default function StreamPage() {
           <tbody>
             {streams.length === 0 ? (
               <tr>
-                <td colSpan={5} className="p-4 text-center text-gray-500">
+                <td colSpan={5} className="p-4 text-center text-slate-500">
                   No streams found.
                 </td>
               </tr>
@@ -137,8 +137,8 @@ export default function StreamPage() {
                   (cls) => cls.classId === stream.classId
                 );
                 return (
-                  <tr key={stream.id} className="border-b hover:bg-gray-50">
-                    <td className="p-3 text-gray-500">{stream.streamId || stream.id}</td>
+                  <tr key={stream.id} className="border-b hover:bg-slate-50">
+                    <td className="p-3 text-slate-500">{stream.streamId || stream.id}</td>
                     <td className="p-3">{stream.name}</td>
                     <td className="p-3">
                       {relatedClass

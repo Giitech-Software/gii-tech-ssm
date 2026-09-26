@@ -6,7 +6,6 @@ import {
   addDoc,
   doc,
   updateDoc,
-  deleteDoc,
   getDoc,
   serverTimestamp,
 } from "firebase/firestore";
@@ -55,6 +54,6 @@ export const updateStudent = async (studentId: string, data: any) => {
  */
 export const deleteStudent = async (studentId: string) => {
   const ref = doc(db, STUDENTS_COLLECTION, studentId);
-  await deleteDoc(ref);
+  await updateDoc(ref, { status: "archived", loginDisabled: true, archivedAt: serverTimestamp() });
 };
 

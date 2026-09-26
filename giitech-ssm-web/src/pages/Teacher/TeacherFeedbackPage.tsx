@@ -79,32 +79,32 @@ const TeacherFeedbackPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-          <FileText className="text-indigo-600" /> Review Student Submissions
+        <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2">
+          <FileText className="text-primary" /> Review Student Submissions
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-slate-600 mt-2">
           Grade and provide feedback on uploaded assignments.
         </p>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl shadow border border-gray-100">
+      <div className="bg-white rounded-2xl shadow border border-slate-100">
         <div className="p-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
             <MessageSquare className="text-blue-500" /> Submissions List
           </h2>
         </div>
 
         {loading ? (
-          <div className="p-6 text-gray-500 text-center">Loading submissions...</div>
+          <div className="p-6 text-slate-500 text-center">Loading submissions...</div>
         ) : submissions.length === 0 ? (
-          <div className="p-6 text-gray-500 text-center">No submissions found.</div>
+          <div className="p-6 text-slate-500 text-center">No submissions found.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm text-left text-gray-700">
-              <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+            <table className="min-w-full text-sm text-left text-slate-700">
+              <thead className="bg-slate-100 text-slate-600 uppercase text-xs">
                 <tr>
                   <th className="px-4 py-3">Student ID</th>
                   <th className="px-4 py-3">Assignment</th>
@@ -118,7 +118,7 @@ const TeacherFeedbackPage: React.FC = () => {
                 {submissions.map((s) => (
                   <tr
                     key={s.id}
-                    className="border-b hover:bg-gray-50 transition-colors duration-150"
+                    className="border-b hover:bg-slate-50 transition-colors duration-150"
                   >
                     <td className="px-4 py-3 font-medium">{s.studentId}</td>
                     <td className="px-4 py-3">{s.assignmentTitle || "—"}</td>
@@ -138,7 +138,7 @@ const TeacherFeedbackPage: React.FC = () => {
                         defaultValue={s.feedback || ""}
                         onBlur={(e) => handleFeedbackSave(s.id, e.target.value)}
                         placeholder="Write feedback..."
-                        className="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 text-gray-700"
+                        className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-primary0 text-slate-700"
                       />
                     </td>
                     <td className="px-4 py-3">
@@ -146,14 +146,14 @@ const TeacherFeedbackPage: React.FC = () => {
                         href={s.fileUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-indigo-600 hover:underline font-medium"
+                        className="text-primary hover:underline font-medium"
                       >
                         View File
                       </a>
                     </td>
                     <td className="px-4 py-3 text-center">
                       {updating === s.id ? (
-                        <span className="text-gray-500 text-sm">Saving...</span>
+                        <span className="text-slate-500 text-sm">Saving...</span>
                       ) : (
                         <button
                           onClick={() =>
@@ -164,7 +164,7 @@ const TeacherFeedbackPage: React.FC = () => {
                               ) as HTMLTextAreaElement)?.value || ""
                             )
                           }
-                          className="px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition flex items-center gap-1 mx-auto"
+                          className="px-3 py-1 bg-primary text-white rounded-md hover:bg-primary transition flex items-center gap-1 mx-auto"
                         >
                           <Send size={14} /> Save
                         </button>

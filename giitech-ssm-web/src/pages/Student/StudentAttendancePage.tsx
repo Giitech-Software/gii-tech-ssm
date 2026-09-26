@@ -51,16 +51,16 @@ export default function StudentAttendancePage() {
       {loading ? (
         <p>Loading your attendance...</p>
       ) : attendance.length === 0 ? (
-        <p className="text-gray-500">No attendance records found.</p>
+        <p className="text-slate-500">No attendance records found.</p>
       ) : (
         <>
           {/* Summary Header */}
           <div className="flex justify-between items-center mb-4">
             <div>
-              <h2 className="text-lg font-semibold text-gray-700">
+              <h2 className="text-lg font-semibold text-slate-700">
                 Attendance Summary
               </h2>
-              <p className="text-gray-600">
+              <p className="text-slate-600">
                 Present: <span className="font-semibold text-green-600">{daysPresent}</span> /{" "}
                 {totalDays} days (
                 <span className="text-blue-600 font-semibold">
@@ -89,8 +89,8 @@ export default function StudentAttendancePage() {
 
           {/* Attendance Table */}
           <div className="overflow-x-auto bg-white shadow rounded-lg">
-            <table className="min-w-full border border-gray-200 text-sm">
-              <thead className="bg-gray-100 text-gray-700">
+            <table className="min-w-full border border-slate-200 text-sm">
+              <thead className="bg-slate-100 text-slate-700">
                 <tr>
                   <th className="px-4 py-2 border">Date</th>
                   <th className="px-4 py-2 border">Status</th>
@@ -100,7 +100,7 @@ export default function StudentAttendancePage() {
               </thead>
               <tbody>
                 {attendance.map((record) => (
-                  <tr key={record.id} className="hover:bg-gray-50">
+                  <tr key={record.id} className="hover:bg-slate-50">
                     <td className="px-4 py-2 border">{record.date}</td>
                     <td
                       className={`px-4 py-2 border font-medium ${

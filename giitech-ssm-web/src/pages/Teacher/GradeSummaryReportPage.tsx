@@ -97,13 +97,13 @@ const GradeSummaryReportPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-          <BarChart3 className="text-indigo-600" /> Grade Summary Report
+        <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2">
+          <BarChart3 className="text-primary" /> Grade Summary Report
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-slate-600 mt-2">
           Visualize and export student or class grade summaries.
         </p>
       </div>
@@ -111,11 +111,11 @@ const GradeSummaryReportPage: React.FC = () => {
       {/* Controls */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
         <div className="flex items-center gap-3">
-          <label className="font-medium text-gray-700">Group by:</label>
+          <label className="font-medium text-slate-700">Group by:</label>
           <select
             value={groupBy}
             onChange={(e) => setGroupBy(e.target.value as "student" | "class")}
-            className="border border-gray-300 rounded-lg px-3 py-2 bg-white shadow-sm focus:ring focus:ring-indigo-300 focus:outline-none"
+            className="border border-slate-300 rounded-lg px-3 py-2 bg-white shadow-sm focus:ring focus:ring-primary focus:outline-none"
           >
             <option value="student">Student</option>
             <option value="class">Class</option>
@@ -137,7 +137,7 @@ const GradeSummaryReportPage: React.FC = () => {
           </button>
           <button
             onClick={handleChartDownload}
-            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition"
+            className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary transition"
           >
             <ImageDown size={18} /> Export Chart (PNG)
           </button>
@@ -147,12 +147,12 @@ const GradeSummaryReportPage: React.FC = () => {
       {/* Chart */}
       <div
         ref={chartRef}
-        className="bg-white rounded-2xl shadow border border-gray-100 p-6"
+        className="bg-white rounded-2xl shadow border border-slate-100 p-6"
       >
         {loading ? (
-          <div className="text-center text-gray-500">Loading data...</div>
+          <div className="text-center text-slate-500">Loading data...</div>
         ) : chartData.length === 0 ? (
-          <div className="text-center text-gray-500">No grade data available.</div>
+          <div className="text-center text-slate-500">No grade data available.</div>
         ) : (
           <ResponsiveContainer width="100%" height={400}>
             <BarChart data={chartData}>

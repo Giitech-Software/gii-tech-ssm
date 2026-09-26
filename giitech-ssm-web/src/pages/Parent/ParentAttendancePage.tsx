@@ -70,7 +70,7 @@ export default function ParentAttendancePage() {
 
   if (loading)
     return (
-      <div className="flex justify-center items-center h-screen text-gray-500">
+      <div className="flex justify-center items-center h-screen text-slate-500">
         Loading attendance data...
       </div>
     );
@@ -90,14 +90,14 @@ export default function ParentAttendancePage() {
   });
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-            <CalendarCheck2 className="text-indigo-600" /> Child Attendance
+          <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2">
+            <CalendarCheck2 className="text-primary" /> Child Attendance
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-slate-600 mt-1">
             Track attendance performance and download detailed records.
           </p>
         </div>
@@ -124,12 +124,12 @@ export default function ParentAttendancePage() {
           {summary.map((s, idx) => (
             <div
               key={idx}
-              className="bg-white rounded-2xl shadow p-5 border border-gray-100 hover:shadow-md transition"
+              className="bg-white rounded-2xl shadow p-5 border border-slate-100 hover:shadow-md transition"
             >
-              <h3 className="text-lg font-semibold text-indigo-700">
+              <h3 className="text-lg font-semibold text-primary">
                 {s.name}
               </h3>
-              <p className="text-gray-600 text-sm mt-1">
+              <p className="text-slate-600 text-sm mt-1">
                 Class: {s.className || "—"} | Stream: {s.stream || "—"}
               </p>
               <p
@@ -150,7 +150,7 @@ export default function ParentAttendancePage() {
 
       {/* Chart */}
       <div className="bg-white shadow rounded-2xl p-6 mb-8">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+        <h2 className="text-xl font-semibold text-slate-800 mb-4">
           Attendance Overview
         </h2>
 
@@ -165,7 +165,7 @@ export default function ParentAttendancePage() {
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-gray-500 italic text-center py-10">
+          <p className="text-slate-500 italic text-center py-10">
             No attendance data available to display.
           </p>
         )}
@@ -173,30 +173,30 @@ export default function ParentAttendancePage() {
 
       {/* Detailed Attendance Table */}
       <div className="bg-white shadow rounded-2xl p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+        <h2 className="text-xl font-semibold text-slate-800 mb-4">
           Attendance Records
         </h2>
 
         {attendance.length ? (
           <div className="overflow-x-auto">
-            <table className="w-full border border-gray-200 rounded-lg overflow-hidden">
-              <thead className="bg-gray-100">
+            <table className="w-full border border-slate-200 rounded-lg overflow-hidden">
+              <thead className="bg-slate-100">
                 <tr>
-                  <th className="px-4 py-2 text-left text-gray-700">Student</th>
-                  <th className="px-4 py-2 text-left text-gray-700">Date</th>
-                  <th className="px-4 py-2 text-left text-gray-700">Status</th>
+                  <th className="px-4 py-2 text-left text-slate-700">Student</th>
+                  <th className="px-4 py-2 text-left text-slate-700">Date</th>
+                  <th className="px-4 py-2 text-left text-slate-700">Status</th>
                 </tr>
               </thead>
               <tbody>
                 {attendance.map((a) => (
                   <tr
                     key={a.id}
-                    className="border-t border-gray-100 hover:bg-gray-50"
+                    className="border-t border-slate-100 hover:bg-slate-50"
                   >
                     <td className="px-4 py-2">
                       {students.find((s) => s.id === a.studentId)?.displayName || "—"}
                     </td>
-                    <td className="px-4 py-2 text-gray-600">
+                    <td className="px-4 py-2 text-slate-600">
                       {new Date(a.date).toLocaleDateString()}
                     </td>
                     <td
@@ -214,7 +214,7 @@ export default function ParentAttendancePage() {
             </table>
           </div>
         ) : (
-          <p className="text-gray-500 italic">No attendance records found.</p>
+          <p className="text-slate-500 italic">No attendance records found.</p>
         )}
       </div>
     </div>

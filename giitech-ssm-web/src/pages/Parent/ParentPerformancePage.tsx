@@ -72,7 +72,7 @@ export default function ParentPerformancePage() {
 
   if (loading)
     return (
-      <div className="flex justify-center items-center h-screen text-gray-500">
+      <div className="flex justify-center items-center h-screen text-slate-500">
         Loading performance data...
       </div>
     );
@@ -85,14 +85,14 @@ export default function ParentPerformancePage() {
   }));
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800">
+          <h1 className="text-3xl font-bold text-slate-800">
             Child Performance Reports 📈
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-slate-600 mt-1">
             Monitor and export your child’s academic progress.
           </p>
         </div>
@@ -119,15 +119,15 @@ export default function ParentPerformancePage() {
           {students.map((s) => (
             <div
               key={s.id}
-              className="bg-white rounded-2xl shadow p-5 border border-gray-100 hover:shadow-md transition"
+              className="bg-white rounded-2xl shadow p-5 border border-slate-100 hover:shadow-md transition"
             >
-              <h3 className="text-lg font-semibold text-indigo-700">
+              <h3 className="text-lg font-semibold text-primary">
                 {s.displayName}
               </h3>
-              <p className="text-gray-600 text-sm mt-1">
+              <p className="text-slate-600 text-sm mt-1">
                 Class: {s.className || "—"} | Stream: {s.stream || "—"}
               </p>
-              <p className="text-gray-500 text-xs mt-2">
+              <p className="text-slate-500 text-xs mt-2">
                 Total Subjects:{" "}
                 {grades.filter((g) => g.studentId === s.id).length}
               </p>
@@ -138,8 +138,8 @@ export default function ParentPerformancePage() {
 
       {/* Chart Section */}
       <div className="bg-white shadow rounded-2xl p-6 mb-8">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-          <BarChart3 className="text-indigo-600" /> Performance Overview
+        <h2 className="text-xl font-semibold text-slate-800 mb-4 flex items-center gap-2">
+          <BarChart3 className="text-primary" /> Performance Overview
         </h2>
         {chartData.length ? (
           <ResponsiveContainer width="100%" height={400}>
@@ -152,7 +152,7 @@ export default function ParentPerformancePage() {
             </BarChart>
           </ResponsiveContainer>
         ) : (
-          <p className="text-gray-500 italic text-center py-10">
+          <p className="text-slate-500 italic text-center py-10">
             No grade data available to display.
           </p>
         )}
@@ -160,26 +160,26 @@ export default function ParentPerformancePage() {
 
       {/* Detailed Grade Table */}
       <div className="bg-white shadow rounded-2xl p-6">
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">
+        <h2 className="text-xl font-semibold text-slate-800 mb-4">
           Detailed Grade Records
         </h2>
 
         {grades.length ? (
           <div className="overflow-x-auto">
-            <table className="w-full border border-gray-200 rounded-lg overflow-hidden">
-              <thead className="bg-gray-100">
+            <table className="w-full border border-slate-200 rounded-lg overflow-hidden">
+              <thead className="bg-slate-100">
                 <tr>
-                  <th className="px-4 py-2 text-left text-gray-700">Student</th>
-                  <th className="px-4 py-2 text-left text-gray-700">Subject</th>
-                  <th className="px-4 py-2 text-left text-gray-700">Score</th>
-                  <th className="px-4 py-2 text-left text-gray-700">Date</th>
+                  <th className="px-4 py-2 text-left text-slate-700">Student</th>
+                  <th className="px-4 py-2 text-left text-slate-700">Subject</th>
+                  <th className="px-4 py-2 text-left text-slate-700">Score</th>
+                  <th className="px-4 py-2 text-left text-slate-700">Date</th>
                 </tr>
               </thead>
               <tbody>
                 {grades.map((g) => (
                   <tr
                     key={g.id}
-                    className="border-t border-gray-100 hover:bg-gray-50"
+                    className="border-t border-slate-100 hover:bg-slate-50"
                   >
                     <td className="px-4 py-2">
                       {g.studentName ||
@@ -187,10 +187,10 @@ export default function ParentPerformancePage() {
                         "—"}
                     </td>
                     <td className="px-4 py-2">{g.subject || "N/A"}</td>
-                    <td className="px-4 py-2 font-semibold text-indigo-600">
+                    <td className="px-4 py-2 font-semibold text-primary">
                       {g.score ?? "N/A"}
                     </td>
-                    <td className="px-4 py-2 text-gray-500">
+                    <td className="px-4 py-2 text-slate-500">
                       {g.date || "—"}
                     </td>
                   </tr>
@@ -199,7 +199,7 @@ export default function ParentPerformancePage() {
             </table>
           </div>
         ) : (
-          <p className="text-gray-500 italic">No grade records found.</p>
+          <p className="text-slate-500 italic">No grade records found.</p>
         )}
       </div>
     </div>

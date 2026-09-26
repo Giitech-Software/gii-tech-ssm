@@ -61,11 +61,11 @@ const StudentReport: React.FC = () => {
   }, [students, selectedDept, selectedClass, selectedStream, search]);
 
   if (loading)
-    return <p className="text-gray-500 animate-pulse p-4">Loading student data...</p>;
+    return <p className="text-slate-500 animate-pulse p-4">Loading student data...</p>;
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4 text-gray-700">Student Report</h2>
+      <h2 className="text-xl font-semibold mb-4 text-slate-700">Student Report</h2>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-4">
@@ -140,7 +140,7 @@ const StudentReport: React.FC = () => {
       {/* Table */}
       <div className="overflow-x-auto bg-white shadow-md rounded">
         <table className="min-w-full border">
-          <thead className="bg-gray-100 text-gray-700">
+          <thead className="bg-slate-100 text-slate-700">
             <tr>
               <th className="p-2 border text-left">Student ID</th>
               <th className="p-2 border text-left">Name</th>
@@ -153,14 +153,14 @@ const StudentReport: React.FC = () => {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={6} className="p-4 text-center text-gray-500">
+                <td colSpan={6} className="p-4 text-center text-slate-500">
                   No students found.
                 </td>
               </tr>
             ) : (
               filtered.map((s) => (
-                <tr key={s.id} className="border-b hover:bg-gray-50">
-                  <td className="p-2 border text-gray-500">{s.studentId}</td>
+                <tr key={s.id} className="border-b hover:bg-slate-50">
+                  <td className="p-2 border text-slate-500">{s.studentId}</td>
                   <td className="p-2 border">{s.name}</td>
                   <td className="p-2 border">{s.gender || "—"}</td>
                   <td className="p-2 border">

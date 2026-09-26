@@ -108,7 +108,7 @@ const DepartmentsPage = () => {
               setName("");
               setHead("");
             }}
-            className="ml-2 text-gray-500 hover:underline"
+            className="ml-2 text-slate-500 hover:underline"
           >
             Cancel
           </button>
@@ -118,7 +118,7 @@ const DepartmentsPage = () => {
       {/* Table */}
       <table className="min-w-full border">
         <thead>
-          <tr className="bg-gray-100 text-left">
+          <tr className="bg-slate-100 text-left">
             <th className="p-2 border">ID</th>
             <th className="p-2 border">Name</th>
             <th className="p-2 border">Head</th>
@@ -128,7 +128,7 @@ const DepartmentsPage = () => {
         <tbody>
           {departments.map((dept) => (
             <tr key={dept.id} className="border-t">
-              <td className="p-2 border text-gray-500 text-sm">{dept.id}</td>
+              <td className="p-2 border text-slate-500 text-sm">{dept.id}</td>
               <td className="p-2 border">{dept.name}</td>
               <td className="p-2 border">{dept.head || "-"}</td>
               <td className="p-2 border">
@@ -149,7 +149,7 @@ const DepartmentsPage = () => {
           ))}
           {departments.length === 0 && (
             <tr>
-              <td colSpan={4} className="p-3 text-center text-gray-500">
+              <td colSpan={4} className="p-3 text-center text-slate-500">
                 No departments found.
               </td>
             </tr>

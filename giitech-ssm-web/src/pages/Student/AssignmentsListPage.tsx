@@ -100,7 +100,7 @@ export default function AssignmentsListPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64 text-gray-500">
+      <div className="flex justify-center items-center h-64 text-slate-500">
         Loading assignments...
       </div>
     );
@@ -132,8 +132,8 @@ export default function AssignmentsListPage() {
   const completed = assignments.filter((a) => a.status === "submitted").length;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+    <div className="min-h-screen bg-slate-50 p-6">
+      <h1 className="text-3xl font-bold text-slate-800 mb-6 flex items-center gap-2">
         <FileText className="text-blue-600" /> Your Assignments
       </h1>
 
@@ -160,7 +160,7 @@ export default function AssignmentsListPage() {
 
       {/* 🔹 Assignment Cards */}
       {assignments.length === 0 ? (
-        <div className="text-center text-gray-500 mt-20">
+        <div className="text-center text-slate-500 mt-20">
           <AlertTriangle className="mx-auto mb-3 text-yellow-500" size={40} />
           <p>No assignments found yet.</p>
         </div>
@@ -169,10 +169,10 @@ export default function AssignmentsListPage() {
           {assignments.map((a) => (
             <div
               key={a.id}
-              className="bg-white shadow rounded-2xl p-5 hover:shadow-lg transition-all border border-gray-100"
+              className="bg-white shadow rounded-2xl p-5 hover:shadow-lg transition-all border border-slate-100"
             >
               <div className="flex justify-between items-center mb-2">
-                <h2 className="text-lg font-semibold text-gray-800">
+                <h2 className="text-lg font-semibold text-slate-800">
                   {a.title || "Untitled Assignment"}
                 </h2>
                 <CheckCircle
@@ -180,19 +180,19 @@ export default function AssignmentsListPage() {
                   className={
                     a.status === "submitted"
                       ? "text-green-500"
-                      : "text-gray-300"
+                      : "text-slate-300"
                   }
                 />
               </div>
 
-              <p className="text-sm text-gray-600 mb-2">
+              <p className="text-sm text-slate-600 mb-2">
                 Class:{" "}
                 <span className="font-medium">
                   {className || a.classId || "Unknown"}
                 </span>
               </p>
 
-              <p className="text-sm text-gray-500 flex items-center gap-1">
+              <p className="text-sm text-slate-500 flex items-center gap-1">
                 <Calendar size={16} /> {formatDate(a.dueDate)}
               </p>
 
@@ -228,10 +228,10 @@ const StatCard = ({
   icon: React.ReactNode;
   color?: string;
 }) => (
-  <div className="bg-white rounded-2xl p-5 shadow border border-gray-100 flex items-center justify-between">
+  <div className="bg-white rounded-2xl p-5 shadow border border-slate-100 flex items-center justify-between">
     <div>
-      <p className="text-sm text-gray-500">{label}</p>
-      <h3 className={`text-2xl font-bold ${color || "text-gray-800"}`}>
+      <p className="text-sm text-slate-500">{label}</p>
+      <h3 className={`text-2xl font-bold ${color || "text-slate-800"}`}>
         {value}
       </h3>
     </div>

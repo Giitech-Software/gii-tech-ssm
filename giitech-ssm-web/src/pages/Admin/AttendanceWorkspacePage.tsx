@@ -2,7 +2,7 @@ import { BarChart3, CalendarCheck2, QrCode, ScanFace, Settings2, Users } from "l
 import { Link } from "react-router-dom";
 
 const tools = [
-  ["Take student attendance", "Open the daily class register and record present, late, or absent status.", "/teacher/attendance", CalendarCheck2],
+  ["Take student attendance", "Open the daily class register and record present, late, or absent status.", "/admin/take-attendance", CalendarCheck2],
   ["Staff attendance", "Review staff check-ins, verification methods, and movement records.", "/admin/staff-attendance", Users],
   ["Face enrollment", "Enroll or replace a verified face linked to a student or staff school ID.", "/admin/face-enrollment", ScanFace],
   ["QR attendance", "Use QR identity cards for fast attendance lookup and recording.", "/admin/qr-attendance", QrCode],

@@ -197,23 +197,23 @@ const TeacherAssignmentsPage: React.FC = () => {
 
   const inputClass = (field: string) =>
     `border p-2 rounded-lg w-full ${
-      errors[field] ? "border-red-500 focus:border-red-500" : "border-gray-300"
+      errors[field] ? "border-red-500 focus:border-red-500" : "border-slate-300"
     }`;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-          <BookOpen className="text-indigo-600" /> Teacher Assignments
+        <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2">
+          <BookOpen className="text-primary" /> Teacher Assignments
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-slate-600 mt-2">
           Create and manage assignments — auto-marked for short answers and MCQs.
         </p>
       </div>
 
       {/* Create Assignment */}
-      <div className="bg-white rounded-2xl shadow p-6 mb-8 border border-gray-100">
+      <div className="bg-white rounded-2xl shadow p-6 mb-8 border border-slate-100">
         <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
           <PlusCircle className="text-green-500" /> Create Assignment
         </h2>
@@ -340,14 +340,14 @@ const TeacherAssignmentsPage: React.FC = () => {
                 questions: [],
               })
             }
-            className="border border-gray-300 p-2 rounded-lg w-full"
+            className="border border-slate-300 p-2 rounded-lg w-full"
           >
             <option value="short-answer">Short Answer</option>
             <option value="objective">Objective (MCQ)</option>
             <option value="essay">Essay</option>
           </select>
-          <input type="number" min="0" placeholder="Quiz time limit (minutes, optional)" value={newAssignment.durationMinutes || ""} onChange={(e) => setNewAssignment({ ...newAssignment, durationMinutes: e.target.value ? Number(e.target.value) : undefined })} className="border border-gray-300 p-2 rounded-lg w-full" />
-          <input type="number" min="1" placeholder="Maximum attempts (optional)" value={newAssignment.maxAttempts || ""} onChange={(e) => setNewAssignment({ ...newAssignment, maxAttempts: e.target.value ? Number(e.target.value) : undefined })} className="border border-gray-300 p-2 rounded-lg w-full" />
+          <input type="number" min="0" placeholder="Quiz time limit (minutes, optional)" value={newAssignment.durationMinutes || ""} onChange={(e) => setNewAssignment({ ...newAssignment, durationMinutes: e.target.value ? Number(e.target.value) : undefined })} className="border border-slate-300 p-2 rounded-lg w-full" />
+          <input type="number" min="1" placeholder="Maximum attempts (optional)" value={newAssignment.maxAttempts || ""} onChange={(e) => setNewAssignment({ ...newAssignment, maxAttempts: e.target.value ? Number(e.target.value) : undefined })} className="border border-slate-300 p-2 rounded-lg w-full" />
         </div>
 
         {/* Description */}
@@ -357,7 +357,7 @@ const TeacherAssignmentsPage: React.FC = () => {
           onChange={(e) =>
             setNewAssignment({ ...newAssignment, description: e.target.value })
           }
-          className="border border-gray-300 p-2 rounded-lg w-full mt-4"
+          className="border border-slate-300 p-2 rounded-lg w-full mt-4"
           rows={3}
         />
 
@@ -366,7 +366,7 @@ const TeacherAssignmentsPage: React.FC = () => {
           newAssignment.type === "short-answer") && (
           <div className="mt-6 border-t pt-4">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-gray-700 flex items-center gap-2">
+              <h3 className="font-semibold text-slate-700 flex items-center gap-2">
                 <ListChecks className="text-blue-500" /> Questions
               </h3>
               <button
@@ -380,7 +380,7 @@ const TeacherAssignmentsPage: React.FC = () => {
             {newAssignment.questions?.map((q, i) => (
               <div
                 key={i}
-                className="mt-3 bg-gray-50 p-3 rounded-lg border border-gray-200"
+                className="mt-3 bg-slate-50 p-3 rounded-lg border border-slate-200"
               >
                 <input
                   type="text"
@@ -424,7 +424,7 @@ const TeacherAssignmentsPage: React.FC = () => {
         <div className="mt-6">
           <button
             onClick={handleCreate}
-            className="bg-indigo-600 text-white rounded-lg px-5 py-2 hover:bg-indigo-700 transition"
+            className="bg-primary text-white rounded-lg px-5 py-2 hover:bg-primary transition"
           >
             Create Assignment
           </button>
@@ -432,26 +432,26 @@ const TeacherAssignmentsPage: React.FC = () => {
       </div>
 
       {/* Assignment List */}
-      <div className="bg-white rounded-2xl shadow border border-gray-100">
+      <div className="bg-white rounded-2xl shadow border border-slate-100">
         <div className="p-4 border-b flex items-center gap-2">
           <CalendarDays className="text-blue-500" />
-          <h2 className="text-lg font-semibold text-gray-800">
+          <h2 className="text-lg font-semibold text-slate-800">
             Existing Assignments
           </h2>
         </div>
 
         {loading ? (
-          <div className="p-6 text-center text-gray-500">
+          <div className="p-6 text-center text-slate-500">
             Loading assignments...
           </div>
         ) : assignments.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
+          <div className="p-6 text-center text-slate-500">
             No assignments yet.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm text-left text-gray-700">
-              <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+            <table className="min-w-full text-sm text-left text-slate-700">
+              <thead className="bg-slate-100 text-slate-600 uppercase text-xs">
                 <tr>
                   <th className="px-4 py-3">Title</th>
                   <th className="px-4 py-3">Type</th>
@@ -462,7 +462,7 @@ const TeacherAssignmentsPage: React.FC = () => {
               </thead>
               <tbody>
                 {assignments.map((a) => (
-                  <tr key={a.id} className="border-b hover:bg-gray-50">
+                  <tr key={a.id} className="border-b hover:bg-slate-50">
                     <td className="px-4 py-3 font-medium">{a.title}</td>
                     <td className="px-4 py-3 capitalize">{a.type}</td>
                     <td className="px-4 py-3">{a.classId}</td>

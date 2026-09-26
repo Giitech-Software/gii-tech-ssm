@@ -172,7 +172,7 @@ export default function TeacherAttendancePage() {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold text-primary mb-6">
-        Teacher Attendance Management 🧾
+        Attendance register
       </h1>
 
       {/* Class Selector */}
@@ -245,16 +245,16 @@ export default function TeacherAttendancePage() {
             </div>
           </div>
 
-          <table className="min-w-full border border-gray-200">
+          <table className="min-w-full border border-slate-200">
             <thead>
-              <tr className="bg-gray-100 text-left">
+              <tr className="bg-slate-100 text-left">
                 <th className="p-2 border">Student Name</th>
                 <th className="p-2 border text-center">Status</th>
               </tr>
             </thead>
             <tbody>
               {attendanceData.map((student, index) => (
-                <tr key={index} className="hover:bg-gray-50">
+                <tr key={index} className="hover:bg-slate-50">
                   <td className="p-2 border">{student.studentName}</td>
                   <td className="p-2 border text-center">
                     <button
@@ -262,7 +262,7 @@ export default function TeacherAttendancePage() {
                       className={`px-3 py-1 rounded-md mr-2 ${
                         student.status === "Present"
                           ? "bg-green-600 text-white"
-                          : "bg-gray-200"
+                          : "bg-slate-200"
                       }`}
                     >
                       Present
@@ -272,7 +272,7 @@ export default function TeacherAttendancePage() {
                       className={`px-3 py-1 rounded-md ${
                         student.status === "Absent"
                           ? "bg-red-600 text-white"
-                          : "bg-gray-200"
+                          : "bg-slate-200"
                       }`}
                     >
                       Absent
@@ -286,7 +286,7 @@ export default function TeacherAttendancePage() {
           <div className="flex justify-end mt-4 gap-3">
             <button
               onClick={() => setMarking(false)}
-              className="bg-gray-300 px-4 py-2 rounded-md hover:bg-gray-400"
+              className="bg-slate-300 px-4 py-2 rounded-md hover:bg-slate-400"
             >
               Cancel
             </button>
@@ -306,9 +306,9 @@ export default function TeacherAttendancePage() {
         <>
           {/* Table */}
           <div className="bg-white shadow rounded-lg p-4 overflow-x-auto">
-            <table className="min-w-full border border-gray-200">
+            <table className="min-w-full border border-slate-200">
               <thead>
-                <tr className="bg-gray-100 text-left">
+                <tr className="bg-slate-100 text-left">
                   <th className="p-2 border">Student Name</th>
                   <th className="p-2 border">Date</th>
                   <th className="p-2 border">Status</th>
@@ -316,7 +316,7 @@ export default function TeacherAttendancePage() {
               </thead>
               <tbody>
                 {attendanceData.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50">
+                  <tr key={idx} className="hover:bg-slate-50">
                     <td className="p-2 border">{item.studentName}</td>
                     <td className="p-2 border">{item.date}</td>
                     <td

@@ -28,8 +28,8 @@ const Button = ({ onClick, children, variant = "primary", disabled }: any) => (
     disabled={disabled}
     className={`px-4 py-2 rounded-md font-medium flex items-center gap-2 transition ${
       variant === "outline"
-        ? "border border-gray-300 text-gray-700 hover:bg-gray-100"
-        : "bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
+        ? "border border-slate-300 text-slate-700 hover:bg-slate-100"
+        : "bg-primary text-white hover:bg-primary disabled:opacity-50"
     }`}
   >
     {children}
@@ -130,18 +130,18 @@ export default function TeacherMessagesPage() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    <div className="flex flex-col lg:flex-row gap-6 p-6 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
       {/* 🔹 Left: Chat List */}
       <Card className="w-full lg:w-1/3">
         <CardContent>
-          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-gray-800">
-            <Mail className="text-indigo-600" />
+          <h2 className="text-xl font-semibold mb-4 flex items-center gap-2 text-slate-800">
+            <Mail className="text-primary" />
             Inbox
           </h2>
           {loading ? (
-            <p className="text-gray-500 text-sm">Loading chats...</p>
+            <p className="text-slate-500 text-sm">Loading chats...</p>
           ) : chatList.length === 0 ? (
-            <p className="text-gray-500 text-sm">No messages yet.</p>
+            <p className="text-slate-500 text-sm">No messages yet.</p>
           ) : (
             <div className="space-y-2 max-h-[70vh] overflow-y-auto">
               {chatList.map((chat) => (
@@ -150,12 +150,12 @@ export default function TeacherMessagesPage() {
                   onClick={() => handleSelectChat(chat.parentEmail)}
                   className={`p-3 rounded-lg cursor-pointer border ${
                     selectedChat === chat.parentEmail
-                      ? "bg-indigo-50 border-indigo-400"
-                      : "bg-white hover:bg-gray-50"
+                      ? "bg-primary border-primary"
+                      : "bg-white hover:bg-slate-50"
                   } transition`}
                 >
                   <div className="flex justify-between items-center">
-                    <h3 className="font-semibold text-gray-800">
+                    <h3 className="font-semibold text-slate-800">
                       {chat.parentEmail}
                     </h3>
                     {chat.unreadCount > 0 && (
@@ -164,10 +164,10 @@ export default function TeacherMessagesPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600 truncate">
+                  <p className="text-sm text-slate-600 truncate">
                     {chat.lastMessage?.text || "No messages yet"}
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-slate-400">
                     {chat.lastMessage?.timestamp
                       ? new Date(
                           chat.lastMessage.timestamp.seconds * 1000
@@ -186,11 +186,11 @@ export default function TeacherMessagesPage() {
         <CardContent>
           {selectedChat ? (
             <>
-              <h2 className="text-lg font-semibold mb-4 text-gray-800">
+              <h2 className="text-lg font-semibold mb-4 text-slate-800">
                 Chat with {selectedChat}
               </h2>
 
-              <div className="max-h-[60vh] overflow-y-auto space-y-3 p-2 bg-gray-50 rounded-lg mb-4">
+              <div className="max-h-[60vh] overflow-y-auto space-y-3 p-2 bg-slate-50 rounded-lg mb-4">
                 {messages.map((msg) => (
                   <div
                     key={msg.id}
@@ -203,8 +203,8 @@ export default function TeacherMessagesPage() {
                     <div
                       className={`p-3 rounded-lg max-w-[70%] text-sm ${
                         msg.sender === currentUser?.email
-                          ? "bg-indigo-600 text-white"
-                          : "bg-gray-200 text-gray-800"
+                          ? "bg-primary text-white"
+                          : "bg-slate-200 text-slate-800"
                       }`}
                     >
                       <p>{msg.text}</p>
@@ -227,7 +227,7 @@ export default function TeacherMessagesPage() {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Type a message..."
-                  className="flex-1 p-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  className="flex-1 p-3 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary0"
                 />
                 <Button onClick={handleSendMessage} disabled={sending}>
                   <Send className="w-4 h-4" />
@@ -236,7 +236,7 @@ export default function TeacherMessagesPage() {
               </div>
             </>
           ) : (
-            <p className="text-gray-500 text-center py-20">
+            <p className="text-slate-500 text-center py-20">
               Select a chat from the inbox to start messaging.
             </p>
           )}

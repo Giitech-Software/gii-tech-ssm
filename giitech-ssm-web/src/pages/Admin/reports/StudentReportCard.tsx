@@ -185,7 +185,7 @@ const StudentReportCard: React.FC = () => {
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">
+      <h2 className="text-2xl font-bold mb-4 text-slate-800">
         Student Report Card
       </h2>
 
@@ -223,7 +223,7 @@ const StudentReportCard: React.FC = () => {
           disabled={loading}
           className={`px-4 py-2 rounded text-white ${
             loading
-              ? "bg-gray-400 cursor-not-allowed"
+              ? "bg-slate-400 cursor-not-allowed"
               : "bg-blue-600 hover:bg-blue-700"
           }`}
         >
@@ -235,7 +235,7 @@ const StudentReportCard: React.FC = () => {
           disabled={loading}
           className={`px-4 py-2 rounded text-white ${
             loading
-              ? "bg-gray-400 cursor-not-allowed"
+              ? "bg-slate-400 cursor-not-allowed"
               : "bg-green-600 hover:bg-green-700"
           }`}
         >
@@ -245,16 +245,16 @@ const StudentReportCard: React.FC = () => {
 
       {/* Inline Preview */}
       {reportData && (
-        <div className="bg-gray-50 p-4 rounded border mt-4">
+        <div className="bg-slate-50 p-4 rounded border mt-4">
           <h3 className="font-semibold mb-2 text-lg">
             Preview: {reportData.studentName}
           </h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-slate-600">
             Class: {reportData.className} | Term: {reportData.termName} | Academic Year: {reportData.academicYear}
           </p>
 
           <table className="mt-3 w-full text-sm border">
-            <thead className="bg-gray-100">
+            <thead className="bg-slate-100">
               <tr>
                 <th className="border p-2">Subject</th>
                 <th className="border p-2">Class</th><th className="border p-2">Exam</th><th className="border p-2">Final</th>
@@ -274,7 +274,7 @@ const StudentReportCard: React.FC = () => {
             </tbody>
           </table>
 
-          <div className="mt-3 text-sm text-gray-700">
+          <div className="mt-3 text-sm text-slate-700">
             <p>Average: {reportData.average?.toFixed(2)}%</p>
             <p>GPA / Points: {reportData.gpa?.toFixed(2)}</p>
             <p>Class position: {reportData.rank ? `${reportData.rank} of ${reportData.rankedStudents}` : "Not ranked"}</p>

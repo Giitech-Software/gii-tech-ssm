@@ -112,7 +112,7 @@ export default function StudentsDirectoryPage() {
 
       <div className="surface grid gap-3 p-4 sm:grid-cols-3">
         <label className="relative">
-          <Search className="absolute left-3 top-2.5 text-gray-400" size={17} />
+          <Search className="absolute left-3 top-2.5 text-slate-400" size={17} />
           <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search name, ID, or email" className="input pl-9" />
         </label>
         <select value={classId} onChange={(event) => setClassId(event.target.value)} className="input">
@@ -131,17 +131,17 @@ export default function StudentsDirectoryPage() {
 
       <div className="table-container">
         <table className="min-w-full text-left text-sm">
-          <thead className="bg-gray-50 text-xs uppercase text-gray-500">
+          <thead className="bg-slate-50 text-xs uppercase text-slate-500">
             <tr><th className="px-4 py-3">Student</th><th className="px-4 py-3">Placement</th><th className="px-4 py-3">Parent ID</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Actions</th></tr>
           </thead>
           <tbody className="divide-y">
             {!loading && filteredStudents.map((student) => (
-              <tr key={student.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3"><p className="font-medium text-gray-900">{student.displayName}</p><p className="text-xs text-gray-500">{student.studentId || student.id} | {student.email || "No email"}</p></td>
-                <td className="px-4 py-3"><p>{className(student)}</p><p className="text-xs text-gray-500">{streamName(student)}</p></td>
-                <td className="px-4 py-3 text-gray-600">{student.parentId || "-"}</td>
-                <td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs font-medium ${statusOf(student) === "active" ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-600"}`}>{statusOf(student)}</span></td>
-                <td className="px-4 py-3"><div className="flex justify-end gap-1"><button title="Edit student" onClick={() => setEditing(student)} className="rounded-md p-2 text-indigo-600 hover:bg-indigo-50"><Pencil size={16} /></button>{statusOf(student) !== "archived" && <button title="Archive student" onClick={() => archiveStudent(student)} className="rounded-md p-2 text-red-600 hover:bg-red-50"><Archive size={16} /></button>}</div></td>
+              <tr key={student.id} className="hover:bg-slate-50">
+                <td className="px-4 py-3"><p className="font-medium text-slate-900">{student.displayName}</p><p className="text-xs text-slate-500">{student.studentId || student.id} | {student.email || "No email"}</p></td>
+                <td className="px-4 py-3"><p>{className(student)}</p><p className="text-xs text-slate-500">{streamName(student)}</p></td>
+                <td className="px-4 py-3 text-slate-600">{student.parentId || "-"}</td>
+                <td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs font-medium ${statusOf(student) === "active" ? "bg-green-50 text-green-700" : "bg-slate-100 text-slate-600"}`}>{statusOf(student)}</span></td>
+                <td className="px-4 py-3"><div className="flex justify-end gap-1"><button title="Edit student" onClick={() => setEditing(student)} className="rounded-md p-2 text-primary hover:bg-primary"><Pencil size={16} /></button>{statusOf(student) !== "archived" && <button title="Archive student" onClick={() => archiveStudent(student)} className="rounded-md p-2 text-red-600 hover:bg-red-50"><Archive size={16} /></button>}</div></td>
               </tr>
             ))}
             {loading && <tr><td colSpan={5} className="px-4 py-10 text-center text-slate-500">Loading students...</td></tr>}
@@ -151,18 +151,18 @@ export default function StudentsDirectoryPage() {
       </div>
 
       {editing && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
           <div className="w-full max-w-2xl bg-white shadow-xl">
-            <div className="flex items-center justify-between border-b px-5 py-4"><h2 className="font-semibold">Edit Student Profile</h2><button title="Close" onClick={() => setEditing(null)} className="rounded-md p-1 hover:bg-gray-100"><X size={18} /></button></div>
+            <div className="flex items-center justify-between border-b px-5 py-4"><h2 className="font-semibold">Edit Student Profile</h2><button title="Close" onClick={() => setEditing(null)} className="rounded-md p-1 hover:bg-slate-100"><X size={18} /></button></div>
             <div className="grid gap-4 p-5 sm:grid-cols-2">
               <Field label="Full name"><input value={editing.displayName || ""} onChange={(event) => setEditing({ ...editing, displayName: event.target.value })} className="w-full rounded-md border px-3 py-2" /></Field>
-              <Field label="Parent ID"><input value={editing.parentId || ""} readOnly className="w-full rounded-md border bg-gray-50 px-3 py-2 text-gray-600" /></Field>
+              <Field label="Parent ID"><input value={editing.parentId || ""} readOnly className="w-full rounded-md border bg-slate-50 px-3 py-2 text-slate-600" /></Field>
               <Field label="Class"><select value={editing.classId || ""} onChange={(event) => setEditing({ ...editing, classId: event.target.value, streamId: "" })} className="w-full rounded-md border px-3 py-2"><option value="">Unassigned</option>{options.classes.map((item) => <option key={item.id} value={item.classId || item.id}>{item.name}</option>)}</select></Field>
               <Field label="Stream"><select value={editing.streamId || editing.stream || ""} onChange={(event) => setEditing({ ...editing, streamId: event.target.value, stream: event.target.value })} className="w-full rounded-md border px-3 py-2"><option value="">Unassigned</option>{options.streams.filter((item) => !editing.classId || item.classId === editing.classId).map((item) => <option key={item.id} value={item.streamId || item.id}>{item.name}</option>)}</select></Field>
               <Field label="Gender"><select value={editing.gender || ""} onChange={(event) => setEditing({ ...editing, gender: event.target.value })} className="w-full rounded-md border px-3 py-2"><option value="">Not specified</option><option value="female">Female</option><option value="male">Male</option></select></Field>
               <Field label="Status"><select value={statusOf(editing)} onChange={(event) => setEditing({ ...editing, status: event.target.value as StudentDirectoryRecord["status"] })} className="w-full rounded-md border px-3 py-2"><option value="active">Active</option><option value="inactive">Inactive</option><option value="archived">Archived</option></select></Field>
             </div>
-            <div className="flex justify-end gap-2 border-t px-5 py-4"><button onClick={() => setEditing(null)} className="rounded-md border px-4 py-2 text-sm">Cancel</button><button disabled={saving} onClick={saveStudent} className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-60">{saving ? "Saving..." : "Save Changes"}</button></div>
+            <div className="flex justify-end gap-2 border-t px-5 py-4"><button onClick={() => setEditing(null)} className="rounded-md border px-4 py-2 text-sm">Cancel</button><button disabled={saving} onClick={saveStudent} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-60">{saving ? "Saving..." : "Save Changes"}</button></div>
           </div>
         </div>
       )}
@@ -171,5 +171,5 @@ export default function StudentsDirectoryPage() {
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return <label className="space-y-1 text-sm font-medium text-gray-700"><span>{label}</span>{children}</label>;
+  return <label className="space-y-1 text-sm font-medium text-slate-700"><span>{label}</span>{children}</label>;
 }

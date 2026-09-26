@@ -285,24 +285,24 @@ return sub;
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-          <ClipboardList className="text-indigo-600" /> Student Submissions
+        <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2">
+          <ClipboardList className="text-primary" /> Student Submissions
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-slate-600 mt-2">
           View all submissions — automatically marked for short-answer and objective tests.
         </p>
       </div>
 
       {/* Assignment Filter */}
-      <div className="bg-white shadow rounded-2xl p-6 mb-6 border border-gray-100">
-        <label className="block text-gray-700 font-semibold mb-2">Select Assignment:</label>
+      <div className="bg-white shadow rounded-2xl p-6 mb-6 border border-slate-100">
+        <label className="block text-slate-700 font-semibold mb-2">Select Assignment:</label>
         <select
           value={selectedAssignment}
           onChange={(e) => setSelectedAssignment(e.target.value)}
-          className="border border-gray-300 rounded-lg p-2 w-full"
+          className="border border-slate-300 rounded-lg p-2 w-full"
         >
           <option value="">-- All Submissions --</option>
           {assignments.map((a) => (
@@ -315,15 +315,15 @@ return sub;
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-        <StatCard icon={<Layers size={28} />} title="Total Submissions" value={stats.totalSubmissions} gradient="from-indigo-500 to-indigo-600" />
+        <StatCard icon={<Layers size={28} />} title="Total Submissions" value={stats.totalSubmissions} gradient="from-primary0 to-primary" />
         <StatCard icon={<Clock size={28} />} title="Pending Grading" value={stats.pendingGrading} gradient="from-yellow-500 to-orange-500" />
         <StatCard icon={<Award size={28} />} title="Average Score" value={stats.averageScore ? `${stats.averageScore}%` : "—"} gradient="from-green-500 to-emerald-600" />
       </div>
 
       {/* Submissions Table */}
-      <div className="bg-white rounded-2xl shadow border border-gray-100">
+      <div className="bg-white rounded-2xl shadow border border-slate-100">
         <div className="p-4 border-b flex justify-between items-center">
-          <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+          <h2 className="text-lg font-semibold flex items-center gap-2 text-slate-800">
             <FileText className="text-blue-500" /> Submissions List
           </h2>
 
@@ -334,7 +334,7 @@ return sub;
                 onClick={handleRecalculate}
                 disabled={marking}
                 type="button"
-                className="flex items-center gap-2 bg-indigo-600 text-white px-3 py-1 rounded-md hover:bg-indigo-700 disabled:opacity-50"
+                className="flex items-center gap-2 bg-primary text-white px-3 py-1 rounded-md hover:bg-primary disabled:opacity-50"
               >
                 <RefreshCw size={16} className={marking ? "animate-spin" : ""} />
                 {marking ? "Recalculating..." : "Recalculate Scores"}
@@ -343,15 +343,15 @@ return sub;
         </div>
 
         {loading ? (
-          <div className="p-6 flex justify-center items-center text-gray-500 gap-2">
+          <div className="p-6 flex justify-center items-center text-slate-500 gap-2">
             <Loader2 className="animate-spin" /> Loading submissions...
           </div>
         ) : submissions.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">No submissions yet.</div>
+          <div className="p-6 text-center text-slate-500">No submissions yet.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm text-left text-gray-700">
-              <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+            <table className="min-w-full text-sm text-left text-slate-700">
+              <thead className="bg-slate-100 text-slate-600 uppercase text-xs">
                 <tr>
                   <th className="px-4 py-3">Student</th>
                   <th className="px-4 py-3">Submitted At</th>
@@ -365,19 +365,19 @@ return sub;
                 {submissions.map((s) => (
                   <tr
                     key={s.id}
-                    className="border-b hover:bg-gray-50 transition duration-150"
+                    className="border-b hover:bg-slate-50 transition duration-150"
                   >
                     {/* STUDENT */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <User className="text-gray-500" size={16} />
+                        <User className="text-slate-500" size={16} />
                         <span>{s.studentName || s.studentId}</span>
                       </div>
                     </td>
 
                     {/* SUBMITTED AT */}
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-1 text-gray-600">
+                      <div className="flex items-center gap-1 text-slate-600">
                         <CalendarDays size={14} />
                         <span>
                           {s.submittedAt
@@ -398,7 +398,7 @@ return sub;
                           href={s.submissionUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-indigo-600 hover:underline"
+                          className="text-primary hover:underline"
                         >
                           View File
                         </a>
@@ -416,16 +416,16 @@ return sub;
                       ) : s.grade ? (
                         <span className="text-green-600">{s.grade}</span>
                       ) : (
-                        <span className="text-gray-400 flex items-center gap-1">
+                        <span className="text-slate-400 flex items-center gap-1">
                           <XCircle size={14} /> Not graded
                         </span>
                       )}
                     </td>
 
                     {/* ACTIONS */}
-                    <td className="px-4 py-3 text-gray-700 align-top">
+                    <td className="px-4 py-3 text-slate-700 align-top">
                       <div className="flex flex-col gap-2">
-                        <span className="text-sm text-gray-600">{s.feedback || "—"}</span>
+                        <span className="text-sm text-slate-600">{s.feedback || "—"}</span>
 
                         <div className="flex flex-col space-y-1">
 
@@ -462,7 +462,7 @@ return sub;
   {/* Grade/Edit */}
   <button
     onClick={() => openGradeModal(s)}
-    className="text-indigo-600 hover:underline text-xs"
+    className="text-primary hover:underline text-xs"
   >
     Grade / Edit
   </button>
@@ -492,8 +492,8 @@ return sub;
 {answersSubmission.answers &&
   answersSubmission.answers.map((ans: string, idx: number) => (
     <div key={`ans-${idx}`} className="border-b pb-2">
-      <p className="font-medium text-gray-800">Q{idx + 1}:</p>
-      <p className="text-gray-600">{ans || "—"}</p>
+      <p className="font-medium text-slate-800">Q{idx + 1}:</p>
+      <p className="text-slate-600">{ans || "—"}</p>
     </div>
   ))}
 
@@ -502,8 +502,8 @@ return sub;
   Array.isArray(answersSubmission.responses) &&
   answersSubmission.responses.map((r: any, idx: number) => (
     <div key={`resp-${idx}`} className="border-b pb-2">
-      <p className="font-medium text-gray-800">Q{idx + 1}:</p>
-      <p className="text-gray-600">
+      <p className="font-medium text-slate-800">Q{idx + 1}:</p>
+      <p className="text-slate-600">
         {r.selected ? `Selected: ${r.selected}` : "—"}
         {r.choiceText ? ` (${r.choiceText})` : ""}
       </p>
@@ -513,8 +513,8 @@ return sub;
 {/* ✅ Essay Response — PLACE IT HERE */}
 {answersSubmission.responseText && (
   <div className="border-b pb-2">
-    <p className="font-semibold text-gray-800">Essay Response</p>
-    <p className="text-gray-600 whitespace-pre-wrap">
+    <p className="font-semibold text-slate-800">Essay Response</p>
+    <p className="text-slate-600 whitespace-pre-wrap">
       {answersSubmission.responseText}
     </p>
   </div>
@@ -523,7 +523,7 @@ return sub;
               {/* Fallback */}
               {!answersSubmission.answers &&
                 !answersSubmission.responses && (
-                  <div className="text-gray-600">No answers available.</div>
+                  <div className="text-slate-600">No answers available.</div>
                 )}
             </div>
 
@@ -542,13 +542,13 @@ return sub;
       {showGradeModal && currentSubmission && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
           <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-6 relative">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Grade Submission</h2>
+            <h2 className="text-xl font-bold mb-4 text-slate-800">Grade Submission</h2>
 
-            <p className="text-gray-700 mb-2">
+            <p className="text-slate-700 mb-2">
               <strong>Student:</strong> {currentSubmission.studentName}
             </p>
 
-            <label className="block text-sm mt-4 mb-1 font-medium text-gray-700">Score (%)</label>
+            <label className="block text-sm mt-4 mb-1 font-medium text-slate-700">Score (%)</label>
             <input
               type="number"
               value={scoreInput ?? ""}
@@ -558,7 +558,7 @@ return sub;
               max={100}
             />
 
-            <label className="block text-sm mt-4 mb-1 font-medium text-gray-700">Feedback</label>
+            <label className="block text-sm mt-4 mb-1 font-medium text-slate-700">Feedback</label>
             <textarea
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
@@ -569,7 +569,7 @@ return sub;
               <button
                 type="button"
                 onClick={() => setShowGradeModal(false)}
-                className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
+                className="px-4 py-2 bg-slate-300 rounded-lg hover:bg-slate-400"
               >
                 Close
               </button>
@@ -578,7 +578,7 @@ return sub;
                 type="button"
                 onClick={saveGrade}
                 disabled={savingGrade}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50"
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary disabled:opacity-50"
               >
                 {savingGrade ? "Saving..." : "Save"}
               </button>

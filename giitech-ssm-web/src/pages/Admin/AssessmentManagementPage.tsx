@@ -96,10 +96,10 @@ export default function AssessmentManagementPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Assessment Setup</h1>
-        <p className="mt-1 text-sm text-gray-600">Configure academic terms and class exam windows.</p>
+        <h1 className="text-2xl font-bold text-slate-900">Assessment Setup</h1>
+        <p className="mt-1 text-sm text-slate-600">Configure academic terms and class exam windows.</p>
       </div>
-      {message && <p className="border bg-white px-3 py-2 text-sm text-gray-700">{message}</p>}
+      {message && <p className="border bg-white px-3 py-2 text-sm text-slate-700">{message}</p>}
 
       <section className="grid gap-5 xl:grid-cols-[340px_1fr]">
         <form onSubmit={saveTerm} className="space-y-3 border bg-white p-4">
@@ -113,10 +113,10 @@ export default function AssessmentManagementPage() {
           <select value={termForm.status} onChange={(event) => setTermForm({ ...termForm, status: event.target.value as AcademicTerm["status"] })} className="w-full rounded-md border px-3 py-2">
             <option value="planned">Planned</option><option value="active">Active</option><option value="closed">Closed</option>
           </select>
-          <button disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"><Plus size={16} /> Add Term</button>
+          <button disabled={saving} className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-white disabled:opacity-50"><Plus size={16} /> Add Term</button>
         </form>
         <div className="overflow-x-auto border bg-white">
-          <table className="min-w-full text-left text-sm"><thead className="bg-gray-50 text-xs uppercase text-gray-500"><tr><th className="px-4 py-3">Term</th><th className="px-4 py-3">Dates</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Action</th></tr></thead><tbody className="divide-y">{terms.map((term) => <tr key={term.id}><td className="px-4 py-3"><p className="font-medium">{term.name}</p><p className="text-xs text-gray-500">{term.academicYear}</p></td><td className="px-4 py-3">{term.startDate} to {term.endDate}</td><td className="px-4 py-3 capitalize">{term.status}</td><td className="px-4 py-3 text-right"><button title="Delete term" onClick={async () => { await deleteTerm(term.id); await loadData(); }} className="rounded-md p-2 text-red-600 hover:bg-red-50"><Trash2 size={16} /></button></td></tr>)}</tbody></table>
+          <table className="min-w-full text-left text-sm"><thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-4 py-3">Term</th><th className="px-4 py-3">Dates</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Action</th></tr></thead><tbody className="divide-y">{terms.map((term) => <tr key={term.id}><td className="px-4 py-3"><p className="font-medium">{term.name}</p><p className="text-xs text-slate-500">{term.academicYear}</p></td><td className="px-4 py-3">{term.startDate} to {term.endDate}</td><td className="px-4 py-3 capitalize">{term.status}</td><td className="px-4 py-3 text-right"><button title="Delete term" onClick={async () => { await deleteTerm(term.id); await loadData(); }} className="rounded-md p-2 text-red-600 hover:bg-red-50"><Trash2 size={16} /></button></td></tr>)}</tbody></table>
         </div>
       </section>
 
@@ -127,10 +127,10 @@ export default function AssessmentManagementPage() {
           <select required value={examForm.classId} onChange={(event) => setExamForm({ ...examForm, classId: event.target.value })} className="w-full rounded-md border px-3 py-2"><option value="">Select class</option>{classes.map((item) => <option key={item.id} value={item.classId || item.id}>{item.name || item.id}</option>)}</select>
           <select required value={examForm.termId} onChange={(event) => setExamForm({ ...examForm, termId: event.target.value })} className="w-full rounded-md border px-3 py-2"><option value="">Select term</option>{terms.map((term) => <option key={term.id} value={term.id}>{term.name} | {term.academicYear}</option>)}</select>
           <div className="grid grid-cols-2 gap-2"><input required type="date" value={examForm.startDate} onChange={(event) => setExamForm({ ...examForm, startDate: event.target.value })} className="rounded-md border px-3 py-2" /><input type="date" value={examForm.endDate} onChange={(event) => setExamForm({ ...examForm, endDate: event.target.value })} className="rounded-md border px-3 py-2" /></div>
-          <button disabled={saving || !terms.length} className="flex w-full items-center justify-center gap-2 rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50"><Plus size={16} /> Add Exam</button>
+          <button disabled={saving || !terms.length} className="flex w-full items-center justify-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-white disabled:opacity-50"><Plus size={16} /> Add Exam</button>
         </form>
         <div className="overflow-x-auto border bg-white">
-          <table className="min-w-full text-left text-sm"><thead className="bg-gray-50 text-xs uppercase text-gray-500"><tr><th className="px-4 py-3">Exam</th><th className="px-4 py-3">Class</th><th className="px-4 py-3">Term</th><th className="px-4 py-3 text-right">Action</th></tr></thead><tbody className="divide-y">{exams.map((exam) => <tr key={exam.id}><td className="px-4 py-3"><p className="font-medium">{exam.name}</p><p className="text-xs text-gray-500">{exam.startDate}{exam.endDate ? ` to ${exam.endDate}` : ""}</p></td><td className="px-4 py-3">{classNames.get(exam.classId) || exam.classId}</td><td className="px-4 py-3">{exam.term}<p className="text-xs text-gray-500">{exam.academicYear}</p></td><td className="px-4 py-3 text-right"><button title="Delete exam" onClick={async () => { await deleteExamAssessment(exam.id); await loadData(); }} className="rounded-md p-2 text-red-600 hover:bg-red-50"><Trash2 size={16} /></button></td></tr>)}</tbody></table>
+          <table className="min-w-full text-left text-sm"><thead className="bg-slate-50 text-xs uppercase text-slate-500"><tr><th className="px-4 py-3">Exam</th><th className="px-4 py-3">Class</th><th className="px-4 py-3">Term</th><th className="px-4 py-3 text-right">Action</th></tr></thead><tbody className="divide-y">{exams.map((exam) => <tr key={exam.id}><td className="px-4 py-3"><p className="font-medium">{exam.name}</p><p className="text-xs text-slate-500">{exam.startDate}{exam.endDate ? ` to ${exam.endDate}` : ""}</p></td><td className="px-4 py-3">{classNames.get(exam.classId) || exam.classId}</td><td className="px-4 py-3">{exam.term}<p className="text-xs text-slate-500">{exam.academicYear}</p></td><td className="px-4 py-3 text-right"><button title="Delete exam" onClick={async () => { await deleteExamAssessment(exam.id); await loadData(); }} className="rounded-md p-2 text-red-600 hover:bg-red-50"><Trash2 size={16} /></button></td></tr>)}</tbody></table>
         </div>
       </section>
     </div>

@@ -140,26 +140,26 @@ const TeacherGradesPage: React.FC = () => {
       : "—";
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
-          <ClipboardCheck className="text-indigo-600" /> Grade Submissions
+        <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2">
+          <ClipboardCheck className="text-primary" /> Grade Submissions
         </h1>
-        <p className="text-gray-600 mt-2">
+        <p className="text-slate-600 mt-2">
           Enter grades and feedback for student submissions.
         </p>
       </div>
 
       {/* Assignment Filter */}
-      <div className="bg-white shadow rounded-2xl p-6 mb-6 border border-gray-100">
-        <label className="block text-gray-700 font-semibold mb-2">
+      <div className="bg-white shadow rounded-2xl p-6 mb-6 border border-slate-100">
+        <label className="block text-slate-700 font-semibold mb-2">
           Select Assignment:
         </label>
         <select
           value={selectedAssignment}
           onChange={(e) => setSelectedAssignment(e.target.value)}
-          className="border border-gray-300 rounded-lg p-2 w-full"
+          className="border border-slate-300 rounded-lg p-2 w-full"
         >
           <option value="">-- Choose Assignment --</option>
           {assignments.map((a) => (
@@ -173,7 +173,7 @@ const TeacherGradesPage: React.FC = () => {
       {/* Summary Cards */}
       {selectedAssignment && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <div className="bg-gradient-to-r from-indigo-500 to-indigo-700 text-white p-5 rounded-2xl shadow">
+          <div className="bg-gradient-to-r from-primary0 to-primary text-white p-5 rounded-2xl shadow">
             <BarChart3 size={24} />
             <p className="mt-2 text-sm">Total Submissions</p>
             <h3 className="text-2xl font-semibold">{total}</h3>
@@ -192,29 +192,29 @@ const TeacherGradesPage: React.FC = () => {
       )}
 
       {/* Submissions Table */}
-      <div className="bg-white rounded-2xl shadow border border-gray-100">
+      <div className="bg-white rounded-2xl shadow border border-slate-100">
         <div className="p-4 border-b">
-          <h2 className="text-lg font-semibold flex items-center gap-2 text-gray-800">
+          <h2 className="text-lg font-semibold flex items-center gap-2 text-slate-800">
             <FileText className="text-blue-500" /> Student Submissions
           </h2>
         </div>
 
         {!selectedAssignment ? (
-          <div className="p-6 text-center text-gray-500">
+          <div className="p-6 text-center text-slate-500">
             Please select an assignment to view submissions.
           </div>
         ) : loading ? (
-          <div className="p-6 flex justify-center items-center text-gray-500 gap-2">
+          <div className="p-6 flex justify-center items-center text-slate-500 gap-2">
             <Loader2 className="animate-spin" /> Loading submissions...
           </div>
         ) : submissions.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
+          <div className="p-6 text-center text-slate-500">
             No submissions found for this assignment.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm text-left text-gray-700">
-              <thead className="bg-gray-100 text-gray-600 uppercase text-xs">
+            <table className="min-w-full text-sm text-left text-slate-700">
+              <thead className="bg-slate-100 text-slate-600 uppercase text-xs">
                 <tr>
                   <th className="px-4 py-3">Student</th>
                   <th className="px-4 py-3">File</th>
@@ -227,10 +227,10 @@ const TeacherGradesPage: React.FC = () => {
                 {submissions.map((s) => (
                   <tr
                     key={s.id}
-                    className="border-b hover:bg-gray-50 transition duration-150"
+                    className="border-b hover:bg-slate-50 transition duration-150"
                   >
                     <td className="px-4 py-3 flex items-center gap-2">
-                      <User size={16} className="text-gray-500" />
+                      <User size={16} className="text-slate-500" />
                       {s.studentName || s.studentId}
                     </td>
                     <td className="px-4 py-3">
@@ -239,7 +239,7 @@ const TeacherGradesPage: React.FC = () => {
                           href={s.submissionUrl || s.fileUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-indigo-600 hover:underline"
+                          className="text-primary hover:underline"
                         >
                           View File
                         </a>
@@ -255,7 +255,7 @@ const TeacherGradesPage: React.FC = () => {
                         defaultValue={s.grade || ""}
                         id={`grade-${s.id}`}
                         placeholder="Grade"
-                        className="border border-gray-300 rounded-lg px-2 py-1 w-20 text-center"
+                        className="border border-slate-300 rounded-lg px-2 py-1 w-20 text-center"
                       />
                     </td>
                     <td className="px-4 py-3">
@@ -264,7 +264,7 @@ const TeacherGradesPage: React.FC = () => {
                         defaultValue={s.feedback || ""}
                         id={`feedback-${s.id}`}
                         placeholder="Feedback"
-                        className="border border-gray-300 rounded-lg px-2 py-1 w-40"
+                        className="border border-slate-300 rounded-lg px-2 py-1 w-40"
                       />
                     </td>
                     <td className="px-4 py-3">
@@ -287,7 +287,7 @@ const TeacherGradesPage: React.FC = () => {
                         disabled={grading === s.id}
                         className={`px-4 py-1 rounded-lg text-white ${
                           grading === s.id
-                            ? "bg-gray-400 cursor-not-allowed"
+                            ? "bg-slate-400 cursor-not-allowed"
                             : "bg-green-600 hover:bg-green-700"
                         }`}
                       >

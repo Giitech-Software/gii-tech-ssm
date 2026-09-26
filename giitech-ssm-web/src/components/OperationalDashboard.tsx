@@ -129,7 +129,7 @@ export default function OperationalDashboard({
     <div className="space-y-6">
       <header className="flex flex-wrap items-start justify-between gap-4 rounded-2xl bg-gradient-to-r from-primary via-blue-800 to-accent1 p-5 text-white shadow-lg shadow-blue-900/10 sm:p-6">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-100">ASTEM-SSM dashboard</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-100">ASTEM-SSM</p>
           <h1 className="mt-2 text-2xl font-bold sm:text-3xl">{title}</h1>
           <p className="mt-2 max-w-2xl text-sm text-blue-100">{subtitle}</p>
         </div>
@@ -164,7 +164,7 @@ export default function OperationalDashboard({
       )}
       {syncMessage && <div className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-medium text-primary">{syncMessage}</div>}
 
-      <section aria-label="Administration dashboard">
+      <section aria-label="Key metrics">
         <div className="grid grid-cols-2 gap-4 md:grid-cols-4 2xl:grid-cols-5">
           <MetricCard
             detail={`${metrics.totalStudents} student profiles total`}
@@ -201,10 +201,10 @@ export default function OperationalDashboard({
         <section>
           <div className="mb-3 flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-base font-semibold text-gray-950">
+              <h2 className="text-base font-semibold text-slate-950">
                 Account registry
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-slate-500">
                 Authentication profiles by operational role.
               </p>
             </div>

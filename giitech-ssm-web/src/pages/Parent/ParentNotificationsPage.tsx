@@ -73,7 +73,7 @@ export default function ParentNotificationsPage() {
 
   if (loading)
     return (
-      <div className="flex justify-center items-center h-screen text-gray-500">
+      <div className="flex justify-center items-center h-screen text-slate-500">
         Loading notifications...
       </div>
     );
@@ -108,14 +108,14 @@ export default function ParentNotificationsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-slate-50 p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2">
             <Bell className="text-yellow-600" /> Notifications
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-slate-600 mt-1">
             Stay up to date with announcements and student updates.
           </p>
         </div>
@@ -139,18 +139,18 @@ export default function ParentNotificationsPage() {
       {/* Notification List */}
       <div className="bg-white shadow rounded-2xl p-6">
         {notifications.length ? (
-          <ul className="divide-y divide-gray-200">
+          <ul className="divide-y divide-slate-200">
             {notifications.map((n) => (
               <li
                 key={n.id}
-                className="py-4 flex items-start justify-between hover:bg-gray-50 rounded-lg px-3 transition"
+                className="py-4 flex items-start justify-between hover:bg-slate-50 rounded-lg px-3 transition"
               >
                 <div className="flex items-start gap-4">
-                  <div className="p-2 bg-gray-100 rounded-xl">
+                  <div className="p-2 bg-slate-100 rounded-xl">
                     {getIcon(n.category)}
                   </div>
                   <div>
-                    <h2 className="font-semibold text-gray-800 flex items-center gap-2">
+                    <h2 className="font-semibold text-slate-800 flex items-center gap-2">
                       {n.title}
                       {n.read ? (
                         <CheckCircle2
@@ -159,8 +159,8 @@ export default function ParentNotificationsPage() {
                         />
                       ) : null}
                     </h2>
-                    <p className="text-gray-600 mt-1">{n.message}</p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-slate-600 mt-1">{n.message}</p>
+                    <p className="text-xs text-slate-400 mt-1">
                       {formatDate(n.createdAt)}
                     </p>
                   </div>
@@ -169,7 +169,7 @@ export default function ParentNotificationsPage() {
             ))}
           </ul>
         ) : (
-          <p className="text-gray-500 italic text-center py-10">
+          <p className="text-slate-500 italic text-center py-10">
             No notifications found.
           </p>
         )}

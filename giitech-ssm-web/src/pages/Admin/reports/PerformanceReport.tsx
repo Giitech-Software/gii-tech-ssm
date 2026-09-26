@@ -66,7 +66,7 @@ const PerformanceReport: React.FC = () => {
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-4 text-gray-800">
+      <h2 className="text-2xl font-bold mb-4 text-slate-800">
         Performance Report
       </h2>
 
@@ -130,11 +130,11 @@ const PerformanceReport: React.FC = () => {
       {loading ? (
         <p>Loading performance data...</p>
       ) : performance.length === 0 ? (
-        <p className="text-gray-500">No data found for the selected filters.</p>
+        <p className="text-slate-500">No data found for the selected filters.</p>
       ) : (
         <>
           <table className="min-w-full border text-sm mt-2">
-            <thead className="bg-gray-100 text-gray-700">
+            <thead className="bg-slate-100 text-slate-700">
               <tr>
                 <th className="p-2 border">Student</th>
                 <th className="p-2 border">Subject</th>
