@@ -16,6 +16,7 @@ import {
   type OperationalMetrics,
 } from "../services/OperationalMetricsService";
 import { syncWorkflowEscalations } from "../services/WorkflowEscalationService";
+import { backfillAstemTenant } from "../services/TenantMigrationService";
 
 interface OperationalDashboardProps {
   title: string;
@@ -39,7 +40,7 @@ const currency = new Intl.NumberFormat("en-GH", {
 
 function MetricCard({ icon, label, value, detail, tone = "bg-primary/10 text-primary" }: MetricCardProps) {
   return (
-    <div className="surface surface-hover min-w-0 p-5">
+    <div className="surface surface-hover min-w-0 border-primary/20 p-5">
       <div className="flex items-center justify-between gap-3 text-slate-500">
         <span className="text-sm font-medium">{label}</span>
         <span className={`rounded-lg p-2 ${tone}`}>{icon}</span>
@@ -60,6 +61,7 @@ export default function OperationalDashboard({
   const [error, setError] = useState("");
   const [syncing, setSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState("");
+  const [migrating, setMigrating] = useState(false);
 
   const loadMetrics = useCallback(async () => {
     setLoading(true);
@@ -86,6 +88,13 @@ export default function OperationalDashboard({
     } finally {
       setSyncing(false);
     }
+  };
+  const migrateTenant = async () => {
+    if (!window.confirm("Add tenant ID astem-ssm-001 to existing records that do not have one?")) return;
+    setMigrating(true); setSyncMessage("");
+    try { const result = await backfillAstemTenant(); setSyncMessage(`${result.updated} records were assigned to tenant ${result.tenantId}.`); }
+    catch (migrationError) { setSyncMessage(migrationError instanceof Error ? migrationError.message : "Tenant migration failed."); }
+    finally { setMigrating(false); }
   };
 
   useEffect(() => {
@@ -142,6 +151,9 @@ export default function OperationalDashboard({
             <Bell size={15} />
             {syncing ? "Syncing..." : "Sync alerts"}
           </button>
+          <button disabled={migrating} onClick={() => void migrateTenant()} type="button" className="inline-flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-sm font-semibold text-white transition hover:bg-white/20 disabled:opacity-60">
+            <ShieldCheck size={15} /> {migrating ? "Assigning tenant..." : "Assign tenant IDs"}
+          </button>
         </div>
       </header>
 
@@ -153,7 +165,7 @@ export default function OperationalDashboard({
       {syncMessage && <div className="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-medium text-primary">{syncMessage}</div>}
 
       <section aria-label="Administration dashboard">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 2xl:grid-cols-5">
           <MetricCard
             detail={`${metrics.totalStudents} student profiles total`}
             icon={<GraduationCap size={18} />}

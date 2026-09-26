@@ -10,6 +10,7 @@ import {
   BookOpen,
   Building,
   Calendar,
+  CalendarCheck2,
   ChevronLeft,
   ChevronDown,
   Clock3,
@@ -105,6 +106,7 @@ const SharedLayout = () => {
     { to: "/admin/students", label: "Students", icon: <GraduationCap size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/staff", label: "Staff", icon: <Users size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/create-staff", label: "Create Staff", icon: <UserPlus size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/attendance", label: "Attendance Workspace", icon: <CalendarCheck2 size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/staff-attendance", label: "Staff Attendance", icon: <Calendar size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/qr-attendance", label: "QR Attendance", icon: <ScanLine size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/qr-identities", label: "Student QR Cards", icon: <ScanLine size={18} />, roles: ["superadmin", "admin"] },
@@ -195,10 +197,10 @@ const SharedLayout = () => {
 
   const renderAdminGroup = (key: string, label: string, icon: React.ReactNode, items: NavItem[]) => (
     <div className="space-y-1" key={key}>
-      <button type="button" onClick={() => setOpenAdminGroup(openAdminGroup === key ? null : key)} className={`flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left text-sm font-semibold transition ${openAdminGroup === key ? "border-indigo-200 bg-indigo-50 text-indigo-800" : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"}`}>
+      <button type="button" onClick={() => setOpenAdminGroup(openAdminGroup === key ? null : key)} className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm font-semibold transition ${openAdminGroup === key ? "border-primary/30 bg-blue-50 text-primary" : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"}`}>
         <span className="text-primary">{icon}</span><span className={`flex-1 ${desktopCollapsed ? "md:hidden" : ""}`}>{label}</span><ChevronDown className={`transition-transform ${openAdminGroup === key ? "rotate-180" : ""} ${desktopCollapsed ? "md:hidden" : ""}`} size={16} />
       </button>
-      {openAdminGroup === key && <div className="ml-2 space-y-1 border-l border-indigo-100 pl-2">{renderNavItems(items)}</div>}
+      {openAdminGroup === key && <div className="ml-2 space-y-1 border-l border-blue-100 pl-2">{renderNavItems(items)}</div>}
     </div>
   );
 
@@ -222,7 +224,7 @@ const SharedLayout = () => {
         >
           <X size={18} />
         </button>
-        <ShieldCheck className={`hidden text-indigo-600 ${desktopCollapsed ? "md:block" : ""}`} size={22} />
+        <ShieldCheck className={`hidden text-primary ${desktopCollapsed ? "md:block" : ""}`} size={22} />
       </div>
 
       <nav className="flex-1 space-y-1 overflow-y-auto p-3">
@@ -241,9 +243,11 @@ const SharedLayout = () => {
         </NavLink>
 
         {role === "admin" || role === "superadmin" ? <>
-          {renderAdminGroup("academic", "Academic operations", <GraduationCap size={18} />, visibleItems.filter(item => ["Departments", "Academic Years", "Classes", "Streams", "Students", "Staff", "Staff Attendance", "QR Attendance", "Student QR Cards", "Attendance Analytics", "Grading Configuration", "Student Rankings"].includes(item.label)))}
-          {renderAdminGroup("finance", "Finance and AI controls", <DollarSign size={18} />, visibleItems.filter(item => ["Payment Intents", "Fee Structures", "Student Ledger", "AI Grading Audit", "AI Usage Settings", "AI Usage Report", "AI Cost Controls", "AI Budget Alerts", "AI Monthly Costs"].includes(item.label)))}
-          {renderAdminGroup("school", "School administration", <ShieldCheck size={18} />, visibleItems.filter(item => !["Departments", "Academic Years", "Classes", "Streams", "Students", "Staff", "Staff Attendance", "QR Attendance", "Student QR Cards", "Attendance Analytics", "Grading Configuration", "Student Rankings", "Payment Intents", "Fee Structures", "Student Ledger", "School Library", "Staff Financial Records", "AI Grading Audit", "AI Usage Settings", "AI Usage Report", "AI Cost Controls", "AI Budget Alerts", "AI Monthly Costs"].includes(item.label)))}
+          {renderAdminGroup("academic", "Academic operations", <GraduationCap size={18} />, visibleItems.filter(item => ["Departments", "Academic Years", "Classes", "Streams", "Students", "Staff", "Grading Configuration", "Student Rankings"].includes(item.label)))}
+          {renderAdminGroup("attendance", "Attendance", <CalendarCheck2 size={18} />, visibleItems.filter(item => ["Attendance Workspace", "Staff Attendance", "QR Attendance", "Student QR Cards", "Face Enrollment", "Attendance Analytics", "Staff Attendance Times", "Staff QR Identity Cards", "Early Departure Report"].includes(item.label)))}
+          {renderAdminGroup("finance", "Finance", <DollarSign size={18} />, visibleItems.filter(item => ["Payment Intents", "Fee Structures", "Student Ledger"].includes(item.label)))}
+          {renderAdminGroup("ai", "AI controls", <Sparkles size={18} />, visibleItems.filter(item => ["AI Grading Audit", "AI Usage Settings", "AI Usage Report", "AI Cost Controls", "AI Budget Alerts", "AI Monthly Costs"].includes(item.label)))}
+          {renderAdminGroup("school", "School administration", <ShieldCheck size={18} />, visibleItems.filter(item => !["Departments", "Academic Years", "Classes", "Streams", "Students", "Staff", "Attendance Workspace", "Staff Attendance", "QR Attendance", "Student QR Cards", "Face Enrollment", "Attendance Analytics", "Staff Attendance Times", "Staff QR Identity Cards", "Early Departure Report", "Grading Configuration", "Student Rankings", "Payment Intents", "Fee Structures", "Student Ledger", "School Library", "Staff Financial Records", "AI Grading Audit", "AI Usage Settings", "AI Usage Report", "AI Cost Controls", "AI Budget Alerts", "AI Monthly Costs"].includes(item.label)))}
         </> : renderNavItems(visibleItems)}
       </nav>
 

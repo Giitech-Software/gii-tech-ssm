@@ -87,6 +87,7 @@ import TermCommentsPage from "./pages/Admin/TermCommentsPage";
 import ReportApprovalPage from "./pages/Admin/ReportApprovalPage";
 import ReportReadinessPage from "./pages/Admin/ReportReadinessPage";
 import AttendanceFaceEnrollmentPage from "./pages/Admin/AttendanceFaceEnrollmentPage";
+import AttendanceWorkspacePage from "./pages/Admin/AttendanceWorkspacePage";
 
 function LoadingScreen() {
   return (
@@ -182,6 +183,7 @@ export default function App() {
               <Route path="admin/staff" element={<StaffDirectoryPage />} />
               <Route path="admin/create-staff" element={<Signup />} />
               <Route path="admin/staff-attendance" element={<StaffAttendanceReportPage />} />
+              <Route path="admin/attendance" element={<AttendanceWorkspacePage />} />
               <Route path="admin/qr-attendance" element={<QrAttendancePage />} />
               <Route path="admin/qr-identities" element={<StudentQrIdentityPage />} />
               <Route path="admin/attendance-analytics" element={<AttendanceAnalyticsPage />} />

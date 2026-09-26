@@ -25,6 +25,7 @@ import {
 } from "firebase/firestore";
 import { idToEmail } from "../utils/idToEmail";
 import { generateUserId } from "../utils/idGenerator";
+import { TENANT_ID } from "../config/tenant";
 
 interface AuthContextType {
   user: User | null;
@@ -174,12 +175,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         displayName: displayNameParam,
         createdAt: serverTimestamp(),
         status: "active",
+        tenantId: TENANT_ID,
         ...extraData, // 🆕 add dropdown data (class, stream, subject, etc.)
       });
 
       // 3️⃣ Role-specific collections
       const baseProfile = {
         userId: createdUser.uid,
+        tenantId: TENANT_ID,
         displayName: displayNameParam,
         email,
         createdAt: serverTimestamp(),

@@ -26,6 +26,7 @@ export interface StudentDirectoryRecord {
 export interface StaffDirectoryRecord {
   id: string;
   teacherId: string;
+  staffId?: string;
   userId?: string;
   displayName: string;
   email?: string;
@@ -54,7 +55,9 @@ export async function fetchStudentDirectory(): Promise<StudentDirectoryRecord[]>
 }
 
 export async function fetchStaffDirectory(): Promise<StaffDirectoryRecord[]> {
-  return mapDocs<StaffDirectoryRecord>(await getDocs(collection(db, "teachers")));
+  const [teachers, staff] = await Promise.all([getDocs(collection(db, "teachers")), getDocs(collection(db, "staff"))]);
+  const records = [...mapDocs<StaffDirectoryRecord>(teachers), ...mapDocs<StaffDirectoryRecord>(staff).map(item => ({ ...item, teacherId: item.teacherId || item.staffId || item.id }))];
+  return [...new Map(records.map(item => [item.userId || item.id, item])).values()];
 }
 
 export async function fetchAcademicOptions() {

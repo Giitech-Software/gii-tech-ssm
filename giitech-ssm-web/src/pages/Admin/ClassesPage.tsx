@@ -72,27 +72,27 @@ export default function ClassesPage() {
 
   // --- UI ---
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-gray-700">Manage Classes</h1>
+    <div className="mx-auto max-w-7xl space-y-6">
+      <div><p className="eyebrow">Academic operations</p><h1 className="mt-1 text-3xl font-black tracking-tight text-dark">Manage classes</h1></div>
 
       {message && (
-        <div className="mb-4 p-3 bg-blue-100 text-blue-700 rounded">{message}</div>
+        <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4 text-sm font-medium text-primary">{message}</div>
       )}
 
       {/* --- Add Class Form --- */}
-      <div className="flex flex-wrap gap-3 mb-6">
+      <div className="surface flex flex-wrap gap-3 p-5">
         <input
           type="text"
           placeholder="Class Name"
           value={newClass.name}
           onChange={(e) => setNewClass({ ...newClass, name: e.target.value })}
-          className="border p-2 rounded flex-1 min-w-[200px]"
+          className="input flex-1 min-w-[200px]"
         />
 
         <select
           value={newClass.departmentId}
           onChange={(e) => setNewClass({ ...newClass, departmentId: e.target.value })}
-          className="border p-2 rounded flex-1 min-w-[200px]"
+          className="input flex-1 min-w-[200px]"
         >
           <option value="">Select Department</option>
           {departments.map((dept) => (
@@ -104,7 +104,7 @@ export default function ClassesPage() {
 
         <button
           onClick={handleAddClass}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded flex items-center gap-2"
+          className="btn-primary"
           disabled={loading}
         >
           {loading ? <Loader2 size={18} className="animate-spin" /> : <PlusCircle size={18} />}

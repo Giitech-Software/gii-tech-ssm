@@ -1,5 +1,6 @@
 import { collection, doc, getDocs, query, where, serverTimestamp, writeBatch } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 
 // 🔹 Firestore structure example:
 // attendance → { studentId, studentName, classId, date, present: true/false }
@@ -105,6 +106,7 @@ export const markAttendanceForClass = async (
   classId: string,
   attendanceList: { studentId: string; studentName: string; status: "Present" | "Absent" }[],
   teacherId: string,
+  mode: "check-in" | "check-out" = "check-in",
 ) => {
   try {
     const attendanceCollection = collection(db, "attendance");
@@ -112,13 +114,16 @@ export const markAttendanceForClass = async (
     const batch = writeBatch(db);
 
     for (const record of attendanceList) {
+      const timestamp = new Date().toISOString();
       batch.set(doc(attendanceCollection), {
+        tenantId: TENANT_ID,
         studentId: record.studentId,
         studentName: record.studentName,
         present: record.status === "Present",
         status: record.status,
         classId,
         teacherId,
+        ...(mode === "check-in" ? { checkInAt: timestamp } : { checkOutAt: timestamp }),
         date,
         createdAt: serverTimestamp(),
       });

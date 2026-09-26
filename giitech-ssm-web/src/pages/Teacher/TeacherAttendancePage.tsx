@@ -30,6 +30,7 @@ export default function TeacherAttendancePage() {
   const [marking, setMarking] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [attendanceMode, setAttendanceMode] = useState<"check-in" | "check-out">("check-in");
 
   const [classOptions, setClassOptions] = useState<{ id: string; name?: string; classId?: string }[]>([]);
 
@@ -126,7 +127,7 @@ export default function TeacherAttendancePage() {
       return;
     }
     try {
-      await markAttendanceForClass(selectedClass, records, user?.uid || "");
+      await markAttendanceForClass(selectedClass, records, user?.uid || "", attendanceMode);
       setMarking(false);
       await loadAttendance();
       setMessage("✅ Attendance submitted successfully!");
@@ -224,6 +225,10 @@ export default function TeacherAttendancePage() {
             <h2 className="text-lg font-semibold">
               Mark Attendance for {selectedClass}
             </h2>
+            <div className="flex gap-2">
+              <button onClick={() => setAttendanceMode("check-in")} className={`rounded-md px-3 py-1 text-sm font-semibold ${attendanceMode === "check-in" ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-700"}`}>Check in</button>
+              <button onClick={() => setAttendanceMode("check-out")} className={`rounded-md px-3 py-1 text-sm font-semibold ${attendanceMode === "check-out" ? "bg-primary text-white" : "bg-slate-100 text-slate-700"}`}>Check out</button>
+            </div>
             <div className="flex gap-2">
               <button
                 onClick={() => handleMarkAll("Present")}

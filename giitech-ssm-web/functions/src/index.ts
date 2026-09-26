@@ -5,11 +5,13 @@ import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { synchronizeWorkflowEscalations } from "./escalations";
 export { createAbsenteeAlert } from "./attendanceAlerts";
+export { scheduledStudentAttendanceFinalizer } from "./attendanceFinalizer";
 export { initiateMobileMoneyPayment, mobileMoneyWebhook, reconcilePaymentIntent } from "./paymentGateway";
 export { generateAiAssessmentSuggestion } from "./aiAssessment";
 export { createManagedUser, deleteManagedUser, updateManagedUserRole } from "./accounts";
 export { scheduledLibraryOverdueSync } from "./library";
 export { verifyAttendanceFace, enrollAttendanceFace } from "./rekognition";
+export { backfillAstemTenant } from "./tenantMigration";
 
 initializeApp();
 

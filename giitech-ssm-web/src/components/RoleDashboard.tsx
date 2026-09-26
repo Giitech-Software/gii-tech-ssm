@@ -58,8 +58,8 @@ export default function RoleDashboard({ role }: RoleDashboardProps) {
         <button title="Refresh dashboard" aria-label="Refresh dashboard" disabled={loading} onClick={() => void load()} className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/30 bg-white/10 text-white transition hover:bg-white/20 disabled:opacity-60"><RefreshCw className={loading ? "animate-spin" : ""} size={16} /></button>
       </header>
       {error && <p className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{error}</p>}
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {data.metrics.map((metric) => <div key={metric.label} className="surface surface-hover p-5"><p className="eyebrow">{metric.label}</p><p className="mt-2 text-2xl font-black tracking-tight text-dark">{metric.value}</p><p className="mt-1 text-xs text-slate-500">{metric.detail}</p></div>)}
+      <section className="grid grid-cols-2 gap-4 md:grid-cols-4 2xl:grid-cols-5">
+        {data.metrics.map((metric) => <div key={metric.label} className="surface surface-hover border-primary/20 p-5"><p className="eyebrow">{metric.label}</p><p className="mt-2 text-2xl font-black tracking-tight text-dark">{metric.value}</p><p className="mt-1 text-xs text-slate-500">{metric.detail}</p></div>)}
       </section>
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
         <div>
