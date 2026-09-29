@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   // NOTE: Update this to include the paths to all files that contain Nativewind classes.
-  content: ["./app/**/*.{js,jsx,ts,tsx}"],
+  content: ["./app/**/*.{js,jsx,ts,tsx}", "./src/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
@@ -14,6 +14,10 @@ module.exports = {
         neutral: "#64748B",   // Slate gray
         dark: "#0F172A",      // Navy black
         red: "#EF4444",       // 🔴 Added red (Tailwind default red-500)
+      },
+      borderRadius: {
+        card: "1.25rem",
+        control: "0.875rem",
       },
     },
   },

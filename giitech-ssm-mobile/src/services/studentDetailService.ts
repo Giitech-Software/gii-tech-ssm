@@ -11,6 +11,7 @@ type StudentProfile = {
   studentId: string;
   classId: string;
   studentName: string;
+  data: { classId: string };
 };
 
 const PROFILE_SCOPE = "student-profile";
@@ -82,6 +83,7 @@ export async function fetchStudentProfile(userId: string): Promise<StudentProfil
       studentId: String(student.studentId || studentDocument.id),
       classId: String(student.classId || ""),
       studentName: String(student.displayName || student.studentName || "Student"),
+      data: { classId: String(student.classId || "") },
     };
     await writeCachedData(PROFILE_SCOPE, userId, profile);
     return profile;

@@ -60,7 +60,7 @@ export default function StudentAttendancePage() {
       <View className="mt-4">
         {attendance.map((record) => (
           <View
-            className="mb-3 flex-row items-center justify-between rounded-3xl border border-slate-200 bg-white p-5"
+            className="mb-3 flex-row items-center justify-between rounded-2xl border border-slate-300 bg-white p-5 shadow-sm"
             key={record.id}
           >
             <View>

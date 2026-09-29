@@ -124,7 +124,7 @@ export default function ConversationPage() {
       {!!message && <Text className="mt-4 rounded-2xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">{message}</Text>}
       <View className="mt-4 rounded-3xl border border-teal-100 bg-white p-4">
         <TextInput
-          className="min-h-24 rounded-2xl bg-slate-50 px-4 py-4 text-base text-slate-900"
+          className="min-h-24 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base text-slate-900"
           multiline
           onChangeText={setText}
           placeholder="Write a message..."

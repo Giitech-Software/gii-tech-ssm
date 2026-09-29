@@ -1,5 +1,6 @@
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 import { getQueuedWrites, readCachedData, writeCachedData } from "./offlineStore";
 
 export type TeacherResult<T> = {

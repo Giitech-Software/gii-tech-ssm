@@ -21,7 +21,7 @@ type AuthContextValue = {
   role: string | null;
   displayName: string | null;
   loading: boolean;
-  login: (id: string, password: string) => Promise<void>;
+  login: (id: string, password: string) => Promise<string>;
   logout: () => Promise<void>;
 };
 
@@ -72,7 +72,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       displayName,
       loading,
       login: async (id: string, password: string) => {
-        await signInWithEmailAndPassword(auth, idToEmail(id), password);
+        const credentials = await signInWithEmailAndPassword(auth, idToEmail(id), password);
+        const profile = (await getDoc(doc(db, "users", credentials.user.uid))).data();
+        return typeof profile?.role === "string" ? profile.role : "";
       },
       logout: () => signOut(auth),
     }),

@@ -238,7 +238,7 @@ export default function ParentMessagesPage() {
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   placeholder="Type a message..."
-                  className="flex-1 p-3 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary0"
+                  className="flex-1 p-3 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
                 />
                 <Button onClick={handleSendMessage} disabled={sending}>
                   <Send className="w-4 h-4" />

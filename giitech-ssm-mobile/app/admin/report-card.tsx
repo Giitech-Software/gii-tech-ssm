@@ -42,7 +42,7 @@ export default function AdminReportCardPage() {
     >
       <StudentDataState error={error} loading={loading} offline={offline} onRefresh={load} />
       <Pressable
-        className="mt-5 items-center rounded-2xl bg-indigo-700 px-4 py-4 active:bg-indigo-800"
+        className="mt-5 items-center rounded-2xl bg-primary px-4 py-4 active:bg-primary"
         onPress={() => router.push("./report-publishing")}
       >
         <Text className="text-sm font-bold text-white">Publish a report card</Text>
@@ -55,7 +55,7 @@ export default function AdminReportCardPage() {
               <Text className="text-base font-extrabold text-slate-900">{report.studentName}</Text>
               <Text className="mt-1 text-xs text-slate-500">{report.studentId} | {report.className}</Text>
             </View>
-            <Text className="font-black text-indigo-800">{report.averageGrade.toFixed(1)}%</Text>
+            <Text className="font-black text-primary">{report.averageGrade.toFixed(1)}%</Text>
           </View>
           <Text className="mt-3 text-sm text-slate-600">
             {report.term} | {report.academicYear} | {report.subjects.length} subjects
@@ -63,6 +63,14 @@ export default function AdminReportCardPage() {
           <Text className="mt-1 text-sm text-slate-600">
             Attendance {report.attendance.present}/{report.attendance.total}
           </Text>
+          <Text className="mt-1 text-sm font-semibold text-slate-700">GPA / points: {report.gpa?.toFixed(2) || "-"}</Text>
+          <Text className="mt-1 text-sm text-slate-600">Class position: {report.positions?.class ? `${report.positions.class.position} of ${report.positions.class.total}` : "-"} · Stream: {report.positions?.stream ? `${report.positions.stream.position} of ${report.positions.stream.total}` : "-"}</Text>
+          <Text className="mt-1 text-sm text-slate-600">Department: {report.positions?.department ? `${report.positions.department.position} of ${report.positions.department.total}` : "-"} · Overall: {report.positions?.overall ? `${report.positions.overall.position} of ${report.positions.overall.total}` : "-"}</Text>
+          <View className="mt-4 border-t border-slate-100 pt-3"><Text className="text-xs font-bold uppercase tracking-wider text-slate-500">Subject results</Text>{report.subjects.map(subject => <View className="mt-2 flex-row justify-between" key={subject.name}><Text className="flex-1 text-sm text-slate-700">{subject.name}</Text><Text className="text-xs text-slate-500">Class {subject.classScore ?? "-"} · Exam {subject.examScore ?? "-"} · Final {subject.finalScore ?? subject.mark}</Text></View>)}</View>
+          {!!report.interests && <Text className="mt-3 text-sm text-slate-600">Interests: {report.interests}</Text>}
+          {!!report.conductRemark && <Text className="mt-1 text-sm text-slate-600">Conduct: {report.conductRemark}</Text>}
+          {!!report.attendanceRemark && <Text className="mt-1 text-sm text-slate-600">Attendance remark: {report.attendanceRemark}</Text>}
+          {!!report.nextSteps && <Text className="mt-1 text-sm text-slate-600">Next steps: {report.nextSteps}</Text>}
           {report.pending && <Text className="mt-2 text-xs font-bold uppercase text-amber-700">Queued</Text>}
         </View>
       ))}

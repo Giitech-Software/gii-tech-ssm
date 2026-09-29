@@ -44,7 +44,7 @@ export default function MessagesPage() {
           keyboardType="email-address"
           onChangeText={setRecipient}
           onSubmitEditing={() => openConversation(recipient)}
-          placeholder="member@giitech-ssm.com"
+          placeholder="member@astem.edu"
           placeholderTextColor="#94a3b8"
           value={recipient}
         />

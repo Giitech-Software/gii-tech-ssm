@@ -21,14 +21,14 @@ export default function ParentReportsPage() {
                 <Text className="mt-1 text-sm text-slate-500">{report.className}</Text>
               </View>
               <View className="items-end">
-                <Text className="text-sm font-bold text-indigo-700">{report.term}</Text>
+                <Text className="text-sm font-bold text-primary">{report.term}</Text>
                 <Text className="mt-1 text-xs text-slate-500">{report.academicYear}</Text>
               </View>
             </View>
             <View className="mt-4 flex-row">
-              <View className="mr-3 flex-1 rounded-2xl bg-indigo-50 p-3">
-                <Text className="text-xs font-bold uppercase text-indigo-600">Average</Text>
-                <Text className="mt-1 text-xl font-black text-indigo-900">{report.averageGrade.toFixed(1)}%</Text>
+              <View className="mr-3 flex-1 rounded-2xl bg-primary p-3">
+                <Text className="text-xs font-bold uppercase text-primary">Average</Text>
+                <Text className="mt-1 text-xl font-black text-primary">{report.averageGrade.toFixed(1)}%</Text>
               </View>
               <View className="flex-1 rounded-2xl bg-slate-100 p-3">
                 <Text className="text-xs font-bold uppercase text-slate-500">Attendance</Text>

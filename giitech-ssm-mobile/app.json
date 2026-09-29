@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "giitech-ssm-mobile",
+    "name": "ASTEM-SSM",
     "slug": "giitech-ssm-mobile",
     "extra": {
       "apiKey": "AIzaSyBmKo8JeLv2ILRvPtwMqyUjy7jwvfkvnRI",
@@ -9,26 +9,32 @@
       "storageBucket": "giitech-ssm.firebasestorage.app",
       "messagingSenderId": "342915985863",
       "appId": "1:342915985863:web:d5ed22998d2b095788e9e2",
-      "measurementId": "G-CYFJ7WY0KF"
+      "measurementId": "G-CYFJ7WY0KF",
+      "router": {},
+      "eas": {
+        "projectId": "8ccb5eb1-bf31-404c-916f-634fe2595bcb"
+      }
     },
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "giitechssmmobile",
+    "scheme": "astemssm",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#ffffff",
+        "foregroundImage": "./assets/images/adaptive-icon.png"
       },
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA"
+      ],
+      "package": "com.giitechsoftwaresystems.astemssm"
     },
     "web": {
       "bundler": "metro",
@@ -45,12 +51,28 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#ffffff"
           }
         }
       ],
       "expo-font",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow ASTEM-SSM to verify your identity for staff attendance."
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow ASTEM to scan student QR codes.",
+          "recordAudioAndroid": false
+        }
+      ],
+      "expo-image",
+      "expo-status-bar",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowLeftRight, BookOpen, CheckCircle2, LibraryBig, Plus, RotateCcw, Search, UserRound } from "lucide-react";
 import { addLibraryBook, fetchLibraryBooks, fetchLibraryLoans, issueLibraryBook, returnLibraryBook, type LibraryBook, type LibraryLoan } from "../../services/LibraryService";
 
-const inputClass = "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-primary0 focus:ring-2 focus:ring-primary";
+const inputClass = "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary";
 
 export default function LibraryPage() {
   const [books, setBooks] = useState<LibraryBook[]>([]);

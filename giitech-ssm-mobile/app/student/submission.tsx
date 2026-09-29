@@ -100,13 +100,6 @@ export default function StudentSubmissionPage() {
     try {
       const context = await fetchStudentSubmissionContext(user.uid);
       const submittedAt = new Date().toISOString();
-      const score = assessmentResponses.length
-        ? Math.round(
-            (assessmentResponses.filter((response) => response.correct).length /
-              assessmentResponses.length) *
-              100
-          )
-        : null;
       const submissionData = {
         assignmentId,
         assignmentName: assignment.title,
@@ -115,7 +108,7 @@ export default function StudentSubmissionPage() {
         studentUid: user.uid,
         studentName: context.studentName || displayName || "Student",
         ...(isAutoMarked
-          ? { responses: assessmentResponses, score }
+          ? { responses: assessmentResponses }
           : responseText.trim()
             ? { responseText: responseText.trim() }
             : {}),

@@ -4,7 +4,7 @@ import { fetchStaffDirectory, type StaffDirectoryRecord } from "../../services/D
 import { createStaffLoan, createStaffPayroll, createStaffWelfare, fetchStaffFinance, updateStaffFinanceStatus, type StaffFinanceData, type StaffLoan } from "../../services/StaffFinanceService";
 import { useAuth } from "../../contexts/AuthContext";
 
-const input = "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-primary0 focus:ring-2 focus:ring-primary";
+const input = "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary";
 export default function StaffFinancePage() {
   const { user } = useAuth(); const [staff, setStaff] = useState<StaffDirectoryRecord[]>([]); const [data, setData] = useState<StaffFinanceData | null>(null); const [selected, setSelected] = useState(""); const [message, setMessage] = useState(""); const [form, setForm] = useState({ period: "", gross: "", deductions: "", purpose: "", principal: "", installment: "", welfareType: "contribution", welfareAmount: "", notes: "" });
   const load = async () => { const [directory, finance] = await Promise.all([fetchStaffDirectory(), fetchStaffFinance()]); setStaff(directory.filter((member) => (member.status || "active") !== "archived")); setData(finance); }; useEffect(() => { void load(); }, []);

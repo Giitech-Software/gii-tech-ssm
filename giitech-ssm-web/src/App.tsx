@@ -184,7 +184,10 @@ export default function App() {
               <Route path="admin/staff" element={<StaffDirectoryPage />} />
               <Route path="admin/create-staff" element={<Signup />} />
               <Route path="admin/staff-attendance" element={<StaffAttendanceReportPage />} />
-              <Route path="admin/attendance" element={<AttendanceWorkspacePage />} />
+              <Route path="admin/attendance" element={<Navigate to="/admin/student-attendance" replace />} />
+              <Route path="admin/student-attendance" element={<AttendanceWorkspacePage section="student" />} />
+              <Route path="admin/staff-attendance-workspace" element={<AttendanceWorkspacePage section="staff" />} />
+              <Route path="admin/attendance-administration" element={<AttendanceWorkspacePage section="administration" />} />
               <Route path="admin/take-attendance" element={<TeacherAttendancePage />} />
               <Route path="admin/archive" element={<ArchivePage />} />
               <Route path="admin/qr-attendance" element={<QrAttendancePage />} />

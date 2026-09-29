@@ -1,14 +1,19 @@
 import { useCallback, useEffect, useState } from "react";
+import type { ComponentProps } from "react";
 import { useRouter } from "expo-router";
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
-  SafeAreaView,
   ScrollView,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { StatusBar } from "expo-status-bar";
 import { useAuth } from "../src/contexts/AuthContext";
 import { useSync } from "../src/contexts/SyncContext";
 import {
@@ -30,9 +35,11 @@ import {
 
 const studentTools = [
   ["Assignments", "Review coursework and deadlines.", "./student/assignments"],
+  ["Learning materials", "Open class resources and bookmarks.", "./student/materials"],
   ["Submissions", "Open coursework and update submitted responses.", "./student/submissions"],
   ["Grades", "Check marks and teacher feedback.", "./student/grades"],
   ["Attendance", "Review your daily attendance.", "./student/attendance"],
+  ["My library", "Track borrowed books and due dates.", "./student/library"],
 ] as const;
 
 const parentTools = [
@@ -46,17 +53,49 @@ const parentTools = [
 
 const teacherTools = [
   ["Assignments", "Create and manage class coursework.", "./teacher/assignments"],
+  ["QR attendance", "Scan student identity cards.", "./shared/qr-attendance"],
+  ["AI mark review", "Approve or reject assisted marking suggestions.", "./teacher/ai-review"],
+  ["Learning materials", "Upload and manage class resources.", "./teacher/materials"],
   ["Attendance", "Record the daily class register.", "./teacher/attendance"],
   ["Submissions", "Review student work and record feedback.", "./teacher/submissions"],
   ["Grades", "Review recorded assignment and exam outcomes.", "./teacher/grades"],
+  ["Assessment summary", "Review assignment performance and question-level outcomes.", "./teacher/assessment-summary"],
   ["Grade summary", "Compare student, class, and subject performance.", "./teacher/grade-summary"],
   ["Exam grades", "Record subject marks for configured exams.", "./teacher/exam-grades"],
   ["Feedback", "Open submissions that need teacher comments.", "./teacher/feedback"],
   ["Messages", "Continue school conversations.", "./teacher/messages"],
 ] as const;
 
+const staffTools = [
+  ["QR attendance", "Scan student identity cards.", "./shared/qr-attendance"],
+  ["Staff Check-in/out", "Record your staff check-in, check-out, return, and verification.", "./staff/attendance"],
+  ["QR staff verification", "Verify attendance with your staff identity card.", "./staff/qr-attendance"],
+  ["My financial records", "Review payslips, loans, and welfare history.", "./staff/finance"],
+] as const;
+
 const adminTools = [
+  ["Student Attendance", "Record the daily student register and student ID/QR attendance.", "./admin/student-attendance"],
+  ["Staff Attendance", "Review and record staff check-in, check-out, and return.", "./admin/staff-attendance"],
+  ["Attendance Administration", "Manage attendance identity, policy, and analytics.", "./admin/attendance-administration"],
+  ["Archive", "Search and restore archived student and staff records.", "./admin/archive"],
+  ["Face enrollment", "Enroll or replace student and staff attendance faces.", "./admin/face-enrollment"],
+  ["Subjects per class", "Define required subjects for each class.", "./admin/class-subjects"],
+  ["Staff attendance policy", "Configure staff attendance hours and verification.", "./admin/staff-attendance-settings"],
+  ["Staff QR identity", "Generate staff attendance identity cards.", "./admin/staff-qr"],
+  ["Staff loan repayments", "Record repayments against staff loans.", "./admin/staff-loan-repayments"],
+  ["Staff finance report", "Review payroll, loans, and welfare totals.", "./admin/staff-finance-report"],
+  ["Staff movement report", "Review staff movement and early departures.", "./admin/staff-movement-report"],
   ["Students", "Maintain enrollment profiles and placement.", "./admin/students"],
+  ["AI budget alerts", "Review monthly AI budget warnings.", "./admin/ai-alerts"],
+  ["AI cost controls", "Configure AI limits and budget protection.", "./admin/ai-settings"],
+  ["AI usage report", "Review monthly AI generations and costs.", "./admin/ai-usage"],
+  ["AI grading audit", "Review AI suggestions and teacher decisions.", "./admin/ai-audit"],
+  ["Academic terms", "Manage teaching periods within a school year.", "./admin/terms"],
+  ["Academic years", "Manage the active school year.", "./admin/academic-years"],
+  ["Grading configuration", "Manage grade ranges and points.", "./admin/grading"],
+  ["Student rankings", "Review overall performance positions.", "./admin/rankings"],
+  ["QR attendance", "Scan student identity cards.", "./shared/qr-attendance"],
+  ["Payment intents", "Monitor and reconcile Mobile Money payments.", "./admin/payment-intents"],
   ["Staff", "Maintain teaching staff profiles.", "./admin/staff"],
   ["Departments", "Define major school divisions.", "./admin/departments"],
   ["Classes", "Create class placement options.", "./admin/classes"],
@@ -68,9 +107,12 @@ const adminTools = [
   ["Report publishing", "Release reviewed term report snapshots.", "./admin/report-publishing"],
   ["Family links", "Connect parent and student profiles.", "./admin/family-links"],
   ["Fee structures", "Define class-based school fees.", "./admin/fees"],
+  ["School library", "Manage books, borrowing, returns, and due dates.", "./admin/library"],
   ["Finance ledger", "Track student charges and payments.", "./admin/finance"],
   ["Reports", "Open student, performance, attendance, and report-card views.", "./admin/reports"],
   ["Student QR identity", "Generate student lookup identity cards.", "./admin/student-qr"],
+  ["Staff finance", "Review payroll, loans, repayments, and welfare records.", "./admin/staff-finance"],
+  ["SSNIT compliance", "Review contributions and remittance status.", "./admin/ssnit"],
 ] as const;
 
 const superAdminTools = [
@@ -80,6 +122,7 @@ const superAdminTools = [
 
 const sharedTools = [
   ["Announcements", "Read notices and important school updates.", "./shared/announcements"],
+  ["Notification preferences", "Control the alerts sent to your account.", "./shared/notification-preferences"],
   ["Academic calendar", "Review term dates, exams, and activities.", "./shared/calendar"],
   ["Notifications", "Open active alerts for your account.", "./shared/notifications"],
   ["Messages", "Continue secure school conversations.", "./shared/messages"],
@@ -101,11 +144,8 @@ function NotificationPreview({
 }) {
   return (
     <View className="mt-6">
-      <View className="flex-row items-center justify-between">
-        <View className="mr-3 flex-1">
-          <Text className="text-lg font-extrabold text-slate-900">Notifications</Text>
-          <Text className="mt-1 text-sm text-slate-500">Active workflow alerts and school notices.</Text>
-        </View>
+      <View className="mb-3 flex-row items-center justify-between rounded-2xl border border-slate-300 bg-white p-4 shadow-sm">
+        <View className="mr-3 flex-1 flex-row items-center"><MaterialCommunityIcons color="#4f46e5" name="bell-outline" size={24} /><View className="ml-3"><Text className="text-base font-extrabold text-slate-900">Notifications</Text><Text className="mt-1 text-xs text-slate-500">Active workflow alerts and school notices.</Text></View></View>
         <Pressable
           className="rounded-2xl bg-white px-4 py-3 active:bg-slate-50"
           onPress={() => onOpen("/shared/notifications")}
@@ -139,7 +179,7 @@ function DashboardCards({ cards }: { cards: DashboardCard[] }) {
     <View className="mt-4 flex-row flex-wrap justify-between">
       {cards.map(([label, value, detail]) => (
         <View
-          className="mb-3 w-[48%] rounded-3xl border border-slate-200 bg-white p-4"
+          className="mb-3 w-[48%] rounded-xl border border-primary/25 bg-white p-4 shadow-sm shadow-primary/5 md:w-[23.5%] lg:w-[18.5%]"
           key={label}
         >
           <Text className="text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -153,6 +193,46 @@ function DashboardCards({ cards }: { cards: DashboardCard[] }) {
   );
 }
 
+function AdminToolSection({ title, items, onOpen }: { title: string; items: readonly (readonly [string, string, string])[]; onOpen: (route: string) => void }) {
+  if (!items.length) return null;
+  return <View className="mt-6"><Text className="text-xs font-black uppercase tracking-widest text-primary">{title}</Text><View className="mt-3 gap-3">{items.map(([label, detail, route]) => <Pressable className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm active:bg-blue-50" key={route} onPress={() => onOpen(route)}><View className="flex-row items-center justify-between"><Text className="flex-1 text-base font-extrabold text-slate-900">{label}</Text><Text className="ml-3 text-lg font-bold text-accent1">›</Text></View><Text className="mt-1 text-sm leading-5 text-slate-500">{detail}</Text></Pressable>)}</View></View>;
+}
+
+void AdminToolSection;
+
+function AdminCategorySection({ title, items, onOpen, active, onToggle }: { title: string; items: readonly (readonly [string, string, string])[]; onOpen: (route: string) => void; active: boolean; onToggle: () => void }) {
+  const iconName: ComponentProps<typeof MaterialCommunityIcons>["name"] = title === "Academic operations" ? "school-outline" : title === "Finance and AI controls" ? "finance" : "shield-crown-outline";
+  const toolIcon = (label: string): ComponentProps<typeof MaterialCommunityIcons>["name"] => ({
+    Students: "account-group-outline",
+    "Student QR identity": "card-account-details-outline",
+    Staff: "account-tie-outline",
+    Departments: "domain",
+    Classes: "google-classroom",
+    Streams: "source-branch",
+    "Fee structures": "file-document-edit-outline",
+    "Finance ledger": "book-currency-outline",
+    "Payment intents": "credit-card-check-outline",
+    "AI budget alerts": "alert-decagram-outline",
+    "AI cost controls": "robot-industrial-outline",
+    "AI usage report": "chart-donut-variant",
+    "AI grading audit": "robot-confused-outline",
+    "Student rankings": "podium-gold",
+    Reports: "file-chart-outline",
+    "Report publishing": "file-send-outline",
+    Attendance: "calendar-check-outline",
+    "QR attendance": "qrcode-scan",
+    "Academic years": "calendar-range-outline",
+    "Academic terms": "calendar-month-outline",
+    "Assessment setup": "clipboard-edit-outline",
+    "Grading configuration": "format-list-numbered",
+    Communications: "bullhorn-outline",
+    Promotions: "account-arrow-up-outline",
+    "Family links": "account-switch-outline",
+    "Activity logs": "clipboard-text-clock-outline",
+  }[label] as ComponentProps<typeof MaterialCommunityIcons>["name"] || "tune-variant");
+  return <View className="mt-4"><Pressable accessibilityRole="button" accessibilityState={{ expanded: active }} className={`rounded-2xl border p-4 shadow-sm ${active ? "border-primary bg-primary" : "border-slate-300 bg-white"}`} onPress={onToggle}><View className="flex-row items-center"><View className={`mr-3 h-11 w-11 items-center justify-center rounded-xl ${active ? "bg-primary" : "bg-primary"}`}><MaterialCommunityIcons color={active ? "#ffffff" : "#4338ca"} name={iconName} size={24} /></View><View className="flex-1"><Text className="text-base font-extrabold text-slate-900">{title}</Text><Text className="mt-1 text-xs text-slate-500">{items.length} tools available</Text></View><MaterialCommunityIcons color="#4f46e5" name={active ? "chevron-up" : "chevron-down"} size={25} /></View></Pressable>{active && <View className="mt-2 gap-2 rounded-2xl border border-primary bg-primary/50 p-2">{items.map(([label, detail, route]) => <Pressable className="rounded-xl border border-slate-200 bg-white p-4 active:bg-primary" key={route} onPress={() => onOpen(route)}><View className="flex-row items-center"><View className="mr-3 h-9 w-9 items-center justify-center rounded-xl bg-primary"><MaterialCommunityIcons color="#4f46e5" name={toolIcon(label)} size={20} /></View><View className="flex-1"><Text className="text-sm font-extrabold text-slate-900">{label}</Text><Text className="mt-1 text-xs leading-5 text-slate-500">{detail}</Text></View><MaterialCommunityIcons color="#4f46e5" name="chevron-right" size={21} /></View></Pressable>)}</View>}</View>;
+}
+
 function ActionQueue({
   items,
   onOpen,
@@ -162,9 +242,8 @@ function ActionQueue({
 }) {
   return (
     <View className="mt-6">
-      <Text className="text-lg font-extrabold text-slate-900">Action queue</Text>
-      <Text className="mt-1 text-sm text-slate-500">The next work items that deserve attention.</Text>
-      <View className="mt-3 overflow-hidden rounded-3xl border border-slate-200 bg-white">
+      <View className="mb-3 flex-row items-center rounded-2xl border border-slate-300 bg-white p-4 shadow-sm"><MaterialCommunityIcons color="#4f46e5" name="clipboard-check-outline" size={24} /><View className="ml-3"><Text className="text-base font-extrabold text-slate-900">Action queue</Text><Text className="mt-1 text-xs text-slate-500">The next work items that deserve attention.</Text></View></View>
+      <View className="mt-3 overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
         {items.map(([label, value, detail, route], index) => (
           <Pressable
             className={`p-5 active:bg-slate-50 ${index ? "border-t border-slate-100" : ""}`}
@@ -198,9 +277,8 @@ function RecentList({
 }) {
   return (
     <View className="mt-6">
-      <Text className="text-lg font-extrabold text-slate-900">{title}</Text>
-      <Text className="mt-1 text-sm text-slate-500">{subtitle}</Text>
-      <View className="mt-3 overflow-hidden rounded-3xl border border-slate-200 bg-white">
+      <View className="mb-3 flex-row items-center rounded-2xl border border-slate-300 bg-white p-4 shadow-sm"><MaterialCommunityIcons color="#4f46e5" name="history" size={24} /><View className="ml-3"><Text className="text-base font-extrabold text-slate-900">{title}</Text><Text className="mt-1 text-xs text-slate-500">{subtitle}</Text></View></View>
+      <View className="mt-3 overflow-hidden rounded-2xl border border-slate-300 bg-white shadow-sm">
         {items.map((item, index) => (
           <View className={`p-5 ${index ? "border-t border-slate-100" : ""}`} key={item.id}>
             <Text className="text-sm font-extrabold text-slate-900">{item.title}</Text>
@@ -223,6 +301,7 @@ export default function Index() {
   const { status, pendingCount, lastSyncedAt, syncNow } = useSync();
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [studentSummary, setStudentSummary] = useState<StudentDashboardDetail | null>(null);
@@ -232,6 +311,7 @@ export default function Index() {
   const [notifications, setNotifications] = useState<WorkflowNotification[]>([]);
   const [summaryError, setSummaryError] = useState("");
   const [summaryLoading, setSummaryLoading] = useState(false);
+  const [activeAdminCategory, setActiveAdminCategory] = useState<string | null>(null);
 
   const openRoute = useCallback(
     (route: string) => {
@@ -355,21 +435,25 @@ export default function Index() {
     return (
       <View className="flex-1 items-center justify-center bg-slate-950">
         <ActivityIndicator size="large" color="#38bdf8" />
-        <Text className="mt-4 text-base text-slate-300">Loading Giitech-SSM...</Text>
+        <Text className="mt-4 text-base text-slate-300">Loading ASTEM...</Text>
       </View>
     );
   }
 
   if (!user) {
     return (
-      <SafeAreaView className="flex-1 bg-slate-950">
-        <ScrollView
-          contentContainerClassName="flex-grow justify-center px-6 py-10"
-          keyboardShouldPersistTaps="handled"
-        >
+      <SafeAreaView className="flex-1 bg-dark">
+        <StatusBar style="light" />
+        <KeyboardAvoidingView className="flex-1" behavior="padding" keyboardVerticalOffset={Platform.OS === "ios" ? 12 : 0}>
+          <ScrollView
+            automaticallyAdjustKeyboardInsets
+            contentContainerClassName="flex-grow justify-center px-6 pb-24 pt-10"
+            keyboardDismissMode="on-drag"
+            keyboardShouldPersistTaps="handled"
+          >
           <View className="mb-8">
-            <Text className="text-sm font-bold uppercase tracking-widest text-sky-400">
-              Giitech Smart School Manager
+            <Text className="text-sm font-bold uppercase tracking-widest text-accent1">
+              ASTEM-SSM
             </Text>
             <Text className="mt-4 text-4xl font-black leading-tight text-white">
               Your school, connected.
@@ -379,10 +463,10 @@ export default function Index() {
             </Text>
           </View>
 
-          <View className="rounded-3xl bg-white p-6">
+          <View className="rounded-3xl border border-slate-200 bg-light p-6 shadow-2xl">
             <Text className="text-2xl font-extrabold text-slate-900">Welcome back</Text>
             <Text className="mt-2 text-sm leading-5 text-slate-500">
-              Use the same school credentials as the Giitech-SSM web portal.
+              Use the same school credentials as the ASTEM-SSM web portal.
             </Text>
 
             <Text className="mt-6 text-xs font-bold uppercase tracking-wider text-slate-500">
@@ -391,7 +475,7 @@ export default function Index() {
             <TextInput
               autoCapitalize="none"
               autoCorrect={false}
-              className="mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base text-slate-900"
+              className="mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base text-dark"
               onChangeText={setId}
               placeholder="e.g. STU-0001"
               placeholderTextColor="#94a3b8"
@@ -401,20 +485,25 @@ export default function Index() {
             <Text className="mt-5 text-xs font-bold uppercase tracking-wider text-slate-500">
               Password
             </Text>
-            <TextInput
-              className="mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base text-slate-900"
-              onChangeText={setPassword}
-              onSubmitEditing={handleLogin}
-              placeholder="Enter your password"
-              placeholderTextColor="#94a3b8"
-              secureTextEntry
-              value={password}
-            />
+            <View className="mt-2 flex-row items-center rounded-2xl border border-slate-200 bg-slate-50 px-4">
+              <TextInput
+                className="flex-1 py-4 text-base text-dark"
+                onChangeText={setPassword}
+                onSubmitEditing={handleLogin}
+                placeholder="Enter your password"
+                placeholderTextColor="#94a3b8"
+                secureTextEntry={!showPassword}
+                value={password}
+              />
+              <Pressable accessibilityLabel={showPassword ? "Hide password" : "Show password"} accessibilityRole="button" className="ml-3 p-1" onPress={() => setShowPassword((value) => !value)}>
+                <MaterialCommunityIcons color="#64748b" name={showPassword ? "eye-off-outline" : "eye-outline"} size={22} />
+              </Pressable>
+            </View>
 
             {!!error && <Text className="mt-4 text-sm font-semibold text-red-600">{error}</Text>}
 
             <Pressable
-              className="mt-6 items-center rounded-2xl bg-sky-600 px-4 py-4 active:bg-sky-700"
+              className="mt-6 items-center rounded-2xl bg-primary px-4 py-4 active:bg-blue-900"
               disabled={submitting}
               onPress={handleLogin}
             >
@@ -425,17 +514,19 @@ export default function Index() {
               )}
             </Pressable>
           </View>
-        </ScrollView>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView className="flex-1 bg-slate-100">
+      <StatusBar style="dark" />
       <ScrollView contentContainerClassName="px-5 py-6">
-        <View className="rounded-3xl bg-slate-950 p-6">
+        <View className="-mx-5 rounded-none bg-slate-950 px-6 py-7">
           <Text className="text-xs font-bold uppercase tracking-widest text-sky-400">
-            Giitech-SSM
+            ASTEM-SSM
           </Text>
           <Text className="mt-4 text-3xl font-black text-white">
             Hello, {displayName || "school member"}
@@ -445,7 +536,7 @@ export default function Index() {
           </Text>
         </View>
 
-        <Text className="mt-8 text-lg font-extrabold text-slate-900">Your school workspace</Text>
+        <Text className="mt-8 text-lg font-extrabold text-slate-900">Key metrics</Text>
         <Text className="mt-2 text-base leading-6 text-slate-600">
           Open the same operational workflows as the web portal, with offline queues for mobile work.
         </Text>
@@ -540,11 +631,11 @@ export default function Index() {
                 </Text>
               </View>
               <Pressable
-                className="rounded-2xl bg-indigo-100 px-4 py-3 active:bg-indigo-200"
+                className="rounded-2xl bg-primary px-4 py-3 active:bg-primary"
                 disabled={summaryLoading}
                 onPress={loadParentData}
               >
-                <Text className="text-sm font-bold text-indigo-800">
+                <Text className="text-sm font-bold text-primary">
                   {summaryLoading ? "Loading..." : "Refresh"}
                 </Text>
               </Pressable>
@@ -619,7 +710,7 @@ export default function Index() {
             <View className="flex-row items-center justify-between">
               <View>
                 <Text className="text-lg font-extrabold text-slate-900">Teacher overview</Text>
-                <Text className="mt-1 text-sm text-slate-500">Daily academic workspace</Text>
+                <Text className="mt-1 text-sm text-slate-500">Daily academic dashboard</Text>
               </View>
               <Pressable
                 className="rounded-2xl bg-emerald-100 px-4 py-3 active:bg-emerald-200"
@@ -679,19 +770,23 @@ export default function Index() {
           </View>
         )}
 
+        {role === "staff" && (
+          <View className="mt-6">
+            <Text className="text-lg font-extrabold text-slate-900">Staff tools</Text>
+            {staffTools.map(([label, detail, route]) => <Pressable className="mt-3 rounded-3xl border border-slate-200 bg-white p-5 active:bg-slate-50" key={route} onPress={() => router.push(route)}><Text className="text-base font-extrabold text-slate-900">{label}</Text><Text className="mt-1 text-sm text-slate-600">{detail}</Text></Pressable>)}
+          </View>
+        )}
+
         {(role === "admin" || role === "superadmin") && (
           <View className="mt-6">
-            <View className="flex-row items-center justify-between">
-              <View>
-                <Text className="text-lg font-extrabold text-slate-900">Administration overview</Text>
-                <Text className="mt-1 text-sm text-slate-500">Operational school directory</Text>
-              </View>
+            <View className="flex-row items-center justify-between rounded-2xl border border-slate-300 bg-white p-4 shadow-sm">
+                <View className="flex-1 flex-row items-center"><MaterialCommunityIcons color="#4338ca" name="view-dashboard-outline" size={25} /><View className="ml-3"><Text className="text-base font-extrabold text-slate-900">Administration dashboard</Text><Text className="mt-1 text-xs text-slate-500">Executive school operations summary</Text></View></View>
               <Pressable
-                className="rounded-2xl bg-indigo-100 px-4 py-3 active:bg-indigo-200"
+                className="rounded-2xl bg-primary px-4 py-3 active:bg-primary"
                 disabled={summaryLoading}
                 onPress={loadAdminSummary}
               >
-                <Text className="text-sm font-bold text-indigo-800">
+                <Text className="text-sm font-bold text-primary">
                   {summaryLoading ? "Loading..." : "Refresh"}
                 </Text>
               </Pressable>
@@ -714,55 +809,29 @@ export default function Index() {
                     ["Staff profiles", adminSummary.staff, "Teaching and staff records"],
                     ["Outstanding fees", money(adminSummary.outstandingFees), `${adminSummary.studentsWithBalances} student ledgers`],
                     ["Attendance today", `${adminSummary.attendanceTodayRate}%`, `${adminSummary.attendanceTodayRecords} records today`],
-                    ["Pending grading", adminSummary.pendingSubmissions, "Teacher action queue"],
-                    ["Released reports", adminSummary.releasedReports, "Published family snapshots"],
-                    ["Family link issues", adminSummary.unresolvedStudentLinks, `${adminSummary.unlinkedParents} unlinked parent profiles`],
-                    ["Upcoming exams", adminSummary.upcomingExams, `${adminSummary.activeTerms} active terms configured`],
                   ]}
                 />
-                <ActionQueue
-                  items={[
-                    ["Family links requiring review", adminSummary.unresolvedStudentLinks + adminSummary.unlinkedParents, "Connect parent and student profiles.", "./admin/family-links"],
-                    ["Students with outstanding balances", adminSummary.studentsWithBalances, `${money(adminSummary.outstandingFees)} remains outstanding.`, "./admin/finance"],
-                    ["Submissions awaiting grading", adminSummary.pendingSubmissions, "Monitor assessment readiness before reports.", "./admin/assessments"],
-                    ["Detailed reports", adminSummary.releasedReports, "Compare school indicators and student records.", "./admin/analytics"],
-                  ]}
-                  onOpen={openRoute}
-                />
-                <RecentList
-                  emptyText="No activity has been recorded yet."
-                  items={adminSummary.recentActivity}
-                  subtitle="Latest recorded operational changes."
-                  title="Recent activity"
-                />
-                <NotificationPreview notifications={notifications} onOpen={openRoute} />
-                <Text className="mt-3 text-lg font-extrabold text-slate-900">Administration tools</Text>
                 {role === "superadmin" && superAdminTools.map(([label, detail, route]) => (
                   <Pressable
-                    className="mt-3 rounded-3xl border border-indigo-200 bg-indigo-50 p-5 active:bg-indigo-100"
+                    className="mt-3 rounded-3xl border border-primary bg-primary p-5 active:bg-primary"
                     key={route}
                     onPress={() => router.push(route)}
                   >
-                    <Text className="text-base font-extrabold text-indigo-950">{label}</Text>
-                    <Text className="mt-1 text-sm text-indigo-700">{detail}</Text>
+                    <Text className="text-base font-extrabold text-primary">{label}</Text>
+                    <Text className="mt-1 text-sm text-primary">{detail}</Text>
                   </Pressable>
                 ))}
-                {adminTools.map(([label, detail, route]) => (
-                  <Pressable
-                    className="mt-3 rounded-3xl border border-slate-200 bg-white p-5 active:bg-slate-50"
-                    key={route}
-                    onPress={() => router.push(route)}
-                  >
-                    <Text className="text-base font-extrabold text-slate-900">{label}</Text>
-                    <Text className="mt-1 text-sm text-slate-500">{detail}</Text>
-                  </Pressable>
-                ))}
+                <View className="mt-6 flex-row items-center rounded-2xl border border-primary bg-primary p-4 shadow-sm"><MaterialCommunityIcons color="#4338ca" name="view-dashboard-outline" size={25} /><View className="ml-3"><Text className="text-base font-extrabold text-slate-900">Administration tools</Text><Text className="mt-1 text-xs text-slate-600">Choose a section to reveal its tools.</Text></View></View>
+                <AdminCategorySection active={activeAdminCategory === "academic"} onToggle={() => setActiveAdminCategory(activeAdminCategory === "academic" ? null : "academic")} title="Academic operations" items={adminTools.filter(([label]) => ["Students", "Academic years", "Academic terms", "Grading configuration", "Student rankings"].includes(label))} onOpen={openRoute} />
+                <AdminCategorySection active={activeAdminCategory === "attendance"} onToggle={() => setActiveAdminCategory(activeAdminCategory === "attendance" ? null : "attendance")} title="Attendance Workspace" items={adminTools.filter(([label]) => ["Student Attendance", "Staff Attendance", "Attendance Administration"].includes(label))} onOpen={openRoute} />
+                <AdminCategorySection active={activeAdminCategory === "finance"} onToggle={() => setActiveAdminCategory(activeAdminCategory === "finance" ? null : "finance")} title="Finance and AI controls" items={adminTools.filter(([label]) => ["Payment intents", "AI cost controls", "AI usage report", "AI budget alerts"].includes(label))} onOpen={openRoute} />
+                <AdminCategorySection active={activeAdminCategory === "school"} onToggle={() => setActiveAdminCategory(activeAdminCategory === "school" ? null : "school")} title="School administration" items={adminTools.filter(([label]) => !["Students", "Academic years", "Academic terms", "Grading configuration", "Student rankings", "Attendance workspace", "Face enrollment", "Staff attendance policy", "Staff QR identity", "Staff movement report", "Payment intents", "AI cost controls", "AI usage report", "AI budget alerts"].includes(label))} onOpen={openRoute} />
               </>
             )}
           </View>
         )}
 
-        {!!role && (
+        {!!role && role !== "admin" && role !== "superadmin" && (
           <View className="mt-6">
             <Text className="text-lg font-extrabold text-slate-900">School updates</Text>
             <Text className="mt-1 text-sm text-slate-500">

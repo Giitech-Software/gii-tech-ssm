@@ -23,8 +23,14 @@ export type PublishedReport = {
   className: string;
   academicYear: string;
   term: string;
-  subjects: { name: string; mark: number; grade: string; remark: string }[];
+  subjects: { name: string; mark: number; classScore?: number; examScore?: number; finalScore?: number; grade: string; remark: string }[];
   averageGrade: number;
+  gpa?: number;
+  positions?: { class?: { position: number; total: number } | null; stream?: { position: number; total: number } | null; department?: { position: number; total: number } | null; overall?: { position: number; total: number } | null };
+  interests?: string;
+  conductRemark?: string;
+  attendanceRemark?: string;
+  nextSteps?: string;
   attendance: { present: number; total: number };
   published: boolean;
   pending: boolean;
@@ -49,7 +55,7 @@ function parentFromData(id: string, data: Record<string, unknown>, pending = fal
 
 function reportFromData(id: string, data: Record<string, unknown>, pending = false): PublishedReport {
   const attendance = asRecord(data.attendance);
-  return { id, studentId: String(data.studentId || ""), studentName: String(data.studentName || "Student"), className: String(data.className || "Unassigned Class"), academicYear: String(data.academicYear || ""), term: String(data.term || ""), subjects: Array.isArray(data.subjects) ? data.subjects.map((item) => { const subject = asRecord(item); return { name: String(subject.name || "Subject"), mark: Number(subject.mark) || 0, grade: String(subject.grade || ""), remark: String(subject.remark || "") }; }) : [], averageGrade: Number(data.averageGrade) || 0, attendance: { present: Number(attendance.present) || 0, total: Number(attendance.total) || 0 }, published: data.published !== false, pending };
+  return { id, studentId: String(data.studentId || ""), studentName: String(data.studentName || "Student"), className: String(data.className || "Unassigned Class"), academicYear: String(data.academicYear || ""), term: String(data.term || ""), subjects: Array.isArray(data.subjects) ? data.subjects.map((item) => { const subject = asRecord(item); return { name: String(subject.name || "Subject"), mark: Number(subject.mark) || 0, classScore: subject.classScore == null ? undefined : Number(subject.classScore), examScore: subject.examScore == null ? undefined : Number(subject.examScore), finalScore: subject.finalScore == null ? undefined : Number(subject.finalScore), grade: String(subject.grade || ""), remark: String(subject.remark || "") }; }) : [], averageGrade: Number(data.averageGrade) || 0, gpa: data.gpa == null ? undefined : Number(data.gpa), positions: asRecord(data.positions) as PublishedReport["positions"], interests: String(data.interests || ""), conductRemark: String(data.conductRemark || ""), attendanceRemark: String(data.attendanceRemark || ""), nextSteps: String(data.nextSteps || ""), attendance: { present: Number(attendance.present) || 0, total: Number(attendance.total) || 0 }, published: data.published !== false, pending };
 }
 
 function overlay(data: AdminFamilyReportData, writes: Awaited<ReturnType<typeof getQueuedWrites>>, userId: string) {

@@ -27,7 +27,7 @@ export default function AnnouncementsPage() {
       )}
       <View className="mt-4">
         {result?.data.map((announcement) => (
-          <View className="mb-3 rounded-3xl border border-slate-200 bg-white p-5" key={announcement.id}>
+          <View className="mb-3 rounded-2xl border border-slate-300 bg-white p-5 shadow-sm" key={announcement.id}>
             <View className="flex-row flex-wrap items-center">
               <Text className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${categoryStyle[announcement.category]}`}>
                 {announcement.category}

@@ -114,8 +114,10 @@ export const markAttendanceForClass = async (
     const batch = writeBatch(db);
 
     for (const record of attendanceList) {
+      const existing = await getDocs(query(collection(db, "attendance"), where("studentId", "==", record.studentId), where("date", "==", date)));
+      if (!existing.empty) throw new Error(`Attendance has already been recorded for ${record.studentName} today.`);
       const timestamp = new Date().toISOString();
-      batch.set(doc(attendanceCollection), {
+      batch.set(doc(attendanceCollection, `${record.studentId}_${date}`), {
         tenantId: TENANT_ID,
         studentId: record.studentId,
         studentName: record.studentName,

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { Pressable, SafeAreaView, ScrollView, Text, View } from "react-native";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
 type StudentPageShellProps = {
@@ -13,19 +14,19 @@ export function StudentPageShell({ title, subtitle, children }: StudentPageShell
 
   return (
     <SafeAreaView className="flex-1 bg-slate-100">
-      <ScrollView contentContainerClassName="px-5 py-6">
-        <Pressable className="mb-5 self-start rounded-xl bg-white px-4 py-3" onPress={router.back}>
-          <Text className="text-sm font-bold text-slate-700">Back to dashboard</Text>
+      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : "height"}><ScrollView contentContainerClassName="px-5 pb-10 pt-6" keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+        <Pressable className="mb-5 self-start rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm" onPress={router.back}>
+          <Text className="text-sm font-bold text-sky-700">‹  Back to dashboard</Text>
         </Pressable>
-        <View className="rounded-3xl bg-slate-950 p-6">
+        <View className="rounded-3xl border border-slate-800 bg-slate-950 p-6 shadow-sm">
           <Text className="text-xs font-bold uppercase tracking-widest text-sky-400">
-            Student workspace
+            Student dashboard
           </Text>
           <Text className="mt-3 text-3xl font-black text-white">{title}</Text>
           <Text className="mt-2 text-sm leading-5 text-slate-300">{subtitle}</Text>
         </View>
-        {children}
-      </ScrollView>
+        <View className="mt-1">{children}</View>
+      </ScrollView></KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

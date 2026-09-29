@@ -91,7 +91,7 @@ export default function AdminStudentsPage() {
       {!loading && !filtered.length && !error && <Text className="mt-8 text-center text-sm text-slate-500">No students found.</Text>}
       <View className="mt-4">
         {filtered.map((student) => (
-          <View className="mb-3 rounded-3xl border border-slate-200 bg-white p-5" key={student.id}>
+          <View className="mb-3 rounded-2xl border border-slate-300 bg-white p-5 shadow-sm" key={student.id}>
             <View className="flex-row items-start justify-between">
               <View className="mr-3 flex-1">
                 <Text className="text-lg font-extrabold text-slate-900">{student.displayName}</Text>
@@ -103,8 +103,8 @@ export default function AdminStudentsPage() {
             {!!student.parentId && <Text className="mt-1 text-xs text-slate-500">Parent: {student.parentId}</Text>}
             {student.pending && <Text className="mt-3 text-xs font-bold uppercase text-amber-700">Queued update</Text>}
             <View className="mt-4 flex-row">
-              <Pressable className="mr-2 flex-1 items-center rounded-2xl bg-indigo-100 px-3 py-3" onPress={() => setEditing(student)}>
-                <Text className="text-sm font-bold text-indigo-800">Edit profile</Text>
+              <Pressable className="mr-2 flex-1 items-center rounded-2xl bg-primary px-3 py-3" onPress={() => setEditing(student)}>
+                <Text className="text-sm font-bold text-primary">Edit profile</Text>
               </Pressable>
               {student.status !== "archived" && (
                 <Pressable className="flex-1 items-center rounded-2xl bg-red-50 px-3 py-3" disabled={saving} onPress={() => save({ ...student, status: "archived" })}>
@@ -116,23 +116,23 @@ export default function AdminStudentsPage() {
         ))}
       </View>
       {!!editing && (
-        <View className="mt-4 rounded-3xl border border-indigo-100 bg-white p-5">
+        <View className="mt-4 rounded-2xl border border-primary bg-white p-5 shadow-sm">
           <Text className="text-lg font-extrabold text-slate-900">Edit student profile</Text>
-          <TextInput className="mt-4 rounded-2xl bg-slate-50 px-4 py-4 text-base text-slate-900" onChangeText={(value) => setEditing({ ...editing, displayName: value })} placeholder="Full name" placeholderTextColor="#94a3b8" value={editing.displayName} />
+          <TextInput className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base text-slate-900" onChangeText={(value) => setEditing({ ...editing, displayName: value })} placeholder="Full name" placeholderTextColor="#94a3b8" value={editing.displayName} />
           <Text className="mt-4 text-xs font-bold uppercase tracking-widest text-slate-500">Class</Text>
           <View className="mt-2 flex-row flex-wrap">
-            <Pressable className={`mb-2 mr-2 rounded-full px-4 py-3 ${!editing.classId ? "bg-indigo-700" : "bg-slate-100"}`} onPress={() => setEditing({ ...editing, classId: "", streamId: "" })}><Text className={`text-sm font-bold ${!editing.classId ? "text-white" : "text-slate-700"}`}>Unassigned</Text></Pressable>
+            <Pressable className={`mb-2 mr-2 rounded-full px-4 py-3 ${!editing.classId ? "bg-primary" : "bg-slate-100"}`} onPress={() => setEditing({ ...editing, classId: "", streamId: "" })}><Text className={`text-sm font-bold ${!editing.classId ? "text-white" : "text-slate-700"}`}>Unassigned</Text></Pressable>
             {directory?.classes.map((item) => {
               const value = item.classId || item.id;
-              return <Pressable className={`mb-2 mr-2 rounded-full px-4 py-3 ${editing.classId === value ? "bg-indigo-700" : "bg-slate-100"}`} key={item.id} onPress={() => setEditing({ ...editing, classId: value, streamId: "" })}><Text className={`text-sm font-bold ${editing.classId === value ? "text-white" : "text-slate-700"}`}>{item.name}</Text></Pressable>;
+              return <Pressable className={`mb-2 mr-2 rounded-full px-4 py-3 ${editing.classId === value ? "bg-primary" : "bg-slate-100"}`} key={item.id} onPress={() => setEditing({ ...editing, classId: value, streamId: "" })}><Text className={`text-sm font-bold ${editing.classId === value ? "text-white" : "text-slate-700"}`}>{item.name}</Text></Pressable>;
             })}
           </View>
           <Text className="mt-3 text-xs font-bold uppercase tracking-widest text-slate-500">Stream</Text>
           <View className="mt-2 flex-row flex-wrap">
-            <Pressable className={`mb-2 mr-2 rounded-full px-4 py-3 ${!editing.streamId ? "bg-indigo-700" : "bg-slate-100"}`} onPress={() => setEditing({ ...editing, streamId: "" })}><Text className={`text-sm font-bold ${!editing.streamId ? "text-white" : "text-slate-700"}`}>Unassigned</Text></Pressable>
+            <Pressable className={`mb-2 mr-2 rounded-full px-4 py-3 ${!editing.streamId ? "bg-primary" : "bg-slate-100"}`} onPress={() => setEditing({ ...editing, streamId: "" })}><Text className={`text-sm font-bold ${!editing.streamId ? "text-white" : "text-slate-700"}`}>Unassigned</Text></Pressable>
             {directory?.streams.filter((item) => !editing.classId || item.classId === editing.classId).map((item) => {
               const value = item.streamId || item.id;
-              return <Pressable className={`mb-2 mr-2 rounded-full px-4 py-3 ${editing.streamId === value ? "bg-indigo-700" : "bg-slate-100"}`} key={item.id} onPress={() => setEditing({ ...editing, streamId: value })}><Text className={`text-sm font-bold ${editing.streamId === value ? "text-white" : "text-slate-700"}`}>{item.name}</Text></Pressable>;
+              return <Pressable className={`mb-2 mr-2 rounded-full px-4 py-3 ${editing.streamId === value ? "bg-primary" : "bg-slate-100"}`} key={item.id} onPress={() => setEditing({ ...editing, streamId: value })}><Text className={`text-sm font-bold ${editing.streamId === value ? "text-white" : "text-slate-700"}`}>{item.name}</Text></Pressable>;
             })}
           </View>
           <Text className="mt-3 text-xs font-bold uppercase tracking-widest text-slate-500">Status</Text>
@@ -141,7 +141,7 @@ export default function AdminStudentsPage() {
           </View>
           <View className="mt-3 flex-row">
             <Pressable className="mr-2 flex-1 items-center rounded-2xl bg-slate-100 px-3 py-4" onPress={() => setEditing(null)}><Text className="text-sm font-bold text-slate-700">Cancel</Text></Pressable>
-            <Pressable className="flex-1 items-center rounded-2xl bg-indigo-700 px-3 py-4" disabled={saving} onPress={() => save(editing)}><Text className="text-sm font-bold text-white">{saving ? "Saving..." : "Save changes"}</Text></Pressable>
+            <Pressable className="flex-1 items-center rounded-2xl bg-primary px-3 py-4" disabled={saving} onPress={() => save(editing)}><Text className="text-sm font-bold text-white">{saving ? "Saving..." : "Save changes"}</Text></Pressable>
           </View>
         </View>
       )}

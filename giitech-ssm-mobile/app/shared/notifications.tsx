@@ -27,7 +27,7 @@ export default function NotificationsPage() {
       )}
       <View className="mt-4">
         {result?.data.map((notification) => (
-          <View className="mb-3 rounded-3xl border border-slate-200 bg-white p-5" key={notification.id}>
+          <View className="mb-3 rounded-2xl border border-slate-300 bg-white p-5 shadow-sm" key={notification.id}>
             <Text className={`self-start rounded-full px-3 py-1 text-xs font-bold uppercase ${categoryStyle[notification.category]}`}>
               {notification.category}
             </Text>

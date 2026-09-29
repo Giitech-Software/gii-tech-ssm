@@ -91,3 +91,4 @@ export function activityLogDocumentId() {
 export function studentIdentityPayload(studentId: string) {
   return JSON.stringify({ app: "giitech-ssm", type: "student-identity", version: 1, studentId });
 }
+export function staffIdentityPayload(staffId: string, userId = "") { return JSON.stringify({ app: "giitech-ssm", type: "staff-identity", version: 1, staffId, userId }); }

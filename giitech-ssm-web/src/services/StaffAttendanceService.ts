@@ -6,6 +6,8 @@ export type StaffAttendanceRecord = {
   id: string;
   staffId: string;
   date: string;
+  term?: string;
+  academicYear?: string;
   status: "present" | "absent" | "late";
   note?: string;
   checkInAt?: string;
@@ -28,9 +30,9 @@ export async function getStaffAttendance(staffId: string) {
 export async function getStaffIdentity(userId: string) {
   const snapshot = await getDocs(query(collection(db, "teachers"), where("userId", "==", userId)));
   const item = snapshot.docs[0];
-  if (!item) return { staffId: userId, displayName: "Staff member", userId };
+  if (!item) return { staffId: userId, displayName: "Staff member", userId, attendanceEnabled: true };
   const data = item.data();
-  return { staffId: String(data.teacherId || item.id), displayName: String(data.displayName || "Staff member"), userId };
+  return { staffId: String(data.teacherId || item.id), displayName: String(data.displayName || "Staff member"), userId, attendanceEnabled: data.attendanceEnabled !== false };
 }
 
 export async function saveStaffAttendance(staffId: string, date: string, status: StaffAttendanceRecord["status"], note: string, userId = staffId, verificationMethod: StaffAttendanceRecord["verificationMethod"] = "web-session") {

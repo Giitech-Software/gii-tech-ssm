@@ -4,6 +4,7 @@ import { StudentDataState } from "../../src/components/StudentDataState";
 import { TeacherPageShell } from "../../src/components/TeacherPageShell";
 import { useAuth } from "../../src/contexts/AuthContext";
 import { useSync } from "../../src/contexts/SyncContext";
+import { TENANT_ID } from "../../src/config/tenant";
 import {
   attendanceDocumentId,
   fetchTeacherClasses,
@@ -27,6 +28,7 @@ export default function TeacherAttendancePage() {
   const [offline, setOffline] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [attendanceMode, setAttendanceMode] = useState<"check-in" | "check-out">("check-in");
 
   const loadClasses = useCallback(async () => {
     if (!user) return;
@@ -91,6 +93,8 @@ export default function TeacherAttendancePage() {
           serverTimestampFields: ["createdAt"],
           data: {
             studentId: student.studentId,
+            tenantId: TENANT_ID,
+            ...(attendanceMode === "check-in" ? { checkInAt: new Date().toISOString() } : { checkOutAt: new Date().toISOString() }),
             studentName: student.studentName,
             classId,
             date: today,
@@ -125,13 +129,17 @@ export default function TeacherAttendancePage() {
       {!!register && (
         <>
           <View className="mt-4 flex-row">
+            <Pressable className={`mr-2 flex-1 items-center rounded-2xl px-3 py-3 ${attendanceMode === "check-in" ? "bg-emerald-700" : "bg-slate-100"}`} onPress={() => setAttendanceMode("check-in")}><Text className={`text-sm font-bold ${attendanceMode === "check-in" ? "text-white" : "text-slate-700"}`}>Check in</Text></Pressable>
+            <Pressable className={`flex-1 items-center rounded-2xl px-3 py-3 ${attendanceMode === "check-out" ? "bg-primary" : "bg-slate-100"}`} onPress={() => setAttendanceMode("check-out")}><Text className={`text-sm font-bold ${attendanceMode === "check-out" ? "text-white" : "text-slate-700"}`}>Check out</Text></Pressable>
+          </View>
+          <View className="mt-3 flex-row">
             <Pressable className="mr-2 flex-1 items-center rounded-2xl bg-emerald-100 px-3 py-3" onPress={() => markAll("Present")}><Text className="text-sm font-bold text-emerald-800">All present</Text></Pressable>
             <Pressable className="flex-1 items-center rounded-2xl bg-red-100 px-3 py-3" onPress={() => markAll("Absent")}><Text className="text-sm font-bold text-red-700">All absent</Text></Pressable>
           </View>
           {!register.students.length && <Text className="mt-6 text-center text-sm text-slate-500">No students are assigned to this class.</Text>}
           <View className="mt-4">
             {register.students.map((student) => (
-              <View className="mb-3 rounded-3xl border border-slate-200 bg-white p-5" key={student.studentId}>
+              <View className="mb-3 rounded-2xl border border-slate-300 bg-white p-5 shadow-sm" key={student.studentId}>
                 <Text className="text-base font-extrabold text-slate-900">{student.studentName}</Text>
                 <Text className="mt-1 text-xs font-semibold text-slate-500">{student.studentId}</Text>
                 <View className="mt-4 flex-row">

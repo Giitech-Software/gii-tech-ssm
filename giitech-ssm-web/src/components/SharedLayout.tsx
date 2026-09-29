@@ -14,7 +14,6 @@ import {
   CalendarCheck2,
   ChevronLeft,
   ChevronDown,
-  Clock3,
   ClipboardList,
   ClipboardCheck,
   DollarSign,
@@ -33,8 +32,8 @@ import {
   MessageCircle,
   Send,
   ShieldCheck,
+  Settings2,
   ScanLine,
-  ScanFace,
   Sparkles,
   UploadCloud,
   Users,
@@ -68,6 +67,7 @@ const SharedLayout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [openAdminGroup, setOpenAdminGroup] = useState<string | null>(null);
+  const [collapsedAdminGroups, setCollapsedAdminGroups] = useState<Set<string>>(new Set());
   const { user, role, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -101,19 +101,16 @@ const SharedLayout = () => {
 
   const navItems: NavItem[] = [
     { to: "/admin/departments", label: "Departments", icon: <Building size={18} />, roles: ["superadmin", "admin"] },
-    { to: "/admin/academic-years", label: "Academic Years", icon: <CalendarRange size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/academic-years", label: "Academic Years and Terms", icon: <CalendarRange size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/classes", label: "Classes", icon: <Layers size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/streams", label: "Streams", icon: <GraduationCap size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/students", label: "Students", icon: <GraduationCap size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/staff", label: "Staff", icon: <Users size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/create-staff", label: "Create Staff", icon: <UserPlus size={18} />, roles: ["superadmin", "admin"] },
-    { to: "/admin/attendance", label: "Attendance Workspace", icon: <CalendarCheck2 size={18} />, roles: ["superadmin", "admin"] },
-    { to: "/admin/archive", label: "Archive", icon: <ArchiveRestore size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/student-attendance", label: "Student Attendance", icon: <CalendarCheck2 size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/staff-attendance", label: "Staff Attendance", icon: <Calendar size={18} />, roles: ["superadmin", "admin"] },
-    { to: "/admin/qr-attendance", label: "QR Attendance", icon: <ScanLine size={18} />, roles: ["superadmin", "admin"] },
-    { to: "/admin/qr-identities", label: "Student QR Cards", icon: <ScanLine size={18} />, roles: ["superadmin", "admin"] },
-    { to: "/admin/face-enrollment", label: "Face Enrollment", icon: <ScanFace size={18} />, roles: ["superadmin", "admin"] },
-    { to: "/admin/attendance-analytics", label: "Attendance Analytics", icon: <BarChart3 size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/attendance-administration", label: "Attendance Administration", icon: <Settings2 size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/archive", label: "Archive", icon: <ArchiveRestore size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/grading", label: "Grading Configuration", icon: <BookOpen size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/rankings", label: "Student Rankings", icon: <BarChart3 size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/payment-intents", label: "Payment Intents", icon: <DollarSign size={18} />, roles: ["superadmin", "admin"] },
@@ -137,9 +134,6 @@ const SharedLayout = () => {
     { to: "/admin/staff-finance-reports", label: "Staff Finance Reports", icon: <FileBarChart2 size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/ssnit-report", label: "SSNIT Contribution Report", icon: <FileBarChart2 size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/ssnit-remittance", label: "SSNIT Remittance Tracking", icon: <ShieldCheck size={18} />, roles: ["superadmin", "admin"] },
-    { to: "/admin/staff-attendance-settings", label: "Staff Attendance Times", icon: <Clock3 size={18} />, roles: ["superadmin", "admin"] },
-    { to: "/admin/staff-qr-identities", label: "Staff QR Identity Cards", icon: <ScanLine size={18} />, roles: ["superadmin", "admin"] },
-    { to: "/admin/staff-movement-report", label: "Early Departure Report", icon: <AlertTriangle size={18} />, roles: ["superadmin", "admin"] },
     { to: "/superadmin/users", label: "User Management", icon: <UserCog size={18} />, roles: ["superadmin"] },
     { to: "/superadmin/create-user", label: "Create User", icon: <UserPlus size={18} />, roles: ["superadmin"] },
     { to: "/admin/reports", label: "Reports", icon: <FileBarChart2 size={18} />, roles: ["superadmin", "admin"] },
@@ -168,7 +162,7 @@ const SharedLayout = () => {
     { to: "/notification-preferences", label: "Delivery Preferences", icon: <Bell size={18} />, roles: ["superadmin", "admin", "teacher", "student", "parent", "staff"] },
     { to: "/parent/messages", label: "Messages", icon: <MessageCircle size={18} />, roles: ["parent"], badge: unreadCount },
     { to: "/parent/fees", label: "Fees", icon: <DollarSign size={18} />, roles: ["parent"] },
-    { to: "/staff/attendance", label: "Attendance", icon: <Calendar size={18} />, roles: ["staff"] },
+    { to: "/staff/attendance", label: "Staff Check-in/out", icon: <Calendar size={18} />, roles: ["staff"] },
     { to: "/staff/qr-attendance", label: "QR Attendance", icon: <ScanLine size={18} />, roles: ["staff"] },
     { to: "/staff/messages", label: "Communication", icon: <MessageCircle size={18} />, roles: ["staff"], badge: unreadCount },
     { to: "/staff/finance", label: "My Financial Records", icon: <WalletCards size={18} />, roles: ["staff"] },
@@ -197,14 +191,18 @@ const SharedLayout = () => {
     </NavLink>
   ));
 
-  const renderAdminGroup = (key: string, label: string, icon: React.ReactNode, items: NavItem[]) => (
+  const renderAdminGroup = (key: string, label: string, icon: React.ReactNode, items: NavItem[]) => {
+    const routeIsActive = items.some(item => location.pathname === item.to || location.pathname.startsWith(`${item.to}/`));
+    const expanded = !collapsedAdminGroups.has(key) && (openAdminGroup === key || routeIsActive);
+    return (
     <div className="space-y-1" key={key}>
-      <button type="button" onClick={() => setOpenAdminGroup(openAdminGroup === key ? null : key)} className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm font-semibold transition ${openAdminGroup === key ? "border-primary/30 bg-blue-50 text-primary" : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"}`}>
-        <span className="text-primary">{icon}</span><span className={`flex-1 ${desktopCollapsed ? "md:hidden" : ""}`}>{label}</span><ChevronDown className={`transition-transform ${openAdminGroup === key ? "rotate-180" : ""} ${desktopCollapsed ? "md:hidden" : ""}`} size={16} />
+      <button type="button" onClick={() => { if (expanded) { setCollapsedAdminGroups(current => new Set(current).add(key)); setOpenAdminGroup(null); } else { setCollapsedAdminGroups(current => { const next = new Set(current); next.delete(key); return next; }); setOpenAdminGroup(key); } }} className={`flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm font-semibold transition ${expanded ? "border-primary/30 bg-blue-50 text-primary" : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"}`}>
+        <span className="text-primary">{icon}</span><span className={`flex-1 ${desktopCollapsed ? "md:hidden" : ""}`}>{label}</span><ChevronDown className={`transition-transform ${expanded ? "rotate-180" : ""} ${desktopCollapsed ? "md:hidden" : ""}`} size={16} />
       </button>
-      {openAdminGroup === key && <div className="ml-2 space-y-1 border-l border-blue-100 pl-2">{renderNavItems(items)}</div>}
+      {expanded && <div className="ml-2 space-y-1 border-l border-blue-100 pl-2">{renderNavItems(items)}</div>}
     </div>
-  );
+    );
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -245,11 +243,11 @@ const SharedLayout = () => {
         </NavLink>
 
         {role === "admin" || role === "superadmin" ? <>
-          {renderAdminGroup("academic", "Academic operations", <GraduationCap size={18} />, visibleItems.filter(item => ["Departments", "Academic Years", "Classes", "Streams", "Students", "Staff", "Grading Configuration", "Student Rankings"].includes(item.label)))}
-          {renderAdminGroup("attendance", "Attendance", <CalendarCheck2 size={18} />, visibleItems.filter(item => ["Attendance Workspace", "Staff Attendance", "QR Attendance", "Student QR Cards", "Face Enrollment", "Attendance Analytics", "Staff Attendance Times", "Staff QR Identity Cards", "Early Departure Report"].includes(item.label)))}
+          {renderAdminGroup("academic", "Academic operations", <GraduationCap size={18} />, visibleItems.filter(item => ["Departments", "Academic Years and Terms", "Classes", "Streams", "Students", "Staff", "Grading Configuration", "Student Rankings"].includes(item.label)))}
+          {renderAdminGroup("attendance", "Attendance Workspace", <CalendarCheck2 size={18} />, visibleItems.filter(item => ["Student Attendance", "Staff Attendance", "Attendance Administration"].includes(item.label)))}
           {renderAdminGroup("finance", "Finance", <DollarSign size={18} />, visibleItems.filter(item => ["Payment Intents", "Fee Structures", "Student Ledger"].includes(item.label)))}
           {renderAdminGroup("ai", "AI controls", <Sparkles size={18} />, visibleItems.filter(item => ["AI Grading Audit", "AI Usage Settings", "AI Usage Report", "AI Cost Controls", "AI Budget Alerts", "AI Monthly Costs"].includes(item.label)))}
-          {renderAdminGroup("school", "School administration", <ShieldCheck size={18} />, visibleItems.filter(item => !["Departments", "Academic Years", "Classes", "Streams", "Students", "Staff", "Attendance Workspace", "Archive", "Staff Attendance", "QR Attendance", "Student QR Cards", "Face Enrollment", "Attendance Analytics", "Staff Attendance Times", "Staff QR Identity Cards", "Early Departure Report", "Grading Configuration", "Student Rankings", "Payment Intents", "Fee Structures", "Student Ledger", "School Library", "Staff Financial Records", "AI Grading Audit", "AI Usage Settings", "AI Usage Report", "AI Cost Controls", "AI Budget Alerts", "AI Monthly Costs"].includes(item.label)))}
+          {renderAdminGroup("school", "School administration", <ShieldCheck size={18} />, visibleItems.filter(item => !["Departments", "Academic Years and Terms", "Classes", "Streams", "Students", "Staff", "Student Attendance", "Staff Attendance", "Attendance Administration", "Grading Configuration", "Student Rankings", "Payment Intents", "Fee Structures", "Student Ledger", "School Library", "Staff Financial Records", "AI Grading Audit", "AI Usage Settings", "AI Usage Report", "AI Cost Controls", "AI Budget Alerts", "AI Monthly Costs"].includes(item.label)))}
         </> : renderNavItems(visibleItems)}
       </nav>
 

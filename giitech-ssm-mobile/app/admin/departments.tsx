@@ -74,11 +74,11 @@ export default function AdminDepartmentsPage() {
     <AdminPageShell subtitle="Define the major academic and operational divisions in the school." title="Departments">
       <StudentDataState error={error} loading={loading} offline={offline} onRefresh={load} />
       {!!message && <Text className="mt-4 rounded-2xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">{message}</Text>}
-      <View className="mt-5 rounded-3xl border border-indigo-100 bg-white p-5">
+      <View className="mt-5 rounded-3xl border border-primary bg-white p-5">
         <Text className="text-lg font-extrabold text-slate-900">Add department</Text>
-        <TextInput className="mt-4 rounded-2xl bg-slate-50 px-4 py-4 text-base text-slate-900" onChangeText={setName} placeholder="Department name" placeholderTextColor="#94a3b8" value={name} />
-        <TextInput className="mt-3 rounded-2xl bg-slate-50 px-4 py-4 text-base text-slate-900" onChangeText={setHead} placeholder="Department head" placeholderTextColor="#94a3b8" value={head} />
-        <Pressable className="mt-4 items-center rounded-2xl bg-indigo-700 px-4 py-4" disabled={saving} onPress={create}><Text className="text-sm font-bold text-white">{saving ? "Saving..." : "Add department"}</Text></Pressable>
+        <TextInput className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base text-slate-900" onChangeText={setName} placeholder="Department name" placeholderTextColor="#94a3b8" value={name} />
+        <TextInput className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base text-slate-900" onChangeText={setHead} placeholder="Department head" placeholderTextColor="#94a3b8" value={head} />
+        <Pressable className="mt-4 items-center rounded-2xl bg-primary px-4 py-4" disabled={saving} onPress={create}><Text className="text-sm font-bold text-white">{saving ? "Saving..." : "Add department"}</Text></Pressable>
       </View>
       <View className="mt-5">
         {directory?.departments.map((item) => (

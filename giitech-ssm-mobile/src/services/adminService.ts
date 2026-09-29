@@ -32,18 +32,21 @@ export type StudentDirectoryRecord = {
   parentId: string;
   gender: string;
   status: DirectoryStatus;
+  attendanceEnabled?: boolean;
   pending: boolean;
 };
 
 export type StaffDirectoryRecord = {
   id: string;
   teacherId: string;
+  staffId?: string;
   displayName: string;
   email: string;
   departmentId: string;
   subject: string;
   phone: string;
   status: DirectoryStatus;
+  attendanceEnabled?: boolean;
   pending: boolean;
 };
 
@@ -86,7 +89,8 @@ function studentFromData(id: string, data: Record<string, unknown>, pending = fa
 function staffFromData(id: string, data: Record<string, unknown>, pending = false): StaffDirectoryRecord {
   return {
     id,
-    teacherId: String(data.teacherId || id),
+    teacherId: String(data.teacherId || data.staffId || id),
+    staffId: data.staffId ? String(data.staffId) : undefined,
     displayName: String(data.displayName || data.name || "Staff member"),
     email: String(data.email || ""),
     departmentId: String(data.departmentId || data.department || ""),
@@ -152,10 +156,11 @@ export async function fetchAdminDirectory(userId: string): Promise<AdminResult<A
   const queue = await getQueuedWrites();
 
   try {
-    const [studentSnapshot, staffSnapshot, departmentSnapshot, classSnapshot, streamSnapshot] =
+    const [studentSnapshot, staffSnapshot, nonTeachingStaffSnapshot, departmentSnapshot, classSnapshot, streamSnapshot] =
       await Promise.all([
         getDocs(collection(db, "students")),
         getDocs(collection(db, "teachers")),
+        getDocs(collection(db, "staff")),
         getDocs(collection(db, "departments")),
         getDocs(collection(db, "classes")),
         getDocs(collection(db, "streams")),
@@ -163,9 +168,7 @@ export async function fetchAdminDirectory(userId: string): Promise<AdminResult<A
     const students = new Map(
       studentSnapshot.docs.map((item) => [item.id, studentFromData(item.id, item.data())])
     );
-    const staff = new Map(
-      staffSnapshot.docs.map((item) => [item.id, staffFromData(item.id, item.data())])
-    );
+    const staff = new Map([...staffSnapshot.docs, ...nonTeachingStaffSnapshot.docs].map((item) => [String(item.data().userId || item.id), staffFromData(item.id, item.data())]));
     const departments = new Map(
       departmentSnapshot.docs.map((item) => [item.id, optionFromData(item.id, item.data())])
     );
@@ -183,8 +186,8 @@ export async function fetchAdminDirectory(userId: string): Promise<AdminResult<A
 
     const result: AdminResult<AdminDirectoryData> = {
       data: {
-        students: [...students.values()].sort((left, right) => left.displayName.localeCompare(right.displayName)),
-        staff: [...staff.values()].sort((left, right) => left.displayName.localeCompare(right.displayName)),
+        students: [...students.values()].filter(item => item.status !== "archived").sort((left, right) => left.displayName.localeCompare(right.displayName)),
+        staff: [...staff.values()].filter(item => item.status !== "archived").sort((left, right) => left.displayName.localeCompare(right.displayName)),
         departments: [...departments.values()].sort((left, right) => left.name.localeCompare(right.name)),
         classes: [...classes.values()].sort((left, right) => left.name.localeCompare(right.name)),
         streams: [...streams.values()].sort((left, right) => left.name.localeCompare(right.name)),

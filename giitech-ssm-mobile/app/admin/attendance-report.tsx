@@ -1,107 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Share, Text, TextInput, View } from "react-native";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
 import { AdminPageShell } from "../../src/components/AdminPageShell";
 import { StudentDataState } from "../../src/components/StudentDataState";
 import { useAuth } from "../../src/contexts/AuthContext";
-import { fetchAdminAnalytics, type AdminAnalyticsData } from "../../src/services/adminAnalyticsService";
+import { fetchAdminOperations, type AdminAttendanceRecord } from "../../src/services/adminOperationsService";
+import { fetchAcademicYears } from "../../src/services/adminAcademicYearService";
+import { fetchTerms, type MobileTerm } from "../../src/services/adminTermService";
 
+type Period = "day" | "week" | "month" | "term";
+const today = () => new Date().toISOString().slice(0, 10);
+function range(period: Period, anchor: string, term?: MobileTerm) { if (period === "term" && term) return { start: term.startDate, end: term.endDate }; if (period === "day") return { start: anchor, end: anchor }; const point = new Date(`${anchor}T00:00:00`); const start = new Date(point); const end = new Date(point); if (period === "week") { const day = point.getDay() || 7; start.setDate(point.getDate() - day + 1); end.setDate(start.getDate() + 6); } else { start.setDate(1); end.setMonth(start.getMonth() + 1); end.setDate(0); } return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) }; }
 export default function AdminAttendanceReportPage() {
-  const { user } = useAuth();
-  const [data, setData] = useState<AdminAnalyticsData | null>(null);
-  const [classId, setClassId] = useState("");
-  const [search, setSearch] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [offline, setOffline] = useState(false);
-  const [error, setError] = useState("");
-
-  const load = useCallback(async () => {
-    if (!user) return;
-    setLoading(true);
-    setError("");
-    try {
-      const result = await fetchAdminAnalytics(user.uid);
-      setData(result);
-      setOffline(result.source === "cache");
-    } catch (loadError) {
-      setError(loadError instanceof Error ? loadError.message : "Unable to load attendance report.");
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  const students = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    return (data?.students || [])
-      .filter((student) => student.attendanceTotal)
-      .filter((student) => !classId || student.classId === classId)
-      .filter((student) => !term || `${student.studentName} ${student.studentId}`.toLowerCase().includes(term))
-      .sort((left, right) => left.attendanceRate - right.attendanceRate);
-  }, [classId, data, search]);
-
-  return (
-    <AdminPageShell
-      subtitle="Track attendance rates by class and identify students who need follow-up."
-      title="Attendance report"
-    >
-      <StudentDataState error={error} loading={loading} offline={offline} onRefresh={load} />
-      {!!data && (
-        <>
-          <View className="mt-5 flex-row flex-wrap justify-between">
-            <Metric label="School attendance" value={`${data.totals.attendanceRate}%`} />
-            <Metric label="Students tracked" value={String(students.length)} />
-          </View>
-          <Text className="mt-6 text-lg font-extrabold text-slate-900">Class attendance</Text>
-          {data.classes.map((item) => (
-            <Pressable
-              className={`mt-3 rounded-3xl border p-5 ${classId === item.classId ? "border-indigo-300 bg-indigo-50" : "border-slate-200 bg-white"}`}
-              key={item.classId}
-              onPress={() => setClassId(classId === item.classId ? "" : item.classId)}
-            >
-              <View className="flex-row justify-between">
-                <Text className="font-extrabold text-slate-900">{item.className}</Text>
-                <Text className="text-xs font-bold text-slate-500">{item.students} students</Text>
-              </View>
-              <Text className="mt-3 text-sm text-slate-600">Attendance {item.attendanceRate}%</Text>
-            </Pressable>
-          ))}
-          <TextInput
-            autoCapitalize="none"
-            className="mt-5 rounded-2xl bg-white px-4 py-4 text-base"
-            onChangeText={setSearch}
-            placeholder="Search student name or ID"
-            placeholderTextColor="#94a3b8"
-            value={search}
-          />
-          {students.map((student) => (
-            <View className="mt-3 rounded-3xl bg-white p-5" key={student.studentId}>
-              <View className="flex-row justify-between">
-                <View className="mr-3 flex-1">
-                  <Text className="font-extrabold text-slate-900">{student.studentName}</Text>
-                  <Text className="mt-1 text-xs text-slate-500">{student.studentId} | {student.className}</Text>
-                </View>
-                <Text className="font-black text-indigo-800">{student.attendanceRate}%</Text>
-              </View>
-              <Text className="mt-3 text-sm text-slate-600">
-                {student.attendancePresent}/{student.attendanceTotal} present
-              </Text>
-            </View>
-          ))}
-          {!loading && !students.length && <Text className="mt-5 text-center text-sm text-slate-500">No attendance records found.</Text>}
-        </>
-      )}
-    </AdminPageShell>
-  );
+  const { user } = useAuth(); const [records, setRecords] = useState<AdminAttendanceRecord[]>([]); const [terms, setTerms] = useState<MobileTerm[]>([]); const [period, setPeriod] = useState<Period>("day"); const [date, setDate] = useState(today()); const [termId, setTermId] = useState("all"); const [classId, setClassId] = useState(""); const [search, setSearch] = useState(""); const [loading, setLoading] = useState(false); const [offline, setOffline] = useState(false); const [error, setError] = useState("");
+  const load = useCallback(async () => { if (!user) return; setLoading(true); try { const [operations, years] = await Promise.all([fetchAdminOperations(user.uid), fetchAcademicYears()]); setRecords(operations.attendance); setTerms((await Promise.all(years.map(year => fetchTerms(year.id)))).flat()); setOffline(operations.source === "cache"); } catch (e) { setError(e instanceof Error ? e.message : "Unable to load attendance report."); } finally { setLoading(false); } }, [user]);
+  useEffect(() => { void load(); }, [load]);
+  const selectedTerm = terms.find(item => item.id === termId); const dates = range(period, date, selectedTerm); const classes = [...new Set(records.map(item => item.classId).filter(Boolean))]; const filtered = useMemo(() => records.filter(item => item.date >= dates.start && item.date <= dates.end && (!classId || item.classId === classId) && (!search || `${item.studentName} ${item.studentId}`.toLowerCase().includes(search.toLowerCase())) && (termId === "all" || item.date >= (selectedTerm?.startDate || "") && item.date <= (selectedTerm?.endDate || ""))), [classId, dates.end, dates.start, records, search, selectedTerm?.endDate, selectedTerm?.startDate, termId]);
+  const present = filtered.filter(item => item.status === "Present").length; const exportCsv = async () => { const quote = (value: string) => `"${value.replace(/"/g, '""')}"`; const csv = ["Student,Student ID,Date,Class,Status", ...filtered.map(item => [item.studentName, item.studentId, item.date, item.classId, item.status].map(value => quote(String(value || ""))).join(","))].join("\n"); await Share.share({ title: `Attendance ${period} report`, message: csv }); }; const exportPdf = async () => { const rows = filtered.map(item => `<tr><td>${item.studentName}</td><td>${item.studentId}</td><td>${item.date}</td><td>${item.classId || "-"}</td><td>${item.status}</td></tr>`).join(""); const result = await Print.printToFileAsync({ html: `<html><body style="font-family:Arial;padding:24px"><h1>Attendance report</h1><p>${period.toUpperCase()} · ${dates.start} to ${dates.end}</p><p>Attendance rate: ${filtered.length ? Math.round((present / filtered.length) * 100) : 0}%</p><table style="width:100%;border-collapse:collapse"><tr><th>Student</th><th>ID</th><th>Date</th><th>Class</th><th>Status</th></tr>${rows}</table></body></html>` }); if (await Sharing.isAvailableAsync()) await Sharing.shareAsync(result.uri, { mimeType: "application/pdf", dialogTitle: "Share attendance PDF" }); };
+  return <AdminPageShell title="Attendance report" subtitle="Review student attendance using the configured academic calendar."><StudentDataState error={error} loading={loading} offline={offline} onRefresh={load} /><View className="mt-5 rounded-3xl border border-slate-200 bg-white p-4"><View className="flex-row items-center justify-between"><Text className="text-xs font-bold uppercase tracking-widest text-slate-500">Report period</Text><View className="flex-row gap-2"><Pressable disabled={!filtered.length} onPress={() => void exportCsv()} className="rounded-xl bg-primary px-3 py-2"><Text className="text-xs font-bold text-white">CSV</Text></Pressable><Pressable disabled={!filtered.length} onPress={() => void exportPdf()} className="rounded-xl bg-slate-900 px-3 py-2"><Text className="text-xs font-bold text-white">PDF</Text></Pressable></View></View><View className="mt-3 flex-row flex-wrap gap-2">{(["day", "week", "month", "term"] as Period[]).map(item => <Pressable key={item} onPress={() => setPeriod(item)} className={`rounded-full px-4 py-3 ${period === item ? "bg-primary" : "bg-slate-100"}`}><Text className={`text-xs font-bold capitalize ${period === item ? "text-white" : "text-slate-700"}`}>{item}</Text></Pressable>)}</View><TextInput className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900" value={date} onChangeText={setDate} placeholder="Anchor date: YYYY-MM-DD" placeholderTextColor="#94a3b8" /><View className="mt-3 flex-row gap-2">{terms.slice(0, 4).map(term => <Pressable key={term.id} onPress={() => { setTermId(term.id); setPeriod("term"); }} className={`flex-1 rounded-xl p-3 ${termId === term.id ? "bg-primary" : "bg-slate-100"}`}><Text numberOfLines={1} className={`text-center text-xs font-bold ${termId === term.id ? "text-white" : "text-slate-700"}`}>{term.name}</Text></Pressable>)}</View><TextInput className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900" value={search} onChangeText={setSearch} placeholder="Search student name or ID" placeholderTextColor="#94a3b8" /><Text className="mt-3 text-xs text-slate-500">Showing {dates.start} to {dates.end}</Text></View><View className="mt-5 flex-row justify-between"><Metric label="Rate" value={`${filtered.length ? Math.round((present / filtered.length) * 100) : 0}%`} /><Metric label="Present" value={String(present)} /><Metric label="Records" value={String(filtered.length)} /></View>{filtered.map(item => <View key={item.id} className="mt-3 rounded-2xl border border-slate-200 bg-white p-4"><Text className="font-extrabold text-slate-900">{item.studentName}</Text><Text className="mt-1 text-xs text-slate-500">{item.studentId} · {item.date} · {item.classId || "No class"}</Text><Text className={`mt-2 font-bold ${item.status === "Present" ? "text-emerald-600" : "text-red-600"}`}>{item.status}</Text></View>)}{!loading && !filtered.length && <Text className="mt-5 text-center text-sm text-slate-500">No attendance records found.</Text>}</AdminPageShell>;
 }
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <View className="mb-3 w-[48%] rounded-3xl bg-white p-4">
-      <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</Text>
-      <Text className="mt-3 text-xl font-black text-slate-900">{value}</Text>
-    </View>
-  );
-}
+function Metric({ label, value }: { label: string; value: string }) { return <View className="w-[31%] rounded-2xl border border-slate-200 bg-white p-3"><Text className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</Text><Text className="mt-2 text-lg font-black text-primary">{value}</Text></View>; }

@@ -57,7 +57,7 @@ export default function AdminPerformanceReportPage() {
           <Text className="mt-6 text-lg font-extrabold text-slate-900">Class performance</Text>
           {data.classes.map((item) => (
             <Pressable
-              className={`mt-3 rounded-3xl border p-5 ${classId === item.classId ? "border-indigo-300 bg-indigo-50" : "border-slate-200 bg-white"}`}
+              className={`mt-3 rounded-3xl border p-5 ${classId === item.classId ? "border-primary bg-primary" : "border-slate-200 bg-white"}`}
               key={item.classId}
               onPress={() => setClassId(classId === item.classId ? "" : item.classId)}
             >
@@ -70,20 +70,20 @@ export default function AdminPerformanceReportPage() {
           ))}
           <TextInput
             autoCapitalize="none"
-            className="mt-5 rounded-2xl bg-white px-4 py-4 text-base"
+            className="mt-5 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-base text-slate-900"
             onChangeText={setSearch}
             placeholder="Search student name or ID"
             placeholderTextColor="#94a3b8"
             value={search}
           />
           {students.map((student) => (
-            <View className="mt-3 rounded-3xl bg-white p-5" key={student.studentId}>
+            <View className="mt-3 rounded-2xl border border-slate-300 bg-white p-5 shadow-sm" key={student.studentId}>
               <View className="flex-row justify-between">
                 <View className="mr-3 flex-1">
                   <Text className="font-extrabold text-slate-900">{student.studentName}</Text>
                   <Text className="mt-1 text-xs text-slate-500">{student.studentId} | {student.className}</Text>
                 </View>
-                <Text className="font-black text-indigo-800">{student.averageGrade.toFixed(1)}%</Text>
+                <Text className="font-black text-primary">{student.averageGrade.toFixed(1)}%</Text>
               </View>
               <Text className="mt-3 text-sm text-slate-600">{student.gradeCount} recorded grades</Text>
             </View>
@@ -97,7 +97,7 @@ export default function AdminPerformanceReportPage() {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <View className="mb-3 w-[48%] rounded-3xl bg-white p-4">
+    <View className="mb-3 w-[48%] rounded-2xl border border-slate-300 bg-white p-4 shadow-sm">
       <Text className="text-[10px] font-bold uppercase tracking-wider text-slate-500">{label}</Text>
       <Text className="mt-3 text-xl font-black text-slate-900">{value}</Text>
     </View>

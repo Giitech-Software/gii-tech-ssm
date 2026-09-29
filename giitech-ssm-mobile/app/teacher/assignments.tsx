@@ -113,12 +113,12 @@ export default function TeacherAssignmentsPage() {
     <TeacherPageShell subtitle="Create coursework and review assignments already issued to your classes." title="Assignments">
       <StudentDataState error={error} loading={loading} offline={offline} onRefresh={load} />
       {!!message && <Text className="mt-4 rounded-2xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">{message}</Text>}
-      <View className="mt-5 rounded-3xl border border-emerald-100 bg-white p-5">
+      <View className="mt-5 rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
         <Text className="text-lg font-extrabold text-slate-900">Create assignment</Text>
-        <TextInput className="mt-4 rounded-2xl bg-slate-50 px-4 py-4 text-base text-slate-900" onChangeText={setTitle} placeholder="Title" placeholderTextColor="#94a3b8" value={title} />
-        <TextInput className="mt-3 rounded-2xl bg-slate-50 px-4 py-4 text-base text-slate-900" onChangeText={setSubject} placeholder="Subject" placeholderTextColor="#94a3b8" value={subject} />
-        <TextInput className="mt-3 min-h-20 rounded-2xl bg-slate-50 px-4 py-4 text-base text-slate-900" multiline onChangeText={setDescription} placeholder="Description" placeholderTextColor="#94a3b8" textAlignVertical="top" value={description} />
-        <TextInput className="mt-3 rounded-2xl bg-slate-50 px-4 py-4 text-base text-slate-900" onChangeText={setDueDate} placeholder="Due date: YYYY-MM-DD" placeholderTextColor="#94a3b8" value={dueDate} />
+        <TextInput className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base text-slate-900" onChangeText={setTitle} placeholder="Title" placeholderTextColor="#94a3b8" value={title} />
+        <TextInput className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base text-slate-900" onChangeText={setSubject} placeholder="Subject" placeholderTextColor="#94a3b8" value={subject} />
+        <TextInput className="mt-3 min-h-20 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base text-slate-900" multiline onChangeText={setDescription} placeholder="Description" placeholderTextColor="#94a3b8" textAlignVertical="top" value={description} />
+        <TextInput className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base text-slate-900" onChangeText={setDueDate} placeholder="Due date: YYYY-MM-DD" placeholderTextColor="#94a3b8" value={dueDate} />
         <Text className="mt-4 text-xs font-bold uppercase tracking-widest text-slate-500">Class</Text>
         <View className="mt-2 flex-row flex-wrap">
           {classes.map((item) => (
@@ -143,7 +143,7 @@ export default function TeacherAssignmentsPage() {
       {!loading && !assignments.length && !error && <Text className="mt-6 text-center text-sm text-slate-500">No assignments yet.</Text>}
       <View className="mt-3">
         {assignments.map((assignment) => (
-          <View className="mb-3 rounded-3xl border border-slate-200 bg-white p-5" key={assignment.id}>
+          <View className="mb-3 rounded-2xl border border-slate-300 bg-white p-5 shadow-sm" key={assignment.id}>
             <View className="flex-row items-start justify-between">
               <View className="mr-3 flex-1">
                 <Text className="text-lg font-extrabold text-slate-900">{assignment.title}</Text>

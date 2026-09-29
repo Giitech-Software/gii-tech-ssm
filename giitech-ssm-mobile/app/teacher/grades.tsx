@@ -77,7 +77,7 @@ export default function TeacherGradesPage() {
 
   return (
     <TeacherPageShell
-      subtitle="Review assignment and exam marks recorded from your teacher workspace."
+      subtitle="Review assignment and exam marks recorded from your teacher dashboard."
       title="Grade summary"
     >
       <StudentDataState error={error} loading={loading} offline={offline} onRefresh={load} />

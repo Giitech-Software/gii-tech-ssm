@@ -138,7 +138,7 @@ const TeacherFeedbackPage: React.FC = () => {
                         defaultValue={s.feedback || ""}
                         onBlur={(e) => handleFeedbackSave(s.id, e.target.value)}
                         placeholder="Write feedback..."
-                        className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-primary0 text-slate-700"
+                        className="w-full border border-slate-300 rounded-lg p-2 focus:ring-2 focus:ring-primary text-slate-700"
                       />
                     </td>
                     <td className="px-4 py-3">

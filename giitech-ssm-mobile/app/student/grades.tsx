@@ -38,6 +38,7 @@ export default function StudentGradesPage() {
         : 0,
     [grades]
   );
+  const points = average >= 80 ? 4 : average >= 70 ? 3 : average >= 60 ? 2 : average >= 50 ? 1 : 0;
 
   return (
     <StudentPageShell subtitle="Track recorded results and teacher feedback." title="My grades">
@@ -48,6 +49,7 @@ export default function StudentGradesPage() {
         </Text>
         <Text className="mt-2 text-4xl font-black text-white">{average}%</Text>
         <Text className="mt-1 text-sm text-sky-100">{grades.length} recorded results</Text>
+        <Text className="mt-3 text-sm font-bold text-sky-100">GPA points: {points.toFixed(1)} / 4.0</Text>
       </View>
       {!loading && !grades.length && !error && (
         <Text className="mt-8 text-center text-sm text-slate-500">No grades found yet.</Text>

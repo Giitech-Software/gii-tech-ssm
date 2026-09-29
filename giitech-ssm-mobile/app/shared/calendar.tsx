@@ -24,7 +24,7 @@ export default function CalendarPage() {
       )}
       <View className="mt-4">
         {result?.data.map((event) => (
-          <View className="mb-3 rounded-3xl border border-slate-200 bg-white p-5" key={event.id}>
+          <View className="mb-3 rounded-2xl border border-slate-300 bg-white p-5 shadow-sm" key={event.id}>
             <View className="flex-row items-center justify-between">
               <Text className="rounded-full bg-violet-100 px-3 py-1 text-xs font-bold uppercase text-violet-700">
                 {event.eventType}

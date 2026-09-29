@@ -153,9 +153,9 @@ export default function TeacherGradePage() {
           </View>
           <View className="mt-4 rounded-3xl border border-emerald-100 bg-white p-5">
             <Text className="text-xs font-bold uppercase tracking-widest text-slate-500">Score (%)</Text>
-            <TextInput className="mt-2 rounded-2xl bg-slate-50 px-4 py-4 text-base text-slate-900" keyboardType="numeric" onChangeText={setScore} placeholder="0 - 100" placeholderTextColor="#94a3b8" value={score} />
+            <TextInput className="mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base text-slate-900" keyboardType="numeric" onChangeText={setScore} placeholder="0 - 100" placeholderTextColor="#94a3b8" value={score} />
             <Text className="mt-4 text-xs font-bold uppercase tracking-widest text-slate-500">Feedback</Text>
-            <TextInput className="mt-2 min-h-28 rounded-2xl bg-slate-50 px-4 py-4 text-base text-slate-900" multiline onChangeText={setFeedback} placeholder="Write feedback for the student..." placeholderTextColor="#94a3b8" textAlignVertical="top" value={feedback} />
+            <TextInput className="mt-2 min-h-28 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base text-slate-900" multiline onChangeText={setFeedback} placeholder="Write feedback for the student..." placeholderTextColor="#94a3b8" textAlignVertical="top" value={feedback} />
             <Pressable className="mt-4 items-center rounded-2xl bg-emerald-700 px-4 py-4 active:bg-emerald-800" disabled={saving} onPress={save}>
               <Text className="text-sm font-bold text-white">{saving ? "Saving..." : "Save grade and feedback"}</Text>
             </Pressable>

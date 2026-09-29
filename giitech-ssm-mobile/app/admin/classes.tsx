@@ -71,12 +71,12 @@ export default function AdminClassesPage() {
     <AdminPageShell subtitle="Create classes under departments and maintain academic placement options." title="Classes">
       <StudentDataState error={error} loading={loading} offline={offline} onRefresh={load} />
       {!!message && <Text className="mt-4 rounded-2xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-700">{message}</Text>}
-      <View className="mt-5 rounded-3xl border border-indigo-100 bg-white p-5">
+      <View className="mt-5 rounded-3xl border border-primary bg-white p-5">
         <Text className="text-lg font-extrabold text-slate-900">Add class</Text>
-        <TextInput className="mt-4 rounded-2xl bg-slate-50 px-4 py-4 text-base text-slate-900" onChangeText={setName} placeholder="Class name" placeholderTextColor="#94a3b8" value={name} />
+        <TextInput className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base text-slate-900" onChangeText={setName} placeholder="Class name" placeholderTextColor="#94a3b8" value={name} />
         <Text className="mt-4 text-xs font-bold uppercase tracking-widest text-slate-500">Department</Text>
-        <View className="mt-2 flex-row flex-wrap">{directory?.departments.map((item) => <Pressable className={`mb-2 mr-2 rounded-full px-4 py-3 ${departmentId === item.id ? "bg-indigo-700" : "bg-slate-100"}`} key={item.id} onPress={() => setDepartmentId(item.id)}><Text className={`text-sm font-bold ${departmentId === item.id ? "text-white" : "text-slate-700"}`}>{item.name}</Text></Pressable>)}</View>
-        <Pressable className="mt-3 items-center rounded-2xl bg-indigo-700 px-4 py-4" disabled={saving} onPress={create}><Text className="text-sm font-bold text-white">{saving ? "Saving..." : "Add class"}</Text></Pressable>
+        <View className="mt-2 flex-row flex-wrap">{directory?.departments.map((item) => <Pressable className={`mb-2 mr-2 rounded-full px-4 py-3 ${departmentId === item.id ? "bg-primary" : "bg-slate-100"}`} key={item.id} onPress={() => setDepartmentId(item.id)}><Text className={`text-sm font-bold ${departmentId === item.id ? "text-white" : "text-slate-700"}`}>{item.name}</Text></Pressable>)}</View>
+        <Pressable className="mt-3 items-center rounded-2xl bg-primary px-4 py-4" disabled={saving} onPress={create}><Text className="text-sm font-bold text-white">{saving ? "Saving..." : "Add class"}</Text></Pressable>
       </View>
       <View className="mt-5">{directory?.classes.map((item) => <View className="mb-3 rounded-3xl border border-slate-200 bg-white p-5" key={item.id}><Text className="text-lg font-extrabold text-slate-900">{item.name}</Text><Text className="mt-1 text-xs text-slate-500">{item.classId || item.id}</Text><Text className="mt-3 text-sm text-slate-600">{departmentNameFor(directory.departments, item.departmentId)}</Text>{item.pending ? <Text className="mt-3 text-xs font-bold uppercase text-amber-700">Queued</Text> : <Pressable className="mt-4 items-center rounded-2xl bg-red-50 px-4 py-3" disabled={saving} onPress={() => remove(item.id, item.classId || item.id)}><Text className="text-sm font-bold text-red-700">Remove class</Text></Pressable>}</View>)}</View>
     </AdminPageShell>

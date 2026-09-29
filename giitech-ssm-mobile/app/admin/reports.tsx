@@ -30,7 +30,7 @@ export default function AdminReportsPage() {
 
   return (
     <AdminPageShell
-      subtitle="Access academic and administrative reports from one mobile workspace."
+      subtitle="Access academic and administrative reports from one mobile dashboard."
       title="Reports"
     >
       <View className="mt-5">
@@ -42,7 +42,7 @@ export default function AdminReportsPage() {
           >
             <Text className="text-lg font-extrabold text-slate-900">{report.title}</Text>
             <Text className="mt-2 text-sm leading-5 text-slate-500">{report.detail}</Text>
-            <Text className="mt-3 text-xs font-bold uppercase tracking-widest text-indigo-700">
+            <Text className="mt-3 text-xs font-bold uppercase tracking-widest text-primary">
               Open report
             </Text>
           </Pressable>

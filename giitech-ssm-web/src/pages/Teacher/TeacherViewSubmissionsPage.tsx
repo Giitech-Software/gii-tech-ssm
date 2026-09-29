@@ -315,7 +315,7 @@ return sub;
 
       {/* Stats Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-        <StatCard icon={<Layers size={28} />} title="Total Submissions" value={stats.totalSubmissions} gradient="from-primary0 to-primary" />
+        <StatCard icon={<Layers size={28} />} title="Total Submissions" value={stats.totalSubmissions} gradient="from-primary to-primary" />
         <StatCard icon={<Clock size={28} />} title="Pending Grading" value={stats.pendingGrading} gradient="from-yellow-500 to-orange-500" />
         <StatCard icon={<Award size={28} />} title="Average Score" value={stats.averageScore ? `${stats.averageScore}%` : "—"} gradient="from-green-500 to-emerald-600" />
       </div>

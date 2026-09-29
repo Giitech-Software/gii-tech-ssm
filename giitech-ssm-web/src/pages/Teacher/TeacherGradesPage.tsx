@@ -173,7 +173,7 @@ const TeacherGradesPage: React.FC = () => {
       {/* Summary Cards */}
       {selectedAssignment && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          <div className="bg-gradient-to-r from-primary0 to-primary text-white p-5 rounded-2xl shadow">
+          <div className="bg-gradient-to-r from-primary to-primary text-white p-5 rounded-2xl shadow">
             <BarChart3 size={24} />
             <p className="mt-2 text-sm">Total Submissions</p>
             <h3 className="text-2xl font-semibold">{total}</h3>

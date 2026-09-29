@@ -145,7 +145,7 @@ export default function TeacherExamGradesPage() {
           <Text className="mt-1 text-sm text-slate-600">{selectedExam.startDate}{selectedExam.endDate ? ` to ${selectedExam.endDate}` : ""}</Text>
         </View>
       )}
-      <TextInput className="mt-4 rounded-2xl bg-white px-4 py-4 text-base" onChangeText={(value) => { setSubject(value); setRegister(null); setMarks({}); }} placeholder="Subject, for example Mathematics" placeholderTextColor="#94a3b8" value={subject} />
+      <TextInput className="mt-4 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-base text-slate-900" onChangeText={(value) => { setSubject(value); setRegister(null); setMarks({}); }} placeholder="Subject, for example Mathematics" placeholderTextColor="#94a3b8" value={subject} />
       <Pressable className="mt-3 items-center rounded-2xl bg-sky-700 px-4 py-4" disabled={loading} onPress={loadMarks}>
         <Text className="text-sm font-bold text-white">{loading ? "Loading..." : "Load class marks"}</Text>
       </Pressable>
@@ -160,7 +160,7 @@ export default function TeacherExamGradesPage() {
                   <Text className="text-base font-extrabold text-slate-900">{student.studentName}</Text>
                   <Text className="mt-1 text-xs font-semibold text-slate-500">{student.studentId}</Text>
                   {pendingGradeIds.has(gradeId) && <Text className="mt-2 text-xs font-bold uppercase text-amber-700">Queued for sync</Text>}
-                  <TextInput className="mt-3 rounded-2xl bg-slate-50 px-4 py-4 text-base" keyboardType="numeric" onChangeText={(value) => setMarks((current) => ({ ...current, [student.studentId]: value }))} placeholder="Mark out of 100" placeholderTextColor="#94a3b8" value={marks[student.studentId] || ""} />
+                  <TextInput className="mt-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base text-slate-900" keyboardType="numeric" onChangeText={(value) => setMarks((current) => ({ ...current, [student.studentId]: value }))} placeholder="Mark out of 100" placeholderTextColor="#94a3b8" value={marks[student.studentId] || ""} />
                 </View>
               );
             })}

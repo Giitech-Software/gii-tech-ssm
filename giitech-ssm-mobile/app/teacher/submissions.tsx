@@ -77,7 +77,7 @@ export default function TeacherSubmissionsPage() {
           ["Graded", graded.length],
           ["Average", `${average}%`],
         ].map(([label, value]) => (
-          <View className="w-[31%] rounded-2xl bg-white p-3" key={label}>
+          <View className="w-[31%] rounded-2xl border border-slate-300 bg-white p-3 shadow-sm" key={label}>
             <Text className="text-xs font-bold uppercase text-slate-500">{label}</Text>
             <Text className="mt-2 text-xl font-black text-slate-900">{value}</Text>
           </View>
@@ -89,7 +89,7 @@ export default function TeacherSubmissionsPage() {
       <View className="mt-4">
         {filtered.map((submission) => (
           <Pressable
-            className="mb-3 rounded-3xl border border-slate-200 bg-white p-5 active:bg-slate-50"
+            className="mb-3 rounded-2xl border border-slate-300 bg-white p-5 shadow-sm active:bg-slate-50"
             key={submission.id}
             onPress={() => router.push(`./grade?submissionId=${submission.id}`)}
           >

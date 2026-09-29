@@ -36,6 +36,7 @@ export interface StaffDirectoryRecord {
   subjectId?: string;
   phone?: string;
   ssnitNumber?: string;
+  attendanceEnabled?: boolean;
   status?: DirectoryStatus;
 }
 
