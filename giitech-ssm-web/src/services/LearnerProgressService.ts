@@ -1,0 +1,5 @@
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "../firebaseConfig";
+
+export type LearnerProgressRecord = { id: string; studentId: string; academicYear: string; term: string; strengths: string; weaknesses: string; interventions: string; nextSteps: string; updatedBy?: string; updatedAt?: unknown };
+export async function fetchLearnerProgress(studentId: string) { const snapshot = await getDocs(query(collection(db, "termComments"), where("studentId", "==", studentId))); return snapshot.docs.map(item => ({ id: item.id, studentId, strengths: String(item.data().strengths || item.data().interests || ""), weaknesses: String(item.data().weaknesses || ""), interventions: String(item.data().interventions || ""), nextSteps: String(item.data().nextSteps || ""), academicYear: String(item.data().academicYear || ""), term: String(item.data().term || ""), updatedBy: String(item.data().updatedBy || ""), updatedAt: item.data().updatedAt })) as LearnerProgressRecord[]; }

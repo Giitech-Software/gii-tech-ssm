@@ -281,7 +281,7 @@ const StudentReportCard: React.FC = () => {
             <p>Stream position: {reportData.positions?.stream ? `${reportData.positions.stream.position} of ${reportData.positions.stream.total}` : "Not ranked"}</p>
             <p>Department position: {reportData.positions?.department ? `${reportData.positions.department.position} of ${reportData.positions.department.total}` : "Not ranked"}</p>
             <p>Overall position: {reportData.positions?.overall ? `${reportData.positions.overall.position} of ${reportData.positions.overall.total}` : "Not ranked"}</p>
-            <p>Interest: {reportData.interests || "Not provided"}</p><p>Conduct: {reportData.conductRemark || "Not provided"}</p><p>Attendance remark: {reportData.attendanceRemark || "Not provided"}</p><p>Next steps: {reportData.nextSteps || "Not provided"}</p>
+            <div className="mt-5 rounded-xl border border-blue-100 bg-blue-50 p-4"><h3 className="font-bold text-primary">Learner progress handoff</h3><p className="mt-2"><strong>Strengths:</strong> {reportData.strengths || reportData.interests || "Not provided"}</p><p className="mt-2"><strong>Learning needs:</strong> {reportData.weaknesses || "Not provided"}</p><p className="mt-2"><strong>Intervention approach:</strong> {reportData.interventions || "Not provided"}</p><p className="mt-2"><strong>Next steps:</strong> {reportData.nextSteps || "Not provided"}</p></div><p>Conduct: {reportData.conductRemark || "Not provided"}</p><p>Attendance remark: {reportData.attendanceRemark || "Not provided"}</p>
             <p>
               Attendance: {reportData.attendance.present}/
               {reportData.attendance.total}

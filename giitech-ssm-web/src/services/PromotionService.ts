@@ -47,6 +47,8 @@ export async function promoteStudents(request: PromotionRequest) {
       toStreamId: request.toStreamId || "",
       fromAcademicYear: student.academicYear || "",
       toAcademicYear: request.toAcademicYear,
+      progressCarryForward: true,
+      progressSourceStudentId: student.studentId,
       promotedBy: request.promotedBy || "",
       createdAt: serverTimestamp(),
     });
