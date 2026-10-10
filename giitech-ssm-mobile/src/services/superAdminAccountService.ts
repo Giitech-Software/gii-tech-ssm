@@ -3,7 +3,7 @@ import { getFunctions, httpsCallable } from "firebase/functions";
 import app, { db } from "../firebaseConfig";
 import { readCachedData, writeCachedData } from "./offlineStore";
 
-export type ManagedAccountRole = "admin" | "teacher" | "student" | "parent";
+export type ManagedAccountRole = "admin" | "teacher" | "student" | "parent" | "staff";
 
 export type ManagedAccount = {
   uid: string;

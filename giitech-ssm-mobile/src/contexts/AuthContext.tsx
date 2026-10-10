@@ -8,6 +8,7 @@ import {
 } from "react";
 import {
   onAuthStateChanged,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
   type User,
@@ -22,6 +23,7 @@ type AuthContextValue = {
   displayName: string | null;
   loading: boolean;
   login: (id: string, password: string) => Promise<string>;
+  resetPassword: (id: string) => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -75,6 +77,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const credentials = await signInWithEmailAndPassword(auth, idToEmail(id), password);
         const profile = (await getDoc(doc(db, "users", credentials.user.uid))).data();
         return typeof profile?.role === "string" ? profile.role : "";
+      },
+      resetPassword: async (id: string) => {
+        await sendPasswordResetEmail(auth, idToEmail(id));
       },
       logout: () => signOut(auth),
     }),

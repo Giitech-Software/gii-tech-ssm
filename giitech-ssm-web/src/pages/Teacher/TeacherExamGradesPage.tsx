@@ -98,8 +98,9 @@ export default function TeacherExamGradesPage() {
   return (
     <div className="space-y-5">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Exam Grade Entry</h1>
-        <p className="mt-1 text-sm text-slate-600">Record subject marks for configured class examinations.</p>
+        <p className="text-sm font-semibold uppercase tracking-wider text-primary">Academic records</p>
+        <h1 className="mt-1 text-3xl font-black text-slate-900">Learner Gradebook</h1>
+        <p className="mt-2 text-sm text-slate-600">Record the aggregate class score and examination score for each learner. The final score follows the configured grading weights.</p>
       </div>
       {message && <p className="border bg-white px-3 py-2 text-sm text-slate-700">{message}</p>}
       <section className="grid gap-3 border bg-white p-4 md:grid-cols-[1fr_1fr_auto]">
@@ -112,7 +113,7 @@ export default function TeacherExamGradesPage() {
       </section>
       <section className="overflow-x-auto border bg-white">
         <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
-          <h2 className="flex items-center gap-2 font-semibold"><ClipboardCheck size={18} /> Student Marks</h2>
+          <h2 className="flex items-center gap-2 font-semibold"><ClipboardCheck size={18} /> Subject results</h2>
           <button disabled={!selectedExam || !subject.trim() || loading || !students.length} onClick={saveMarks} className="flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-white disabled:opacity-50"><Save size={16} /> Save Marks</button>
         </div>
         <table className="min-w-full text-left text-sm">

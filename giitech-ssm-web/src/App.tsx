@@ -12,6 +12,7 @@ import StudentsDirectoryPage from "./pages/Admin/StudentsDirectoryPage";
 import StaffDirectoryPage from "./pages/Admin/StaffDirectoryPage";
 import ActivityLogsPage from "./pages/Admin/ActivityLogsPage";
 import CommunicationsPage from "./pages/Admin/CommunicationsPage";
+import BulkMessagingPage from "./pages/Admin/BulkMessagingPage";
 import PromotionsPage from "./pages/Admin/PromotionsPage";
 import AssessmentManagementPage from "./pages/Admin/AssessmentManagementPage";
 import ReportPublishingPage from "./pages/Admin/ReportPublishingPage";
@@ -55,7 +56,8 @@ import StaffAttendancePage from "./pages/Staff/StaffAttendancePage";
 import StaffAttendanceReportPage from "./pages/Admin/StaffAttendanceReportPage";
 import QrAttendancePage from "./pages/Shared/QrAttendancePage";
 import StudentQrIdentityPage from "./pages/Admin/StudentQrIdentityPage";
-import AttendanceAnalyticsPage from "./pages/Admin/AttendanceAnalyticsPage";
+import AttendanceAnalyticsV2Page from "./pages/Admin/AttendanceAnalyticsV2Page";
+import EnterpriseAnalyticsPage from "./pages/Admin/EnterpriseAnalyticsPage";
 import NotificationPreferencesPage from "./pages/Shared/NotificationPreferencesPage";
 import TeacherMaterialsPage from "./pages/Teacher/TeacherMaterialsPage";
 import LearningMaterialsPage from "./pages/Student/LearningMaterialsPage";
@@ -89,6 +91,7 @@ import ReportReadinessPage from "./pages/Admin/ReportReadinessPage";
 import AttendanceFaceEnrollmentPage from "./pages/Admin/AttendanceFaceEnrollmentPage";
 import AttendanceWorkspacePage from "./pages/Admin/AttendanceWorkspacePage";
 import ArchivePage from "./pages/Admin/ArchivePage";
+import GraduationArchivePage from "./pages/Admin/GraduationArchivePage";
 
 function LoadingScreen() {
   return (
@@ -160,6 +163,9 @@ export default function App() {
               <Route path="superadmin/users" element={<UserManagementPage />} />
               <Route path="superadmin/create-user" element={<Signup />} />
             </Route>
+            <Route element={<RoleProtectedRoute allowedRoles={["admin", "superadmin"]} />}>
+              <Route path="admin/create-student" element={<Signup />} />
+            </Route>
 
             <Route element={<RoleProtectedRoute allowedRoles={["staff"]} />}>
               <Route path="staff" element={<StaffDashboard />} />
@@ -190,9 +196,11 @@ export default function App() {
               <Route path="admin/attendance-administration" element={<AttendanceWorkspacePage section="administration" />} />
               <Route path="admin/take-attendance" element={<TeacherAttendancePage />} />
               <Route path="admin/archive" element={<ArchivePage />} />
+              <Route path="admin/graduation-archive" element={<GraduationArchivePage />} />
               <Route path="admin/qr-attendance" element={<QrAttendancePage />} />
               <Route path="admin/qr-identities" element={<StudentQrIdentityPage />} />
-              <Route path="admin/attendance-analytics" element={<AttendanceAnalyticsPage />} />
+              <Route path="admin/attendance-analytics" element={<AttendanceAnalyticsV2Page />} />
+              <Route path="admin/institutional-analytics" element={<EnterpriseAnalyticsPage />} />
               <Route path="admin/grading" element={<GradingConfigurationPage />} />
               <Route path="admin/rankings" element={<RankingsPage />} />
               <Route path="admin/payment-intents" element={<PaymentIntentsPage />} />
@@ -204,6 +212,7 @@ export default function App() {
               <Route path="admin/ai-monthly-costs" element={<AiMonthlyCostReportPage />} />
               <Route path="admin/activity" element={<ActivityLogsPage />} />
               <Route path="admin/communications" element={<CommunicationsPage />} />
+              <Route path="admin/bulk-messaging" element={<BulkMessagingPage />} />
               <Route path="admin/promotions" element={<PromotionsPage />} />
               <Route path="admin/assessments" element={<AssessmentManagementPage />} />
               <Route path="admin/report-publishing" element={<ReportPublishingPage />} />
@@ -227,7 +236,7 @@ export default function App() {
               <Route path="admin/reports/report-card" element={<StudentReportCard />} />
             </Route>
 
-            <Route element={<RoleProtectedRoute allowedRoles={["teacher"]} />}>
+            <Route element={<RoleProtectedRoute allowedRoles={["teacher", "admin", "superadmin"]} />}>
               <Route path="teacher" element={<TeacherDashboard />} />
               <Route path="teacher/assignments" element={<TeacherAssignmentsPage />} />
               <Route path="teacher/materials" element={<TeacherMaterialsPage />} />
@@ -238,6 +247,7 @@ export default function App() {
               <Route path="teacher/exam-grades" element={<TeacherExamGradesPage />} />
               <Route path="teacher/grade-summary" element={<GradeSummaryReportPage />} />
               <Route path="teacher/attendance" element={<TeacherAttendancePage />} />
+              <Route path="teacher/learner-progress" element={<TermCommentsPage />} />
               <Route path="teacher/qr-attendance" element={<QrAttendancePage />} />
               <Route path="teacher/feedback" element={<TeacherFeedbackPage />} />
               <Route path="teacher/messages" element={<TeacherMessagesPage />} />

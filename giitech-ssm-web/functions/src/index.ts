@@ -12,6 +12,7 @@ export { createManagedUser, deleteManagedUser, updateManagedUserRole } from "./a
 export { scheduledLibraryOverdueSync } from "./library";
 export { verifyAttendanceFace, enrollAttendanceFace } from "./rekognition";
 export { backfillAstemTenant } from "./tenantMigration";
+export { processBulkMessage } from "./twilioMessaging";
 
 initializeApp();
 

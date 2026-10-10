@@ -27,7 +27,7 @@ export function SharedPageShell({
           <Text className="mt-3 text-3xl font-black text-white">{title}</Text>
           <Text className="mt-2 text-sm leading-5 text-blue-100">{subtitle}</Text>
         </View>
-        {children}
+        <View className="mt-2">{children}</View>
       </ScrollView></KeyboardAvoidingView>
     </SafeAreaView>
   );

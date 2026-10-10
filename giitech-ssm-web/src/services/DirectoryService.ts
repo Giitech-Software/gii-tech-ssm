@@ -84,6 +84,23 @@ export async function updateStudentProfile(
   await updateDoc(doc(db, "students", id), { ...profile, updatedAt: serverTimestamp() });
 }
 
+export async function graduateStudentClass(classId: string, graduationYear: string, archivedBy: string) {
+  const students = (await getDocs(collection(db, "students"))).docs.filter((item) => {
+    const data = item.data();
+    return data.classId === classId && data.status !== "archived";
+  });
+  await Promise.all(students.map((student) => updateDoc(student.ref, {
+    status: "archived",
+    lifecycleStatus: "graduated",
+    graduationClassId: classId,
+    graduationYear,
+    graduationArchivedAt: serverTimestamp(),
+    graduationArchivedBy: archivedBy,
+    updatedAt: serverTimestamp(),
+  })));
+  return students.length;
+}
+
 export async function updateStaffProfile(
   id: string,
   changes: Partial<StaffDirectoryRecord>

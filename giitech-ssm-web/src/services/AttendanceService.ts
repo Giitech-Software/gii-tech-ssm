@@ -31,7 +31,7 @@ export const fetchAttendanceSummary = async (classId: string) => {
         };
       }
       summary[sid].total += 1;
-      if (r.present === true || r.status === "Present") summary[sid].present += 1;
+      if (normaliseStatus(r) === "Present" || normaliseStatus(r) === "Late") summary[sid].present += 1;
     }
 
     return Object.values(summary);
@@ -40,6 +40,18 @@ export const fetchAttendanceSummary = async (classId: string) => {
     return [];
   }
 };
+
+export type AttendanceStatus = "Present" | "Absent" | "Late" | "Excused";
+
+export const normaliseStatus = (record: any): AttendanceStatus => {
+  const status = String(record?.status || "").toLowerCase();
+  if (status === "late") return "Late";
+  if (status === "excused") return "Excused";
+  if (status === "present" || record?.present === true) return "Present";
+  return "Absent";
+};
+
+export const attendanceRecordId = (studentId: string, date: string) => `${studentId}_${date}`;
 
 /**
  * Get all attendance records for a specific class
@@ -58,7 +70,11 @@ export const getAttendanceByClass = async (classId: string) => {
         studentId: data.studentId,
         studentName: data.studentName || "Unknown",
         date: data.date,
-        status: data.present === true || data.status === "Present" ? "Present" : "Absent",
+        status: normaliseStatus(data),
+        reason: data.lateReason || data.earlyDepartureReason || "",
+        method: data.method || data.source || "manual",
+        checkInAt: data.checkInAt || null,
+        checkOutAt: data.checkOutAt || null,
       });
     });
 
@@ -104,28 +120,31 @@ export const getStudentsByClass = async (classId: string) => {
  */
 export const markAttendanceForClass = async (
   classId: string,
-  attendanceList: { studentId: string; studentName: string; status: "Present" | "Absent" }[],
+  attendanceList: { studentId: string; studentName: string; status: AttendanceStatus; lateReason?: string; earlyDepartureReason?: string }[],
   teacherId: string,
   mode: "check-in" | "check-out" = "check-in",
+  date = new Date().toISOString().split("T")[0],
 ) => {
   try {
     const attendanceCollection = collection(db, "attendance");
-    const date = new Date().toISOString().split("T")[0];
     const batch = writeBatch(db);
 
     for (const record of attendanceList) {
-      const existing = await getDocs(query(collection(db, "attendance"), where("studentId", "==", record.studentId), where("date", "==", date)));
-      if (!existing.empty) throw new Error(`Attendance has already been recorded for ${record.studentName} today.`);
       const timestamp = new Date().toISOString();
-      batch.set(doc(attendanceCollection, `${record.studentId}_${date}`), {
+      const reference = doc(attendanceCollection, attendanceRecordId(record.studentId, date));
+      batch.set(reference, {
         tenantId: TENANT_ID,
         studentId: record.studentId,
         studentName: record.studentName,
-        present: record.status === "Present",
+        present: record.status === "Present" || record.status === "Late",
         status: record.status,
         classId,
         teacherId,
         ...(mode === "check-in" ? { checkInAt: timestamp } : { checkOutAt: timestamp }),
+        method: "manual",
+        ...(record.lateReason ? { lateReason: record.lateReason } : {}),
+        ...(record.earlyDepartureReason ? { earlyDepartureReason: record.earlyDepartureReason } : {}),
+        audit: { actorId: teacherId, action: "manual-register", recordedAt: timestamp, mode },
         date,
         createdAt: serverTimestamp(),
       });
@@ -138,4 +157,12 @@ export const markAttendanceForClass = async (
     console.error("❌ Error marking attendance:", error);
     throw error;
   }
+};
+
+/** Returns records for a class and date range, including legacy records. */
+export const getAttendanceHistory = async (classId: string, startDate: string, endDate: string) => {
+  const snapshot = await getDocs(query(collection(db, "attendance"), where("classId", "==", classId)));
+  return snapshot.docs.map(item => ({ id: item.id, ...item.data(), status: normaliseStatus(item.data()) }))
+    .filter((item: any) => String(item.date || "") >= startDate && String(item.date || "") <= endDate)
+    .sort((a: any, b: any) => String(b.date).localeCompare(String(a.date)));
 };

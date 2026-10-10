@@ -10,7 +10,7 @@ export type AdminAttendanceRecord = {
   studentName: string;
   classId: string;
   date: string;
-  status: "Present" | "Absent";
+  status: "Present" | "Absent" | "Late" | "Excused";
   pending: boolean;
 };
 
@@ -36,14 +36,15 @@ export type AdminOperationsData = {
 };
 
 function attendanceFromData(id: string, data: Record<string, unknown>, pending = false): AdminAttendanceRecord {
-  const present = typeof data.present === "boolean" ? data.present : data.status === "Present";
+  const rawStatus = String(data.status || "").toLowerCase();
+  const status = rawStatus === "late" ? "Late" : rawStatus === "excused" ? "Excused" : (typeof data.present === "boolean" ? data.present : rawStatus === "present") ? "Present" : "Absent";
   return {
     id,
     studentId: String(data.studentId || ""),
     studentName: String(data.studentName || data.studentId || "Student"),
     classId: String(data.classId || ""),
     date: String(data.date || ""),
-    status: present ? "Present" : "Absent",
+    status,
     pending,
   };
 }
@@ -119,7 +120,7 @@ export function attendanceSummary(records: AdminAttendanceRecord[]) {
   records.forEach((record) => {
     const item = summaries.get(record.studentId) || { studentId: record.studentId, studentName: record.studentName, present: 0, total: 0, rate: 0 };
     item.total += 1;
-    if (record.status === "Present") item.present += 1;
+    if (record.status === "Present" || record.status === "Late") item.present += 1;
     item.rate = Math.round((item.present / item.total) * 100);
     summaries.set(record.studentId, item);
   });

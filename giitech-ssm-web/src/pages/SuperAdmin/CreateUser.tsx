@@ -18,6 +18,7 @@ interface SubjectItem {
   id: string;
   title: string;
 }
+interface DepartmentItem { id: string; name: string; }
 
 export default function Signup() {
   const { signup, role: currentRole } = useAuth();
@@ -25,6 +26,7 @@ export default function Signup() {
   // Base fields
   const [id, setId] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("student");
 
@@ -32,11 +34,13 @@ export default function Signup() {
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedStream, setSelectedStream] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState("");
 
   // Firestore data
   const [classes, setClasses] = useState<ClassItem[]>([]);
   const [streams, setStreams] = useState<StreamItem[]>([]);
   const [subjects, setSubjects] = useState<SubjectItem[]>([]);
+  const [departments, setDepartments] = useState<DepartmentItem[]>([]);
 
   // UI states
   const [message, setMessage] = useState("");
@@ -72,6 +76,8 @@ export default function Signup() {
           title: doc.data().name || doc.data().title || doc.id,
         }));
         setSubjects(subjectList);
+        const departmentSnap = await getDocs(collection(db, "departments"));
+        setDepartments(departmentSnap.docs.map((item) => ({ id: item.id, name: item.data().name || item.id })));
       } catch (err) {
         console.error("Error loading dropdowns:", err);
       }
@@ -84,7 +90,7 @@ export default function Signup() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (currentRole !== "superadmin" && !(currentRole === "admin" && role === "staff")) {
+    if (currentRole !== "superadmin" && !(currentRole === "admin" && role === "student")) {
       setError("Administrators can create staff accounts. Super Admin access is required for other account types.");
       return;
     }
@@ -99,9 +105,14 @@ export default function Signup() {
       if (role === "student") {
         extraData.classId = selectedClass || "";
         extraData.stream = selectedStream || "";
+        extraData.departmentId = selectedDepartment || "";
       } else if (role === "teacher") {
         extraData.subjectId = selectedSubject || "";
+        extraData.departmentId = selectedDepartment || "";
+      } else if (role === "staff") {
+        extraData.departmentId = selectedDepartment || "";
       }
+      if (role === "teacher" || role === "staff") extraData.phone = phone.trim();
 
       const finalId = await signup(id.trim(), password, role, displayName.trim(), extraData);
       setCreatedId(finalId);
@@ -110,11 +121,13 @@ export default function Signup() {
       // reset form
       setId("");
       setDisplayName("");
+      setPhone("");
       setPassword("");
       setRole("student");
       setSelectedClass("");
       setSelectedStream("");
       setSelectedSubject("");
+      setSelectedDepartment("");
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -126,7 +139,7 @@ export default function Signup() {
     <div className="flex min-h-full items-center justify-center bg-gradient-to-br from-blue-50 via-white to-sky-50 px-4 py-8">
       <div className="w-full max-w-md rounded-2xl border border-blue-100 bg-white p-8 shadow-xl shadow-blue-900/10">
         <h1 className="text-2xl font-bold text-primary text-center mb-6">
-          Create New User
+          {role === "student" ? "Create Student" : role === "staff" ? "Create Staff" : "Create New User"}
         </h1>
 
         {error && <div className="mb-4 text-red-600 text-sm font-medium">{error}</div>}
@@ -189,6 +202,12 @@ export default function Signup() {
             </div>
           </div>
 
+          {(role === "teacher" || role === "staff") && <div>
+            <label className="block text-sm font-medium text-dark mb-1">Phone number</label>
+            <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required={role === "staff"} className="w-full rounded-md border border-neutral px-3 py-2 focus:border-primary focus:outline-none" placeholder="e.g. 024 000 0000" />
+            {role === "staff" && <p className="mt-1 text-xs text-slate-500">Used for bulk SMS and WhatsApp communication.</p>}
+          </div>}
+
           {/* Role */}
           <div>
             <label className="block text-sm font-medium text-dark mb-1">Role</label>
@@ -198,10 +217,7 @@ export default function Signup() {
               className="w-full rounded-md border border-neutral px-3 py-2 focus:border-primary focus:outline-none"
             >
               <option value="student">Student</option>
-              <option value="parent">Parent</option>
-              <option value="teacher">Teacher</option>
-              <option value="admin">Admin</option>
-              <option value="staff">Non-Teaching Staff</option>
+              {currentRole === "superadmin" && <><option value="parent">Parent</option><option value="teacher">Teacher</option><option value="admin">Admin</option><option value="staff">Non-Teaching Staff</option></>}
             </select>
           </div>
 
@@ -249,6 +265,21 @@ export default function Signup() {
                   )}
                 </select>
               </div>
+
+              {/* Department / school section */}
+              <div>
+                <label className="block text-sm font-medium text-dark mb-1">Department</label>
+                <select
+                  value={selectedDepartment}
+                  onChange={(e) => setSelectedDepartment(e.target.value)}
+                  className="w-full rounded-md border border-neutral px-3 py-2 focus:border-primary focus:outline-none"
+                >
+                  <option value="">Select Department</option>
+                  {departments.map((department) => (
+                    <option key={department.id} value={department.id}>{department.name}</option>
+                  ))}
+                </select>
+              </div>
             </>
           )}
 
@@ -270,6 +301,16 @@ export default function Signup() {
                 ) : (
                   <option disabled>No subjects found</option>
                 )}
+              </select>
+            </div>
+          )}
+
+          {(role === "teacher" || role === "staff") && (
+            <div>
+              <label className="block text-sm font-medium text-dark mb-1">Department</label>
+              <select value={selectedDepartment} onChange={(e) => setSelectedDepartment(e.target.value)} className="w-full rounded-md border border-neutral px-3 py-2 focus:border-primary focus:outline-none">
+                <option value="">Select Department</option>
+                {departments.map((department) => <option key={department.id} value={department.id}>{department.name}</option>)}
               </select>
             </div>
           )}

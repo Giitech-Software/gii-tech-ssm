@@ -17,7 +17,7 @@ export type StaffAttendanceRecord = {
   verificationMethod?: "web-session" | "webauthn" | "qr" | "biometric" | "qr+biometric" | "rekognition-face-match";
   verifiedAt?: string;
 };
-export type StaffAttendanceSettings = { startTime: string; closingTime: string; graceMinutes: number; staffQrEnabled: boolean; staffBiometricEnabled: boolean; verificationMode: "biometric" | "qr" | "both" | "disabled" };
+export type StaffAttendanceSettings = { startTime: string; closingTime: string; graceMinutes: number; staffQrEnabled: boolean; staffBiometricEnabled: boolean; verificationMode: "biometric" | "qr" | "facial" | "both" | "disabled" };
 
 export async function getStaffAttendanceSettings(): Promise<StaffAttendanceSettings> { const snapshot = await getDoc(doc(db, "staffAttendanceSettings", "default")); return ({ startTime: "08:00", closingTime: "16:00", graceMinutes: 15, staffQrEnabled: false, staffBiometricEnabled: true, verificationMode: "biometric", ...(snapshot.data() || {}) }) as StaffAttendanceSettings; }
 export async function saveStaffAttendanceSettings(settings: StaffAttendanceSettings) { await setDoc(doc(db, "staffAttendanceSettings", "default"), { ...settings, updatedAt: serverTimestamp() }, { merge: true }); }
@@ -30,7 +30,7 @@ export async function getStaffAttendance(staffId: string) {
 export async function getStaffIdentity(userId: string) {
   const snapshot = await getDocs(query(collection(db, "teachers"), where("userId", "==", userId)));
   const item = snapshot.docs[0];
-  if (!item) return { staffId: userId, displayName: "Staff member", userId, attendanceEnabled: true };
+  if (!item) return { staffId: "staff-member", displayName: "Staff member", userId, attendanceEnabled: true };
   const data = item.data();
   return { staffId: String(data.teacherId || item.id), displayName: String(data.displayName || "Staff member"), userId, attendanceEnabled: data.attendanceEnabled !== false };
 }

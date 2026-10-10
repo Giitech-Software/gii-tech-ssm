@@ -262,6 +262,55 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await signOut(auth);
   };
 
+  useEffect(() => {
+    if (!user) return;
+
+    const timeoutMs = 3 * 60 * 1000;
+    let lastActivityAt = Date.now();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let loggingOut = false;
+
+    const clearTimer = () => {
+      if (timer) clearTimeout(timer);
+    };
+
+    const scheduleLogout = () => {
+      clearTimer();
+      timer = setTimeout(() => {
+        if (Date.now() - lastActivityAt >= timeoutMs && !loggingOut) {
+          loggingOut = true;
+          void logout().finally(() => { loggingOut = false; });
+        } else {
+          scheduleLogout();
+        }
+      }, Math.max(0, timeoutMs - (Date.now() - lastActivityAt)));
+    };
+
+    const recordActivity = () => {
+      if (loggingOut) return;
+      lastActivityAt = Date.now();
+      scheduleLogout();
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        if (Date.now() - lastActivityAt >= timeoutMs) void logout();
+        else scheduleLogout();
+      }
+    };
+
+    const events = ["mousedown", "keydown", "touchstart", "scroll", "pointermove"] as const;
+    events.forEach((event) => window.addEventListener(event, recordActivity, { passive: true }));
+    document.addEventListener("visibilitychange", handleVisibility);
+    scheduleLogout();
+
+    return () => {
+      clearTimer();
+      events.forEach((event) => window.removeEventListener(event, recordActivity));
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [user]);
+
   const value = useMemo(
     () => ({ user, role, displayName, loading, login, resetPassword, logout, signup }),
     [user, role, displayName, loading]

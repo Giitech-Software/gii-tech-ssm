@@ -59,7 +59,7 @@ export type TeacherStudent = {
   studentName: string;
 };
 
-export type TeacherAttendanceStatus = "Present" | "Absent" | "Pending";
+export type TeacherAttendanceStatus = "Present" | "Absent" | "Late" | "Excused" | "Pending";
 
 export type TeacherAttendanceRecord = {
   id: string;
@@ -607,7 +607,7 @@ function safeId(value: string) {
 }
 
 export function attendanceDocumentId(date: string, classId: string, studentId: string) {
-  return `${safeId(date)}_${safeId(classId)}_${safeId(studentId)}`;
+  return `${safeId(studentId)}_${safeId(date)}`;
 }
 
 export function assignmentDocumentId(userId: string) {

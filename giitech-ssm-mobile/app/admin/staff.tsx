@@ -103,7 +103,7 @@ export default function AdminStaffPage() {
             <Text className="mt-3 text-sm text-slate-600">{departmentNameFor(directory?.departments || [], member.departmentId)} | {member.subject || "No subject"}</Text>
             {member.pending && <Text className="mt-3 text-xs font-bold uppercase text-amber-700">Queued update</Text>}
             <View className="mt-4 flex-row">
-              <Pressable className="mr-2 flex-1 items-center rounded-2xl bg-primary px-3 py-3" onPress={() => setEditing(member)}><Text className="text-sm font-bold text-primary">Edit profile</Text></Pressable>
+              <Pressable className="mr-2 flex-1 items-center rounded-2xl bg-primary px-3 py-3" onPress={() => setEditing(member)}><Text className="text-sm font-bold text-white">Edit profile</Text></Pressable>
               {member.status !== "archived" && <Pressable className="flex-1 items-center rounded-2xl bg-red-50 px-3 py-3" disabled={saving} onPress={() => save({ ...member, status: "archived" })}><Text className="text-sm font-bold text-red-700">Archive</Text></Pressable>}
             </View>
           </View>

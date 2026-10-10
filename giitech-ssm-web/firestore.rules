@@ -367,6 +367,19 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /bulkMessages/{messageId} {
+      allow read: if isAdminStaff() && resource.data.tenantId == userProfile().tenantId;
+      allow create: if isAdminStaff() && request.resource.data.tenantId == userProfile().tenantId;
+      allow update: if isAdminStaff() && resource.data.tenantId == userProfile().tenantId && request.resource.data.tenantId == userProfile().tenantId;
+      allow delete: if isAdminStaff() && resource.data.tenantId == userProfile().tenantId;
+    }
+
+    match /tenantMessagingSettings/{tenantId} {
+      allow read: if isAdminStaff() && tenantId == userProfile().tenantId;
+      allow create, update: if isAdminStaff() && tenantId == userProfile().tenantId && request.resource.data.tenantId == userProfile().tenantId;
+      allow delete: if isAdminStaff() && tenantId == userProfile().tenantId;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }

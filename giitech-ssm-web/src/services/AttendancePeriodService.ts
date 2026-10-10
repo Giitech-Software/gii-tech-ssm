@@ -1,6 +1,6 @@
 import { getAcademicTerms, getAcademicYears, type AcademicTerm, type AcademicYear } from "./AcademicYearService";
 
-export type AttendancePeriod = "day" | "week" | "month" | "term";
+export type AttendancePeriod = "day" | "week" | "month" | "term" | "year";
 export type AttendanceCalendar = { years: AcademicYear[]; terms: AcademicTerm[] };
 
 export async function getAttendanceCalendar(): Promise<AttendanceCalendar> {
@@ -24,6 +24,7 @@ export function periodBounds(period: AttendancePeriod, anchor: string, term?: Ac
   const point = new Date(`${anchor}T00:00:00`); const start = new Date(point); const end = new Date(point);
   if (period === "week") { const day = point.getDay() || 7; start.setDate(point.getDate() - day + 1); end.setDate(start.getDate() + 6); }
   if (period === "month") { start.setDate(1); end.setMonth(start.getMonth() + 1); end.setDate(0); }
+  if (period === "year") { start.setMonth(0, 1); end.setMonth(11, 31); }
   const iso = (value: Date) => value.toISOString().slice(0, 10);
   return { start: iso(start), end: iso(end) };
 }

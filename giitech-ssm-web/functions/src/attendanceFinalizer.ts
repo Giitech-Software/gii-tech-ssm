@@ -22,9 +22,10 @@ export const scheduledStudentAttendanceFinalizer = onSchedule({ schedule: "every
   let batch = db.batch(); let writes = 0;
   for (const student of students.docs) {
     const data = student.data(); const studentId = String(data.studentId || student.id);
-    if (recorded.has(studentId)) continue;
-    const reference = db.collection("attendance").doc(`${date}_${studentId}`);
-    batch.set(reference, { tenantId, studentId, studentName: data.displayName || data.studentName || data.name || studentId, classId: data.classId || "", date, present: false, status: "Absent", source: "automatic-close", createdAt: FieldValue.serverTimestamp() }, { merge: true });
+    if (recorded.has(studentId) || data.status === "archived" || data.lifecycleStatus === "graduated" || data.isActive === false) continue;
+    // Canonical key shared by web, mobile, QR, face recognition, and finalization.
+    const reference = db.collection("attendance").doc(`${studentId}_${date}`);
+    batch.set(reference, { tenantId, studentId, studentName: data.displayName || data.studentName || data.name || studentId, classId: data.classId || "", date, present: false, status: "Absent", method: "automatic-close", source: "automatic-close", audit: { actorId: "system", action: "auto-mark-absent", recordedAt: now.toISOString() }, createdAt: FieldValue.serverTimestamp() }, { merge: true });
     writes += 1;
     if (writes === 450) { await batch.commit(); batch = db.batch(); writes = 0; }
   }

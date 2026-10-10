@@ -5,6 +5,7 @@ import {
   fetchAcademicOptions,
   fetchStudentDirectory,
   updateStudentProfile,
+  graduateStudentClass,
   type AcademicOption,
   type StudentDirectoryRecord,
 } from "../../services/DirectoryService";
@@ -30,6 +31,7 @@ export default function StudentsDirectoryPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [graduationYear, setGraduationYear] = useState(String(new Date().getFullYear()));
 
   const loadData = async () => {
     setLoading(true);
@@ -88,6 +90,23 @@ export default function StudentsDirectoryPage() {
     await loadData();
   };
 
+  const graduateClass = async () => {
+    if (!classId || !user?.uid) return;
+    const selectedClass = className({ classId } as StudentDirectoryRecord);
+    if (!window.confirm(`Graduate all active learners in ${selectedClass} and move them to the archive?`)) return;
+    setSaving(true);
+    try {
+      const count = await graduateStudentClass(classId, graduationYear.trim(), user.uid);
+      setStatus("");
+      await loadData();
+      setError(count ? "" : "No active learners were found in this class.");
+    } catch (graduateError) {
+      setError(graduateError instanceof Error ? graduateError.message : "Unable to archive the graduating class.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const className = (student: StudentDirectoryRecord) =>
     options.classes.find((item) => (item.classId || item.id) === student.classId)?.name || student.classId || "-";
   const streamName = (student: StudentDirectoryRecord) =>
@@ -103,8 +122,8 @@ export default function StudentsDirectoryPage() {
           <p className="eyebrow">Academic operations</p><h1 className="mt-1 text-3xl font-black tracking-tight text-dark">Student directory</h1>
           <p className="mt-1 text-sm text-slate-500">Maintain enrollment profiles and academic placement.</p>
         </div>
-        {role === "superadmin" && (
-          <Link to="/superadmin/create-user" className="btn-primary">
+        {(role === "superadmin" || role === "admin") && (
+          <Link to={role === "admin" ? "/admin/create-student" : "/superadmin/create-user"} className="btn-primary">
             <UserPlus size={17} /> Add Student
           </Link>
         )}
@@ -125,6 +144,7 @@ export default function StudentsDirectoryPage() {
           <option value="inactive">Inactive</option>
           <option value="archived">Archived</option>
         </select>
+        {classId && <div className="flex gap-2 sm:col-span-3"><input value={graduationYear} onChange={(event) => setGraduationYear(event.target.value)} className="input" placeholder="Graduation year" /><button disabled={saving} onClick={() => void graduateClass()} className="btn-primary whitespace-nowrap">Graduate selected class</button></div>}
       </div>
 
       {error && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}

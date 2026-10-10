@@ -31,6 +31,7 @@ export default function TeacherAttendancePage() {
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [attendanceMode, setAttendanceMode] = useState<"check-in" | "check-out">("check-in");
+  const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split("T")[0]);
 
   const [classOptions, setClassOptions] = useState<{ id: string; name?: string; classId?: string }[]>([]);
 
@@ -79,12 +80,11 @@ export default function TeacherAttendancePage() {
     try {
       setLoading(true);
       const students = await getStudentsByClass(selectedClass); // fetch from backend
-      const today = new Date().toISOString().split("T")[0];
       setAttendanceData(
         students.map((s: any) => ({
           studentId: s.studentId,
           studentName: s.studentName,
-          date: today,
+          date: attendanceDate,
           status: "Pending",
         }))
       );
@@ -105,7 +105,7 @@ export default function TeacherAttendancePage() {
   };
 
   // ✅ Quick Mark All
-  const handleMarkAll = (status: "Present" | "Absent") => {
+  const handleMarkAll = (status: "Present" | "Absent" | "Late" | "Excused") => {
     const updated = attendanceData.map((s) => ({
       ...s,
       status,
@@ -119,7 +119,7 @@ export default function TeacherAttendancePage() {
     setError(null);
     setMessage(null);
     const records = attendanceData.filter(
-      (record) => record.studentId && (record.status === "Present" || record.status === "Absent")
+      (record) => record.studentId && ["Present", "Absent", "Late", "Excused"].includes(record.status)
     );
     if (records.length !== attendanceData.length) {
       setError("Mark every student as present or absent before submitting.");
@@ -127,7 +127,7 @@ export default function TeacherAttendancePage() {
       return;
     }
     try {
-      await markAttendanceForClass(selectedClass, records, user?.uid || "", attendanceMode);
+      await markAttendanceForClass(selectedClass, records, user?.uid || "", attendanceMode, attendanceDate);
       setMarking(false);
       await loadAttendance();
       setMessage("✅ Attendance submitted successfully!");
@@ -147,7 +147,7 @@ export default function TeacherAttendancePage() {
       if (!acc[studentName])
         acc[studentName] = { studentName, present: 0, total: 0 };
       acc[studentName].total += 1;
-      if (status === "Present") acc[studentName].present += 1;
+      if (status === "Present" || status === "Late") acc[studentName].present += 1;
       return acc;
     }, {})
   ).map((item: any) => ({
@@ -157,6 +157,8 @@ export default function TeacherAttendancePage() {
 
   // ✅ Pie data
   const totalPresent = attendanceData.filter((r) => r.status === "Present").length;
+  const totalLate = attendanceData.filter((r) => r.status === "Late").length;
+  const totalExcused = attendanceData.filter((r) => r.status === "Excused").length;
   const totalAbsent = attendanceData.filter((r) => r.status === "Absent").length;
   const totalRecords = totalPresent + totalAbsent;
   const overallPercent = totalRecords
@@ -165,6 +167,8 @@ export default function TeacherAttendancePage() {
 
   const pieData = [
     { name: "Present", value: totalPresent },
+    { name: "Late", value: totalLate },
+    { name: "Excused", value: totalExcused },
     { name: "Absent", value: totalAbsent },
   ];
   const COLORS = ["#22c55e", "#ef4444"];
@@ -197,6 +201,8 @@ export default function TeacherAttendancePage() {
         >
           {loading ? "Loading..." : "View Attendance"}
         </button>
+
+        <input type="date" value={attendanceDate} onChange={(e) => setAttendanceDate(e.target.value)} className="border rounded-md p-2" aria-label="Attendance date" />
 
         <button
           onClick={handleStartMarking}
@@ -242,6 +248,7 @@ export default function TeacherAttendancePage() {
               >
                 Mark All Absent
               </button>
+              <button onClick={() => handleMarkAll("Excused")} className="bg-amber-500 text-white px-3 py-1 rounded-md hover:bg-amber-600">Mark All Excused</button>
             </div>
           </div>
 
@@ -277,6 +284,8 @@ export default function TeacherAttendancePage() {
                     >
                       Absent
                     </button>
+                    <button onClick={() => handleStatusChange(index, "Late")} className={`px-3 py-1 rounded-md mr-2 ${student.status === "Late" ? "bg-amber-500 text-white" : "bg-slate-200"}`}>Late</button>
+                    <button onClick={() => handleStatusChange(index, "Excused")} className={`px-3 py-1 rounded-md ${student.status === "Excused" ? "bg-blue-600 text-white" : "bg-slate-200"}`}>Excused</button>
                   </td>
                 </tr>
               ))}

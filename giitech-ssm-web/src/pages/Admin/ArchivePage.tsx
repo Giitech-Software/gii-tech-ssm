@@ -3,7 +3,7 @@ import { ArchiveRestore, RefreshCw } from "lucide-react";
 import { collection, getDocs, updateDoc, doc, serverTimestamp } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 
-type ArchivedRecord = { id: string; name: string; schoolId: string; type: "Student" | "Staff"; status?: string };
+type ArchivedRecord = { id: string; name: string; schoolId: string; type: "Student" | "Staff"; status?: string; lifecycleStatus?: string; graduationYear?: string; graduationClassId?: string };
 
 export default function ArchivePage() {
   const [records, setRecords] = useState<ArchivedRecord[]>([]); const [search, setSearch] = useState(""); const [filter, setFilter] = useState<"all" | "Student" | "Staff">("all"); const [loading, setLoading] = useState(true); const [busy, setBusy] = useState(""); const [message, setMessage] = useState(""); const [error, setError] = useState("");

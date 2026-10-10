@@ -68,7 +68,7 @@ export default function TeacherAttendancePage() {
     void loadRegister();
   }, [loadRegister]);
 
-  const markAll = (status: "Present" | "Absent") => {
+  const markAll = (status: "Present" | "Absent" | "Late" | "Excused") => {
     if (!register) return;
     setStatuses(Object.fromEntries(register.students.map((student) => [student.studentId, status])));
   };
@@ -76,7 +76,7 @@ export default function TeacherAttendancePage() {
   const submit = async () => {
     if (!user || !register || !classId) return;
     if (register.students.some((student) => statuses[student.studentId] === "Pending")) {
-      setError("Mark every student as present or absent before submitting.");
+      setError("Mark every student as present, absent, late, or excused before submitting.");
       return;
     }
     setSaving(true);
@@ -85,7 +85,7 @@ export default function TeacherAttendancePage() {
     try {
       let pending = false;
       for (const student of register.students) {
-        const status = statuses[student.studentId] as "Present" | "Absent";
+        const status = statuses[student.studentId] as Exclude<TeacherAttendanceStatus, "Pending">;
         const result = await queueWrite({
           path: `attendance/${attendanceDocumentId(today, classId, student.studentId)}`,
           type: "set",
@@ -98,9 +98,11 @@ export default function TeacherAttendancePage() {
             studentName: student.studentName,
             classId,
             date: today,
-            present: status === "Present",
+            present: status === "Present" || status === "Late",
             status,
+            method: "manual",
             teacherName: displayName || "Teacher",
+            audit: { actorId: user.uid, action: "manual-register", mode: attendanceMode, recordedAt: new Date().toISOString() },
           },
         });
         if (result === "pending") pending = true;
@@ -136,6 +138,10 @@ export default function TeacherAttendancePage() {
             <Pressable className="mr-2 flex-1 items-center rounded-2xl bg-emerald-100 px-3 py-3" onPress={() => markAll("Present")}><Text className="text-sm font-bold text-emerald-800">All present</Text></Pressable>
             <Pressable className="flex-1 items-center rounded-2xl bg-red-100 px-3 py-3" onPress={() => markAll("Absent")}><Text className="text-sm font-bold text-red-700">All absent</Text></Pressable>
           </View>
+          <View className="mt-2 flex-row">
+            <Pressable className="mr-2 flex-1 items-center rounded-2xl bg-amber-100 px-3 py-3" onPress={() => markAll("Late")}><Text className="text-sm font-bold text-amber-800">All late</Text></Pressable>
+            <Pressable className="flex-1 items-center rounded-2xl bg-blue-100 px-3 py-3" onPress={() => markAll("Excused")}><Text className="text-sm font-bold text-blue-800">All excused</Text></Pressable>
+          </View>
           {!register.students.length && <Text className="mt-6 text-center text-sm text-slate-500">No students are assigned to this class.</Text>}
           <View className="mt-4">
             {register.students.map((student) => (
@@ -143,7 +149,7 @@ export default function TeacherAttendancePage() {
                 <Text className="text-base font-extrabold text-slate-900">{student.studentName}</Text>
                 <Text className="mt-1 text-xs font-semibold text-slate-500">{student.studentId}</Text>
                 <View className="mt-4 flex-row">
-                  {(["Present", "Absent"] as const).map((status) => (
+                  {(["Present", "Absent", "Late", "Excused"] as const).map((status) => (
                     <Pressable className={`mr-2 rounded-full px-4 py-3 ${statuses[student.studentId] === status ? status === "Present" ? "bg-emerald-700" : "bg-red-700" : "bg-slate-100"}`} key={status} onPress={() => setStatuses((current) => ({ ...current, [student.studentId]: status }))}>
                       <Text className={`text-sm font-bold ${statuses[student.studentId] === status ? "text-white" : "text-slate-700"}`}>{status}</Text>
                     </Pressable>
