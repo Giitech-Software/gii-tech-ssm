@@ -5,27 +5,15 @@ import {
   onAuthStateChanged,
   signOut,
   signInWithEmailAndPassword,
-  updateProfile,
-  createUserWithEmailAndPassword,
-  deleteUser as deleteAuthUser,
-  getAuth as getAuthInstance,
   sendPasswordResetEmail,
 } from "firebase/auth";
-import { initializeApp, deleteApp } from "firebase/app";
-import { auth, db, firebaseConfig } from "../firebaseConfig";
+import { auth, db } from "../firebaseConfig";
 import {
   doc,
   getDoc,
-  query,
-  collection,
-  where,
-  getDocs,
-  serverTimestamp,
-  writeBatch,
 } from "firebase/firestore";
 import { idToEmail } from "../utils/idToEmail";
-import { generateUserId } from "../utils/idGenerator";
-import { TENANT_ID } from "../config/tenant";
+import { getFunctions, httpsCallable } from "firebase/functions";
 
 interface AuthContextType {
   user: User | null;
@@ -45,19 +33,6 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-function signupError(error: unknown, action: string): Error {
-  const message = error instanceof Error ? error.message : String(error);
-  if (
-    (typeof error === "object" && error && "code" in error && error.code === "permission-denied") ||
-    message.includes("Missing or insufficient permissions")
-  ) {
-    return new Error(
-      `Permission denied while ${action}. Confirm the signed-in account is a super admin and that the latest Firestore rules are deployed.`
-    );
-  }
-  return error instanceof Error ? error : new Error(message);
-}
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -103,9 +78,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const credentials = await signInWithEmailAndPassword(auth, email, password);
     const profile = await getDoc(doc(db, "users", credentials.user.uid));
     const data = profile.data() as Record<string, any> | undefined;
-    if (data?.status === "disabled" || data?.locked === true) {
+    if (data?.status === "disabled" || data?.status === "pending" || data?.locked === true) {
       await signOut(auth);
-      throw new Error("This account is currently disabled. Contact your administrator.");
+      throw new Error(data?.status === "pending" ? "This account is awaiting administrator approval." : "This account is currently disabled. Contact your administrator.");
     }
     return String(data?.role || "");
   };
@@ -132,6 +107,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       throw new Error("Display name is required.");
     }
 
+    // All administrator-created accounts now go through the trusted backend.
+    // Keep the old implementation below temporarily for rollback/reference; this
+    // return makes the client-side Auth creation path unreachable.
+    const managed = httpsCallable<{ id?: string; password: string; role: string; displayName: string; extra?: Record<string, any> }, { id: string }>(
+      getFunctions(undefined, "africa-south1"),
+      "createManagedUser",
+    );
+    const result = await managed({
+      id: id.trim() || undefined,
+      password,
+      role: roleName,
+      displayName: displayNameParam.trim(),
+      extra: {
+        ...extraData,
+        streamId: extraData.streamId || extraData.stream || "",
+        departmentId: extraData.departmentId || extraData.department || "",
+        subject: extraData.subject || extraData.subjectId || "",
+      },
+    });
+    return result.data.id;
+
+    /* Legacy client-side provisioning retained below for rollback reference.
     // Ensure unique ID or auto-generate
     let finalId = id;
     try {
@@ -256,6 +253,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         await deleteApp(secondaryApp);
       } catch (_) {}
     }
+    */
   };
 
   const logout = async () => {

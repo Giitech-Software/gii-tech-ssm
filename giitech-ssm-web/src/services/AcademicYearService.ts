@@ -15,6 +15,7 @@ export type AcademicTerm = {
   name: string;
   startDate: string;
   endDate: string;
+  holidays?: string[];
 };
 
 const yearsCollection = collection(db, "academicYears");

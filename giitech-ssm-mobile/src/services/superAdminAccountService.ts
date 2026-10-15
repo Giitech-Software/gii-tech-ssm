@@ -28,6 +28,16 @@ export type CreateManagedAccountInput = {
   extra?: Record<string, unknown>;
 };
 
+export type SignupRequest = {
+  id: string;
+  role: ManagedAccountRole;
+  displayName: string;
+  phone?: string;
+  email?: string;
+  extra?: Record<string, unknown>;
+  status: string;
+};
+
 const functions = getFunctions(app, "africa-south1");
 
 function asIsoDate(value: unknown) {
@@ -99,4 +109,19 @@ export async function deleteManagedAccount(uid: string) {
   } catch (error) {
     throw callableError(error, "Unable to delete this account.");
   }
+}
+
+export async function submitSignupRequest(input: { role: "parent" | "teacher" | "student" | "staff"; displayName: string; phone?: string; email?: string; extra?: Record<string, unknown> }) {
+  const call = httpsCallable<typeof input, { requestId: string; status: string }>(functions, "submitSignupRequest");
+  return (await call(input)).data;
+}
+
+export async function fetchSignupRequests() {
+  const call = httpsCallable<void, { requests: SignupRequest[] }>(functions, "fetchSignupRequests");
+  return (await call()).data.requests;
+}
+
+export async function decideSignupRequest(requestId: string, decision: "approve" | "reject", password?: string) {
+  const call = httpsCallable<{ requestId: string; decision: string; password?: string }, { status: string; id?: string; temporaryPassword?: string }>(functions, "decideSignupRequest");
+  return (await call({ requestId, decision, password })).data;
 }

@@ -351,12 +351,10 @@ export async function fetchTeacherDashboardSummary(userId: string): Promise<Teac
       const [assignments, classes, submissions] = await Promise.all([
         fetchTeacherAssignments(userId),
         fetchTeacherClasses(userId),
-        getDocs(collection(db, "submissions")),
+        fetchTeacherSubmissions(userId),
       ]);
       const assignmentIds = new Set(assignments.data.map((assignment) => assignment.id));
-      const matchingSubmissions = submissions.docs
-        .map((item) => item.data())
-        .filter((submission) => assignmentIds.has(String(submission.assignmentId || "")));
+      const matchingSubmissions = submissions.data.filter((submission) => assignmentIds.has(submission.assignmentId));
 
       return {
         assignments: assignments.data.length,
@@ -387,9 +385,13 @@ export async function fetchTeacherSubmissions(userId: string): Promise<TeacherRe
   const assignmentMap = new Map(assignments.data.map((assignment) => [assignment.id, assignment]));
 
   try {
-    const snapshot = await getDocs(collection(db, "submissions"));
+    const snapshots = await Promise.all(
+      [...assignmentMap.keys()].map((assignmentId) =>
+        getDocs(query(collection(db, "submissions"), where("assignmentId", "==", assignmentId)))
+      )
+    );
     const submissions = new Map(
-      snapshot.docs
+      snapshots.flatMap((snapshot) => snapshot.docs)
         .map((item) => submissionFromData(item.id, item.data(), assignmentMap))
         .filter((submission) => assignmentMap.has(submission.assignmentId))
         .map((submission) => [submission.id, submission])

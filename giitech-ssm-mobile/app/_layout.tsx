@@ -15,7 +15,7 @@ function RouteGuard() {
   useEffect(() => {
     if (loading || pathname === "/") return;
 
-    if (!user) {
+    if (!user && pathname !== "/signup") {
       router.replace("/");
       return;
     }

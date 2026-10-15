@@ -15,6 +15,11 @@ export async function fetchLibraryLoans(): Promise<(LibraryLoan & { borrowerId: 
   return snapshot.docs.map((item) => { const data = item.data() as Omit<LibraryLoan & { borrowerId: string; bookId: string }, "id">; return { id: item.id, ...data, status: data.status === "borrowed" && data.dueDate < today ? "overdue" : data.status }; });
 }
 
+export async function addLibraryBook(input: Omit<LibraryBook, "id" | "availableCopies">) {
+  if (!input.title.trim() || !input.bookNumber.trim() || !input.author.trim() || input.totalCopies < 1) throw new Error("Complete the required book fields.");
+  await addDoc(collection(db, "libraryBooks"), { ...input, availableCopies: input.totalCopies, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+}
+
 export async function issueLibraryBook(book: LibraryBook, borrowerId: string, borrowerName: string, dueDate: string) {
   if (book.availableCopies < 1) throw new Error("No copies are available.");
   const existing = await getDocs(query(collection(db, "libraryLoans"), where("borrowerId", "==", borrowerId), where("status", "in", ["borrowed", "overdue"])));

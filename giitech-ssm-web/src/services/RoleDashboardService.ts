@@ -66,14 +66,17 @@ const currency = (value: number) =>
   new Intl.NumberFormat("en-GH", { style: "currency", currency: "GHS", maximumFractionDigits: 0 }).format(value);
 
 export async function fetchTeacherDashboard(userId: string): Promise<RoleDashboardData> {
-  const [assignments, submissionSnapshot, notifications] = await Promise.all([
+  const [assignments, notifications] = await Promise.all([
     fetchAssignmentsByTeacher(),
-    getDocs(collection(db, "submissions")),
     fetchNotificationsForUser({ userId, role: "teacher" }),
   ]);
+  const submissionSnapshots = await Promise.all(
+    assignments.map((assignment) =>
+      getDocs(query(collection(db, "submissions"), where("assignmentId", "==", assignment.id)))
+    )
+  );
   const assignmentIds = new Set(assignments.map((assignment) => assignment.id));
-  const submissions = submissionSnapshot.docs
-    .map((item) => item.data())
+  const submissions = submissionSnapshots.flatMap((snapshot) => snapshot.docs.map((item) => item.data()))
     .filter((submission) => assignmentIds.has(submission.assignmentId));
   const pending = submissions.filter((submission) => String(submission.status || "").toLowerCase() !== "graded");
   const graded = submissions.filter((submission) => String(submission.status || "").toLowerCase() === "graded");

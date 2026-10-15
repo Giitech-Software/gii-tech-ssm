@@ -108,6 +108,7 @@ const SharedLayout = () => {
     { to: "/admin/create-student", label: "Create Student", icon: <UserPlus size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/staff", label: "Staff", icon: <Users size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/create-staff", label: "Create Staff", icon: <UserPlus size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/signup-requests", label: "Signup Requests", icon: <ClipboardCheck size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/student-attendance", label: "Student Attendance", icon: <CalendarCheck2 size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/staff-attendance", label: "Staff Attendance", icon: <Calendar size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/attendance-administration", label: "Attendance Administration", icon: <Settings2 size={18} />, roles: ["superadmin", "admin"] },
@@ -124,6 +125,7 @@ const SharedLayout = () => {
     { to: "/admin/ai-monthly-costs", label: "AI Monthly Costs", icon: <BarChart3 size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/activity", label: "Activity Logs", icon: <Activity size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/communications", label: "Communications", icon: <Megaphone size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/bulk-messaging", label: "Bulk SMS / WhatsApp", icon: <Megaphone size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/promotions", label: "Student Promotion", icon: <ArrowUpRight size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/term-comments", label: "Learner Progress", icon: <FileText size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/assessments", label: "Assessment Setup", icon: <ClipboardCheck size={18} />, roles: ["superadmin", "admin"] },
@@ -157,8 +159,8 @@ const SharedLayout = () => {
     { to: "/teacher/exam-grades", label: "Learner Gradebook", icon: <BookOpen size={18} />, roles: ["teacher"] },
     { to: "/teacher/grade-summary", label: "Grade Summary", icon: <BarChart3 size={18} />, roles: ["teacher"] },
     { to: "/teacher/attendance", label: "Attendance", icon: <Calendar size={18} />, roles: ["teacher"] },
+    { to: "/teacher/qr-attendance", label: "Attendance · QR scan", icon: <ScanLine size={18} />, roles: ["teacher"] },
     { to: "/teacher/learner-progress", label: "Learner Progress", icon: <FileText size={18} />, roles: ["teacher"] },
-    { to: "/teacher/qr-attendance", label: "QR Attendance", icon: <ScanLine size={18} />, roles: ["teacher"] },
     { to: "/teacher/feedback", label: "Feedback", icon: <Send size={18} />, roles: ["teacher"] },
     { to: "/teacher/messages", label: "Messages", icon: <MessageCircle size={18} />, roles: ["teacher"], badge: unreadCount },
     { to: "/student/assignments", label: "Assignments", icon: <FileText size={18} />, roles: ["student"] },
@@ -175,7 +177,7 @@ const SharedLayout = () => {
     { to: "/parent/messages", label: "Messages", icon: <MessageCircle size={18} />, roles: ["parent"], badge: unreadCount },
     { to: "/parent/fees", label: "Fees", icon: <DollarSign size={18} />, roles: ["parent"] },
     { to: "/staff/attendance", label: "Staff Check-in/out", icon: <Calendar size={18} />, roles: ["staff"] },
-    { to: "/staff/qr-attendance", label: "QR Attendance", icon: <ScanLine size={18} />, roles: ["staff"] },
+    { to: "/staff/qr-attendance", label: "Staff attendance · QR scan", icon: <ScanLine size={18} />, roles: ["staff"] },
     { to: "/staff/messages", label: "Communication", icon: <MessageCircle size={18} />, roles: ["staff"], badge: unreadCount },
     { to: "/staff/finance", label: "My Financial Records", icon: <WalletCards size={18} />, roles: ["staff"] },
     { to: "/staff/payslips", label: "My Payslips", icon: <ReceiptText size={18} />, roles: ["staff"] },
@@ -255,11 +257,13 @@ const SharedLayout = () => {
         </NavLink>
 
         {role === "admin" || role === "superadmin" ? <>
-          {renderAdminGroup("academic", "Academic operations", <GraduationCap size={18} />, visibleItems.filter(item => ["Departments", "Academic Years and Terms", "Classes", "Streams", "Students", "Staff", "Grading Configuration", "Student Rankings"].includes(item.label)))}
-          {renderAdminGroup("attendance", "Attendance Workspace", <CalendarCheck2 size={18} />, visibleItems.filter(item => ["Student Attendance", "Staff Attendance", "Attendance Administration"].includes(item.label)))}
-          {renderAdminGroup("finance", "Finance", <DollarSign size={18} />, visibleItems.filter(item => ["Payment Intents", "Fee Structures", "Student Ledger"].includes(item.label)))}
-          {renderAdminGroup("ai", "AI controls", <Sparkles size={18} />, visibleItems.filter(item => ["AI Grading Audit", "AI Usage Settings", "AI Usage Report", "AI Cost Controls", "AI Budget Alerts", "AI Monthly Costs"].includes(item.label)))}
-          {renderAdminGroup("school", "School administration", <ShieldCheck size={18} />, visibleItems.filter(item => !["Departments", "Academic Years and Terms", "Classes", "Streams", "Students", "Staff", "Student Attendance", "Staff Attendance", "Attendance Administration", "Grading Configuration", "Student Rankings", "Payment Intents", "Fee Structures", "Student Ledger", "School Library", "Staff Financial Records", "AI Grading Audit", "AI Usage Settings", "AI Usage Report", "AI Cost Controls", "AI Budget Alerts", "AI Monthly Costs"].includes(item.label)))}
+          {renderAdminGroup("people", "People & identity", <Users size={18} />, visibleItems.filter(item => ["Students", "Create Student", "Staff", "Create Staff", "Signup Requests", "User Management", "Create User", "Family Links", "Graduated / Archive", "Graduation Archive"].includes(item.label)))}
+          {renderAdminGroup("setup", "School setup", <GraduationCap size={18} />, visibleItems.filter(item => ["Departments", "Academic Years and Terms", "Classes", "Streams", "Grading Configuration", "Assessment Setup"].includes(item.label)))}
+          {renderAdminGroup("communications", "Communications", <Megaphone size={18} />, visibleItems.filter(item => ["Communications", "Bulk SMS / WhatsApp", "Activity Logs"].includes(item.label)))}
+          {renderAdminGroup("learning", "Teaching & learning", <BookOpen size={18} />, visibleItems.filter(item => ["Student Promotion", "Learner Progress", "Classwork and Homework", "Tests and Assessment Summary", "Exam/Test Score Entry", "Learner Gradebook", "Student Submissions", "Assignment Grades", "Report Publishing"].includes(item.label)))}
+          {renderAdminGroup("reports", "Reports & insights", <BarChart3 size={18} />, visibleItems.filter(item => ["Reports", "Institutional Analytics", "Student Rankings", "Staff Finance Reports", "SSNIT Contribution Report", "SSNIT Remittance Tracking"].includes(item.label)))}
+          {renderAdminGroup("operations", "Attendance, finance & operations", <CalendarCheck2 size={18} />, visibleItems.filter(item => ["Student Attendance", "Staff Attendance", "Attendance Administration", "Payment Intents", "Fee Structures", "Student Ledger", "School Library", "Staff Financial Records", "Staff Loan Repayments"].includes(item.label)))}
+          {renderAdminGroup("ai", "AI tools", <Sparkles size={18} />, visibleItems.filter(item => ["AI Grading Audit", "AI Usage Settings", "AI Usage Report", "AI Cost Controls", "AI Budget Alerts", "AI Monthly Costs"].includes(item.label)))}
         </> : renderNavItems(visibleItems)}
       </nav>
 

@@ -27,7 +27,7 @@ export function TeacherPageShell({
           <Text className="mt-3 text-3xl font-black text-white">{title}</Text>
           <Text className="mt-2 text-sm leading-5 text-blue-100">{subtitle}</Text>
         </View>
-        <View className="mt-2">{children}</View>
+        <View className="mt-2">{children}</View><Text className="mt-8 text-center text-xs text-slate-500">ASTEM-SSM, all rights reserved.</Text>
       </ScrollView></KeyboardAvoidingView>
     </SafeAreaView>
   );

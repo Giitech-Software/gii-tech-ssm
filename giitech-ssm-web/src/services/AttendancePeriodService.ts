@@ -11,8 +11,12 @@ export async function getAttendanceCalendar(): Promise<AttendanceCalendar> {
 
 export function dateInRange(date: string, start: string, end: string) { return date >= start && date <= end; }
 
+export function isInstructionalDate(date: string, term?: AcademicTerm) {
+  return !!term && dateInRange(date, term.startDate, term.endDate) && !(term.holidays || []).includes(date);
+}
+
 export function resolveAttendanceTerm(date: string, calendar: AttendanceCalendar) {
-  const term = calendar.terms.find(item => dateInRange(date, item.startDate, item.endDate));
+  const term = calendar.terms.find(item => isInstructionalDate(date, item));
   if (!term) return undefined;
   const year = calendar.years.find(item => item.id === term.academicYearId);
   return { term: term.name, termId: term.id, academicYear: year?.name || "", academicYearId: term.academicYearId };

@@ -27,6 +27,7 @@ export default function TeacherAssignmentsPage() {
   const [dueDate, setDueDate] = useState("");
   const [classId, setClassId] = useState("");
   const [type, setType] = useState("essay");
+  const [questions, setQuestions] = useState<{ question: string; answer: string; options: string[]; questionType: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [offline, setOffline] = useState(false);
@@ -78,13 +79,14 @@ export default function TeacherAssignmentsPage() {
           dueDate: new Date(`${dueDate}T23:59:59`).toISOString(),
           type,
           teacherId: user.uid,
-          questions: [],
+          questions: questions.map(item => ({ ...item, options: item.options.filter(Boolean) })),
         },
       });
       setTitle("");
       setSubject("");
       setDescription("");
       setDueDate("");
+      setQuestions([]);
       setMessage(result === "synced" ? "Assignment created." : "Assignment saved offline and queued.");
       await load();
     } catch (saveError) {
@@ -127,6 +129,7 @@ export default function TeacherAssignmentsPage() {
             </Pressable>
           ))}
         </View>
+        {(type === "objective" || type === "short-answer") && <View className="mt-4 rounded-2xl bg-slate-50 p-4"><View className="flex-row items-center justify-between"><Text className="text-xs font-bold uppercase tracking-widest text-slate-500">Test questions</Text><Pressable onPress={() => setQuestions(current => [...current, { question: "", answer: "", options: ["", "", "", ""], questionType: type === "objective" ? "multiple-choice" : "short-answer" }])} className="rounded-xl bg-sky-700 px-3 py-2"><Text className="text-xs font-bold text-white">+ Add question</Text></Pressable></View>{questions.map((item, index) => <View key={index} className="mt-3 rounded-xl border border-slate-200 bg-white p-3"><Text className="font-bold text-slate-700">Question {index + 1}</Text><TextInput className="mt-2 rounded-xl border border-slate-200 px-3 py-3" onChangeText={value => setQuestions(current => current.map((question, position) => position === index ? { ...question, question: value } : question))} placeholder={`Question ${index + 1}`} value={item.question} /><TextInput className="mt-2 rounded-xl border border-slate-200 px-3 py-3" onChangeText={value => setQuestions(current => current.map((question, position) => position === index ? { ...question, answer: value } : question))} placeholder="Correct answer" value={item.answer} /></View>)}{!questions.length && <Text className="mt-3 text-sm text-slate-500">Add multiple questions to create a test.</Text>}</View>}
         <Text className="mt-3 text-xs font-bold uppercase tracking-widest text-slate-500">Type</Text>
         <View className="mt-2 flex-row flex-wrap">
           {["essay", "short-answer", "objective", "file", "project"].map((item) => (
@@ -135,8 +138,9 @@ export default function TeacherAssignmentsPage() {
             </Pressable>
           ))}
         </View>
+        <Text className="mt-4 text-xs text-slate-500">After saving, the form clears so you can create another test or assignment immediately.</Text>
         <Pressable className="mt-3 items-center rounded-2xl bg-emerald-700 px-4 py-4 active:bg-emerald-800" disabled={saving} onPress={create}>
-          <Text className="text-sm font-bold text-white">{saving ? "Saving..." : "Create assignment"}</Text>
+          <Text className="text-sm font-bold text-white">{saving ? "Saving..." : "Save and add another"}</Text>
         </Pressable>
       </View>
       <Text className="mt-7 text-lg font-extrabold text-slate-900">Existing assignments</Text>

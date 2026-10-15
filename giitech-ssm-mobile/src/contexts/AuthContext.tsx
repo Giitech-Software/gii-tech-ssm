@@ -76,6 +76,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login: async (id: string, password: string) => {
         const credentials = await signInWithEmailAndPassword(auth, idToEmail(id), password);
         const profile = (await getDoc(doc(db, "users", credentials.user.uid))).data();
+        if (profile?.status === "disabled" || profile?.status === "pending" || profile?.locked === true) {
+          await signOut(auth);
+          throw new Error(profile?.status === "pending" ? "This account is awaiting administrator approval." : "This account is currently disabled. Contact your administrator.");
+        }
         return typeof profile?.role === "string" ? profile.role : "";
       },
       resetPassword: async (id: string) => {

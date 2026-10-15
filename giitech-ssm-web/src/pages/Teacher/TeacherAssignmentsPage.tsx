@@ -114,9 +114,19 @@ const TeacherAssignmentsPage: React.FC = () => {
       return;
     }
 
+    if ((newAssignment.type === "objective" || newAssignment.type === "short-answer") && !(newAssignment.questions || []).length) {
+      toast.error("Add at least one numbered question to this test.");
+      return;
+    }
+    if ((newAssignment.questions || []).some((question) => !question.question.trim() || !question.answer.trim())) {
+      toast.error("Complete every question and its correct answer before saving.");
+      return;
+    }
+
     try {
       const newData: ExtendedAssignment = {
         ...newAssignment,
+        questions: (newAssignment.questions || []).map((question, index) => ({ ...question, number: index + 1 })),
         teacherId: user?.uid || "tch001",
         createdAt: new Date(),
       };
@@ -215,7 +225,7 @@ const TeacherAssignmentsPage: React.FC = () => {
       {/* Create Assignment */}
       <div className="bg-white rounded-2xl shadow p-6 mb-8 border border-slate-100">
         <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <PlusCircle className="text-green-500" /> Create Assignment
+          <PlusCircle className="text-green-500" /> Create Tests / Assignments
         </h2>
 
         {/* Form Fields */}
@@ -426,7 +436,7 @@ const TeacherAssignmentsPage: React.FC = () => {
             onClick={handleCreate}
             className="bg-primary text-white rounded-lg px-5 py-2 hover:bg-primary transition"
           >
-            Create Assignment
+            Save and add another
           </button>
         </div>
       </div>

@@ -1,7 +1,7 @@
-import { BrowserRouter as Router, Navigate, Outlet, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Link, Navigate, Outlet, Route, Routes } from "react-router-dom";
 import type { JSX } from "react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import Login from "./pages/Login";
+import Login from "./pages/BrandedLogin";
 import Signup from "./pages/SuperAdmin/CreateUser";
 import FeesPage from "./pages/Admin/FeesPage";
 import FinanceLedgerPage from "./pages/Admin/FinanceLedgerPage";
@@ -72,7 +72,7 @@ import AiUsageReportPage from "./pages/Admin/AiUsageReportPage";
 import AiCostSettingsPage from "./pages/Admin/AiCostSettingsPage";
 import AiBudgetAlertsPage from "./pages/Admin/AiBudgetAlertsPage";
 import AiMonthlyCostReportPage from "./pages/Admin/AiMonthlyCostReportPage";
-import LibraryPage from "./pages/Admin/LibraryPage";
+import LibraryPage from "./pages/Admin/LibraryWorkspacePage";
 import StaffFinancePage from "./pages/Admin/StaffFinancePage";
 import StaffLoanRepaymentsPage from "./pages/Admin/StaffLoanRepaymentsPage";
 import StaffFinanceSelfServicePage from "./pages/Staff/StaffFinancePage";
@@ -92,6 +92,8 @@ import AttendanceFaceEnrollmentPage from "./pages/Admin/AttendanceFaceEnrollment
 import AttendanceWorkspacePage from "./pages/Admin/AttendanceWorkspacePage";
 import ArchivePage from "./pages/Admin/ArchivePage";
 import GraduationArchivePage from "./pages/Admin/GraduationArchivePage";
+import SignupPage from "./pages/Signup";
+import SignupRequestsPage from "./pages/Admin/SignupRequestsPage";
 
 function LoadingScreen() {
   return (
@@ -143,6 +145,7 @@ export default function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<div className="relative"><Link to="/login" className="fixed left-5 top-5 z-10 rounded-xl bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow">Back to login</Link><SignupPage /></div>} />
 
           <Route
             path="/*"
@@ -217,6 +220,7 @@ export default function App() {
               <Route path="admin/assessments" element={<AssessmentManagementPage />} />
               <Route path="admin/report-publishing" element={<ReportPublishingPage />} />
               <Route path="admin/identity-links" element={<IdentityLinksPage />} />
+              <Route path="admin/signup-requests" element={<SignupRequestsPage />} />
               <Route path="admin/fees" element={<FeesPage />} />
               <Route path="admin/finance" element={<FinanceLedgerPage />} />
               <Route path="admin/library" element={<LibraryPage />} />
