@@ -8,6 +8,7 @@ import {
   updateDoc,
   orderBy,
   query,
+  where,
 } from "firebase/firestore";
 import {
   FileText,
@@ -37,7 +38,7 @@ const TeacherFeedbackPage: React.FC = () => {
   useEffect(() => {
     const fetchSubmissions = async () => {
       try {
-        const q = query(collection(db, "submissions"), orderBy("submittedAt", "desc"));
+        const q = query(collection(db, "submissions"), where("tenantId", "==", "astem-ssm-001"), orderBy("submittedAt", "desc"));
         const snapshot = await getDocs(q);
         const data = snapshot.docs.map((d) => ({
           id: d.id,

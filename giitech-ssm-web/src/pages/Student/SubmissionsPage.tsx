@@ -263,19 +263,27 @@ const SubmissionsPage: React.FC = () => {
     }
   };
 
- const handleSubmit = async () => {
+  const selectedAssignmentData = assignments.find((a) => a.id === selectedAssignment);
+
+  useEffect(() => {
+    if (!selectedAssignmentData?.durationMinutes || !selectedAssignment) {
+      setTimeLeft(null);
+      return;
+    }
+    setTimeLeft(selectedAssignmentData.durationMinutes * 60);
+    const timer = window.setInterval(() => {
+      setTimeLeft((value) => (value === null ? null : Math.max(0, value - 1)));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [selectedAssignmentData?.durationMinutes, selectedAssignment]);
+
+  const handleSubmit = async () => {
   if (!selectedAssignment || !studentClass || !studentId || !user) {
     toast.error("Please select an assignment before submitting.");
     return;
   }
 
-  const selected = assignments.find((a) => a.id === selectedAssignment);
-  useEffect(() => {
-    if (!selected?.durationMinutes || !selectedAssignment) { setTimeLeft(null); return; }
-    setTimeLeft(selected.durationMinutes * 60);
-    const timer = window.setInterval(() => setTimeLeft(value => value === null ? null : Math.max(0, value - 1)), 1000);
-    return () => window.clearInterval(timer);
-  }, [selected?.durationMinutes, selectedAssignment]);
+  const selected = selectedAssignmentData;
   if (!selected) return;
 
   setUploading(true);
@@ -586,7 +594,7 @@ const SubmissionsPage: React.FC = () => {
                 setPerQuestionFeedback({});
                 setFile(null);
               }}
-              className="border border-slate-300 p-2 rounded-lg w-full"
+              className="w-full rounded-lg border border-slate-300 bg-white p-2 text-slate-700 focus:border-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-200"
             >
               <option value="">Select Assignment</option>
               {assignments.map((a) => (
@@ -706,14 +714,14 @@ const SubmissionsPage: React.FC = () => {
 
             <button
               onClick={handleSubmit}
-              disabled={uploading || timeLeft === 0}
-              className={`px-6 py-2 rounded-lg text-white font-medium transition ${
-                uploading
-                  ? "bg-slate-400 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700"
+              disabled={uploading || !selected || timeLeft === 0}
+              className={`px-6 py-2 rounded-lg font-medium transition border focus:outline-none focus:ring-2 focus:ring-blue-200 ${
+                uploading || !selected || timeLeft === 0
+                  ? "border-slate-300 bg-slate-100 text-slate-400 cursor-not-allowed"
+                  : "border-blue-600 bg-white text-blue-700 hover:bg-blue-50"
               }`}
             >
-              {timeLeft === 0 ? "Time expired" : uploading ? "Submitting..." : "Submit"}
+              {timeLeft === 0 ? "Time expired" : uploading ? "Submitting..." : selected ? "Submit" : "Select an assignment"}
             </button>
           </div>
         </div>

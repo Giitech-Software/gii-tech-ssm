@@ -14,12 +14,14 @@ import {
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { getAuth } from "firebase/auth";
+import { TENANT_ID } from "../config/tenant";
 
 /**
  * Assignment data model (matches Firestore)
  */
 export interface Assignment {
   id?: string;
+  tenantId?: string;
   title: string;
   description?: string;
   classId: string;
@@ -53,7 +55,7 @@ const docsToAssignments = (snapshotDocs: any[]) =>
  */
 export const fetchAssignments = async (): Promise<Assignment[]> => {
   try {
-    const q = query(collection(db, "assignments"), orderBy("dueDate"));
+    const q = query(collection(db, "assignments"), where("tenantId", "==", TENANT_ID), orderBy("dueDate"));
     const snapshot = await getDocs(q);
     return docsToAssignments(snapshot.docs);
   } catch (error) {
@@ -71,6 +73,7 @@ export const fetchAssignmentsByClass = async (
   try {
     const q = query(
       collection(db, "assignments"),
+      where("tenantId", "==", TENANT_ID),
       where("classId", "==", classId),
       orderBy("dueDate")
     );
@@ -99,6 +102,7 @@ export const fetchAssignmentsByTeacher = async (): Promise<Assignment[]> => {
 
     const preferredConstraints: QueryConstraint[] = [
       where("teacherId", "==", user.uid),
+      where("tenantId", "==", TENANT_ID),
       orderBy("dueDate"),
     ];
 
@@ -112,7 +116,7 @@ export const fetchAssignmentsByTeacher = async (): Promise<Assignment[]> => {
         "fetchAssignmentsByTeacher: preferred query failed (likely mixed dueDate types). Falling back without orderBy.",
         err
       );
-      const qFallback = query(collection(db, "assignments"), where("teacherId", "==", user.uid));
+      const qFallback = query(collection(db, "assignments"), where("tenantId", "==", TENANT_ID), where("teacherId", "==", user.uid));
       const snapshot = await getDocs(qFallback);
       console.log("fetchAssignmentsByTeacher: fallback query docs:", snapshot.size);
       return docsToAssignments(snapshot.docs);
@@ -132,6 +136,7 @@ export const fetchAssignmentsByTeacherId = async (
   try {
     const q = query(
       collection(db, "assignments"),
+      where("tenantId", "==", TENANT_ID),
       where("teacherId", "==", teacherId),
       orderBy("dueDate")
     );
@@ -152,6 +157,7 @@ export const fetchAssignmentsByStudent = async (
   try {
     const q = query(
       collection(db, "assignments"),
+      where("tenantId", "==", TENANT_ID),
       where("classId", "==", classId),
       orderBy("dueDate")
     );
@@ -187,6 +193,7 @@ export const addAssignment = async (data: Assignment): Promise<void> => {
 
     await addDoc(collection(db, "assignments"), {
       ...data,
+      tenantId: TENANT_ID,
       teacherId: user.uid,
       createdAt: serverTimestamp(),
     });
@@ -218,7 +225,7 @@ export const updateAssignment = async (
     }
 
     const ref = doc(db, "assignments", id);
-    await updateDoc(ref, data);
+    await updateDoc(ref, { ...data, tenantId: TENANT_ID });
   } catch (error) {
     console.error("Error updating assignment:", error);
     throw error;

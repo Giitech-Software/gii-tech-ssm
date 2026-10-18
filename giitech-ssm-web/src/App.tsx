@@ -94,6 +94,7 @@ import ArchivePage from "./pages/Admin/ArchivePage";
 import GraduationArchivePage from "./pages/Admin/GraduationArchivePage";
 import SignupPage from "./pages/Signup";
 import SignupRequestsPage from "./pages/Admin/SignupRequestsPage";
+import CreateSchoolPage from "./pages/SuperAdmin/CreateSchoolPage";
 
 function LoadingScreen() {
   return (
@@ -160,11 +161,13 @@ export default function App() {
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="notifications" element={<NotificationsPage />} />
             <Route path="notification-preferences" element={<NotificationPreferencesPage />} />
+            <Route path="my-attendance" element={<StaffAttendancePage />} />
 
             <Route element={<RoleProtectedRoute allowedRoles={["superadmin"]} />}>
               <Route path="superadmin" element={<SuperAdminDashboard />} />
               <Route path="superadmin/users" element={<UserManagementPage />} />
               <Route path="superadmin/create-user" element={<Signup />} />
+              <Route path="superadmin/create-school" element={<CreateSchoolPage />} />
             </Route>
             <Route element={<RoleProtectedRoute allowedRoles={["admin", "superadmin"]} />}>
               <Route path="admin/create-student" element={<Signup />} />
@@ -173,7 +176,7 @@ export default function App() {
             <Route element={<RoleProtectedRoute allowedRoles={["staff"]} />}>
               <Route path="staff" element={<StaffDashboard />} />
               <Route path="staff/attendance" element={<StaffAttendancePage />} />
-              <Route path="staff/qr-attendance" element={<QrAttendancePage />} />
+              <Route path="staff/qr-attendance" element={<Navigate to="/staff/attendance" replace />} />
               <Route path="staff/messages" element={<TeacherMessagesPage />} />
               <Route path="staff/finance" element={<StaffFinanceSelfServicePage />} />
               <Route path="staff/payslips" element={<StaffPayslipsPage />} />
@@ -251,6 +254,7 @@ export default function App() {
               <Route path="teacher/exam-grades" element={<TeacherExamGradesPage />} />
               <Route path="teacher/grade-summary" element={<GradeSummaryReportPage />} />
               <Route path="teacher/attendance" element={<TeacherAttendancePage />} />
+            <Route path="teacher/my-attendance" element={<Navigate to="/my-attendance" replace />} />
               <Route path="teacher/learner-progress" element={<TermCommentsPage />} />
               <Route path="teacher/qr-attendance" element={<QrAttendancePage />} />
               <Route path="teacher/feedback" element={<TeacherFeedbackPage />} />

@@ -19,6 +19,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 
 /* -------------------------------------------------------------------------- */
 /*                                🔹 USERS                                    */
@@ -112,7 +113,7 @@ export const getClassesByTeacher = async (teacherId: string) => {
 /* -------------------------------------------------------------------------- */
 
 export const getAssignmentsByClass = async (classId: string) => {
-  const q = query(collection(db, "assignments"), where("classId", "==", classId));
+  const q = query(collection(db, "assignments"), where("tenantId", "==", TENANT_ID), where("classId", "==", classId));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 };

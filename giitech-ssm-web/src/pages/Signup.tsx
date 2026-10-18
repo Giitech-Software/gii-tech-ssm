@@ -11,7 +11,7 @@ export default function SignupPage() {
   useEffect(() => { void fetchSignupOptions().then(setOptions).catch(() => undefined); }, []);
   const set = (key: keyof typeof emptyForm, value: string) => setForm((current) => ({ ...current, [key]: value }));
   const submit = async (event: React.FormEvent) => {
-    event.preventDefault(); setSaving(true); setError("");
+    event.preventDefault(); if (!form.email.trim()) { setError("Email is required."); return; } setSaving(true); setError("");
     try {
       const extra = role === "parent" ? { studentIds: form.students.split(",").map((v) => v.trim()).filter(Boolean) } : role === "student" ? { departmentId: form.department, classId: form.classId, streamId: form.stream } : role === "teacher" ? { departmentId: form.department, subject: form.subject } : { departmentId: form.department };
       await submitSignupRequest({ role, displayName: form.name, phone: form.phone, email: form.email, extra });

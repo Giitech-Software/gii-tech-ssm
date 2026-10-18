@@ -1,4 +1,5 @@
 import { collection, doc, getDoc, getDocs, query, serverTimestamp, setDoc, where } from "firebase/firestore";
+import { getAuth } from "firebase/auth";
 import { db } from "../firebaseConfig";
 import { TENANT_ID } from "../config/tenant";
 
@@ -22,15 +23,20 @@ export type StaffAttendanceSettings = { startTime: string; closingTime: string; 
 export async function getStaffAttendanceSettings(): Promise<StaffAttendanceSettings> { const snapshot = await getDoc(doc(db, "staffAttendanceSettings", "default")); return ({ startTime: "08:00", closingTime: "16:00", graceMinutes: 15, staffQrEnabled: false, staffBiometricEnabled: true, verificationMode: "biometric", ...(snapshot.data() || {}) }) as StaffAttendanceSettings; }
 export async function saveStaffAttendanceSettings(settings: StaffAttendanceSettings) { await setDoc(doc(db, "staffAttendanceSettings", "default"), { ...settings, updatedAt: serverTimestamp() }, { merge: true }); }
 
-export async function getStaffAttendance(staffId: string) {
-  const snapshot = await getDocs(query(collection(db, "staffAttendance"), where("tenantId", "==", TENANT_ID), where("staffId", "==", staffId)));
+export async function getStaffAttendance(staffId: string, userId = getAuth().currentUser?.uid || "") {
+  const filters = userId ? [where("tenantId", "==", TENANT_ID), where("userId", "==", userId)] : [where("tenantId", "==", TENANT_ID), where("staffId", "==", staffId)];
+  const snapshot = await getDocs(query(collection(db, "staffAttendance"), ...filters));
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() } as StaffAttendanceRecord));
 }
 
 export async function getStaffIdentity(userId: string) {
-  const snapshot = await getDocs(query(collection(db, "teachers"), where("userId", "==", userId)));
-  const item = snapshot.docs[0];
-  if (!item) return { staffId: "staff-member", displayName: "Staff member", userId, attendanceEnabled: true };
+  const [teacherSnapshot, staffSnapshot] = await Promise.all([getDocs(query(collection(db, "teachers"), where("userId", "==", userId))), getDocs(query(collection(db, "staff"), where("userId", "==", userId)))]);
+  const item = teacherSnapshot.docs[0] || staffSnapshot.docs[0];
+  if (!item) {
+    const userSnapshot = await getDoc(doc(db, "users", userId));
+    const data = userSnapshot.data() || {};
+    return { staffId: String(data.id || userId), displayName: String(data.displayName || "Administrator"), userId, attendanceEnabled: data.attendanceEnabled !== false };
+  }
   const data = item.data();
   return { staffId: String(data.teacherId || item.id), displayName: String(data.displayName || "Staff member"), userId, attendanceEnabled: data.attendanceEnabled !== false };
 }

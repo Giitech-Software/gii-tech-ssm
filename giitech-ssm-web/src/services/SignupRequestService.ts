@@ -17,6 +17,6 @@ export async function fetchSignupRequests() {
   return (await call()).data.requests;
 }
 export async function decideSignupRequest(requestId: string, decision: "approve" | "reject", password?: string, id?: string) {
-  const call = httpsCallable<{ requestId: string; decision: string; password?: string; id?: string }, { status: string; id?: string; temporaryPassword?: string; deliveryStatus?: string }>(functions, "decideSignupRequest");
+  const call = httpsCallable<{ requestId: string; decision: string; password?: string; id?: string }, { status: string; id?: string; temporaryPassword?: string; deliveryStatus?: string; deliveryError?: string; emailStatus?: string; emailError?: string; smsStatus?: string; smsError?: string }>(functions, "decideSignupRequest");
   return (await call({ requestId, decision, password, id })).data;
 }

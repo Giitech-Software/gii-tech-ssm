@@ -33,11 +33,11 @@ import {
   Send,
   ShieldCheck,
   Settings2,
-  ScanLine,
   Sparkles,
   UploadCloud,
   Users,
   UserCog,
+  UserCheck,
   UserPlus,
   X,
 } from "lucide-react";
@@ -147,6 +147,7 @@ const SharedLayout = () => {
     { to: "/admin/ssnit-remittance", label: "SSNIT Remittance Tracking", icon: <ShieldCheck size={18} />, roles: ["superadmin", "admin"] },
     { to: "/superadmin/users", label: "User Management", icon: <UserCog size={18} />, roles: ["superadmin"] },
     { to: "/superadmin/create-user", label: "Create User", icon: <UserPlus size={18} />, roles: ["superadmin"] },
+    { to: "/superadmin/create-school", label: "Create School", icon: <Building size={18} />, roles: ["superadmin"] },
     { to: "/admin/reports", label: "Reports", icon: <FileBarChart2 size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/institutional-analytics", label: "Institutional Analytics", icon: <BarChart3 size={18} />, roles: ["superadmin", "admin"] },
     { to: "/teacher/assignments", label: "Assignments", icon: <ClipboardList size={18} />, roles: ["teacher"] },
@@ -158,8 +159,8 @@ const SharedLayout = () => {
     { to: "/teacher/exam-grades", label: "Exam Grades", icon: <ClipboardCheck size={18} />, roles: ["teacher"] },
     { to: "/teacher/exam-grades", label: "Learner Gradebook", icon: <BookOpen size={18} />, roles: ["teacher"] },
     { to: "/teacher/grade-summary", label: "Grade Summary", icon: <BarChart3 size={18} />, roles: ["teacher"] },
-    { to: "/teacher/attendance", label: "Attendance", icon: <Calendar size={18} />, roles: ["teacher"] },
-    { to: "/teacher/qr-attendance", label: "Attendance · QR scan", icon: <ScanLine size={18} />, roles: ["teacher"] },
+    { to: "/teacher/attendance", label: "Student Attendance", icon: <Calendar size={18} />, roles: ["teacher"] },
+    { to: "/my-attendance", label: "My Attendance", icon: <UserCheck size={18} />, roles: ["superadmin", "admin", "teacher", "staff"] },
     { to: "/teacher/learner-progress", label: "Learner Progress", icon: <FileText size={18} />, roles: ["teacher"] },
     { to: "/teacher/feedback", label: "Feedback", icon: <Send size={18} />, roles: ["teacher"] },
     { to: "/teacher/messages", label: "Messages", icon: <MessageCircle size={18} />, roles: ["teacher"], badge: unreadCount },
@@ -176,8 +177,6 @@ const SharedLayout = () => {
     { to: "/notification-preferences", label: "Delivery Preferences", icon: <Bell size={18} />, roles: ["superadmin", "admin", "teacher", "student", "parent", "staff"] },
     { to: "/parent/messages", label: "Messages", icon: <MessageCircle size={18} />, roles: ["parent"], badge: unreadCount },
     { to: "/parent/fees", label: "Fees", icon: <DollarSign size={18} />, roles: ["parent"] },
-    { to: "/staff/attendance", label: "Staff Check-in/out", icon: <Calendar size={18} />, roles: ["staff"] },
-    { to: "/staff/qr-attendance", label: "Staff attendance · QR scan", icon: <ScanLine size={18} />, roles: ["staff"] },
     { to: "/staff/messages", label: "Communication", icon: <MessageCircle size={18} />, roles: ["staff"], badge: unreadCount },
     { to: "/staff/finance", label: "My Financial Records", icon: <WalletCards size={18} />, roles: ["staff"] },
     { to: "/staff/payslips", label: "My Payslips", icon: <ReceiptText size={18} />, roles: ["staff"] },
@@ -258,6 +257,7 @@ const SharedLayout = () => {
 
         {role === "admin" || role === "superadmin" ? <>
           {renderAdminGroup("people", "People & identity", <Users size={18} />, visibleItems.filter(item => ["Students", "Create Student", "Staff", "Create Staff", "Signup Requests", "User Management", "Create User", "Family Links", "Graduated / Archive", "Graduation Archive"].includes(item.label)))}
+          {role === "superadmin" && renderAdminGroup("platform", "Platform administration", <Building size={18} />, visibleItems.filter(item => ["Create School"].includes(item.label)))}
           {renderAdminGroup("setup", "School setup", <GraduationCap size={18} />, visibleItems.filter(item => ["Departments", "Academic Years and Terms", "Classes", "Streams", "Grading Configuration", "Assessment Setup"].includes(item.label)))}
           {renderAdminGroup("communications", "Communications", <Megaphone size={18} />, visibleItems.filter(item => ["Communications", "Bulk SMS / WhatsApp", "Activity Logs"].includes(item.label)))}
           {renderAdminGroup("learning", "Teaching & learning", <BookOpen size={18} />, visibleItems.filter(item => ["Student Promotion", "Learner Progress", "Classwork and Homework", "Tests and Assessment Summary", "Exam/Test Score Entry", "Learner Gradebook", "Student Submissions", "Assignment Grades", "Report Publishing"].includes(item.label)))}

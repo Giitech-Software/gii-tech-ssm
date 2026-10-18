@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { db } from "../../firebaseConfig";
+import { TENANT_ID } from "../../config/tenant";
 import { useAuth } from "../../contexts/AuthContext";
 import {
   collection,
@@ -79,6 +80,7 @@ export default function AssignmentsListPage() {
         // 3️⃣ Fetch assignments belonging to that class
         const assignmentQ = query(
           collection(db, "assignments"),
+          where("tenantId", "==", TENANT_ID),
           where("classId", "==", classId)
         );
         const assignmentSnap = await getDocs(assignmentQ);

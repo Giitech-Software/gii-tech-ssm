@@ -2,7 +2,7 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 
 const tenantId = "astem-ssm-001";
-const collections = ["users", "students", "teachers", "staff", "attendance", "staffAttendance", "attendanceFaceEnrollments", "attendanceFaceVerifications"];
+const collections = ["users", "students", "teachers", "staff", "attendance", "staffAttendance", "attendanceFaceEnrollments", "attendanceFaceVerifications", "assignments"];
 
 export const backfillAstemTenant = onCall({ region: "africa-south1" }, async request => {
   if (!request.auth) throw new HttpsError("unauthenticated", "Sign in is required.");

@@ -14,10 +14,12 @@ import {
 } from "firebase/firestore";
 import { idToEmail } from "../utils/idToEmail";
 import { getFunctions, httpsCallable } from "firebase/functions";
+import { resetTenantId, setTenantId as setTenantScopeId } from "../config/tenant";
 
 interface AuthContextType {
   user: User | null;
   role: string | null;
+  tenantId: string | null;
   displayName: string | null;
   loading: boolean;
   login: (id: string, password: string) => Promise<string>;
@@ -37,6 +39,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [tenantId, setTenantId] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -50,6 +53,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (docSnap.exists()) {
             const data = docSnap.data() as Record<string, any>;
             setRole((data.role as string) || null);
+            setTenantId((data.tenantId as string) || null);
+            setTenantScopeId(data.tenantId);
             setDisplayName(
               (data.displayName as string) ||
                 firebaseUser.displayName ||
@@ -57,15 +62,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             );
           } else {
             setRole(null);
+            setTenantId(null);
+            resetTenantId();
             setDisplayName(firebaseUser.displayName || null);
           }
         } catch (err) {
           console.warn("Failed to load user doc:", err);
           setRole(null);
+          setTenantId(null);
+          resetTenantId();
           setDisplayName(firebaseUser.displayName || null);
         }
       } else {
         setRole(null);
+        setTenantId(null);
+        resetTenantId();
         setDisplayName(null);
       }
       setLoading(false);
@@ -75,7 +86,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async (id: string, password: string) => {
     const email = idToEmail(id);
-    const credentials = await signInWithEmailAndPassword(auth, email, password);
+    let credentials;
+    try {
+      credentials = await signInWithEmailAndPassword(auth, email, password);
+    } catch (error) {
+      const code = String((error as { code?: string })?.code || "");
+      if (code === "auth/network-request-failed") throw new Error("No internet connection. Check your network and try again.");
+      if (code === "auth/invalid-credential" || code === "auth/user-not-found" || code === "auth/wrong-password") throw new Error("Incorrect school ID or password.");
+      throw error;
+    }
     const profile = await getDoc(doc(db, "users", credentials.user.uid));
     const data = profile.data() as Record<string, any> | undefined;
     if (data?.status === "disabled" || data?.status === "pending" || data?.locked === true) {
@@ -310,8 +329,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user]);
 
   const value = useMemo(
-    () => ({ user, role, displayName, loading, login, resetPassword, logout, signup }),
-    [user, role, displayName, loading]
+    () => ({ user, role, tenantId, displayName, loading, login, resetPassword, logout, signup }),
+    [user, role, tenantId, displayName, loading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

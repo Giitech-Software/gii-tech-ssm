@@ -53,6 +53,12 @@ function cleanId(value: unknown) {
   return id;
 }
 
+function cleanTenantId(value: unknown) {
+  const id = String(value || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  if (!id || id.length < 3 || id.length > 40) throw new HttpsError("invalid-argument", "School code must be 3 to 40 letters or numbers.");
+  return id;
+}
+
 function idToEmail(id: string) {
   return `${id.toLowerCase()}@giitech-ssm.com`;
 }
@@ -107,7 +113,7 @@ function profileData(role: AccountRole, id: string, uid: string, displayName: st
     return { ...base, teacherId: id, departmentId: String(extra.departmentId || ""), department: String(extra.departmentId || ""), subject: String(extra.subject || ""), status: "active" };
   }
   if (role === "parent") {
-    return { ...base, parentId: id, studentIds: Array.isArray(extra.studentIds) ? extra.studentIds.map(String) : [] };
+    return { ...base, parentId: id, phone: String(extra.phone || ""), contactEmail: String(extra.contactEmail || ""), studentIds: Array.isArray(extra.studentIds) ? extra.studentIds.map(String) : [] };
   }
   if (role === "staff") return { ...base, staffId: id, departmentId: String(extra.departmentId || ""), department: String(extra.departmentId || ""), phone: String(extra.phone || ""), status: "active" };
   return { ...base, adminId: id };
@@ -125,7 +131,9 @@ export const submitSignupRequest = onCall({ region }, async (request) => {
   const role = signupRole(data.role);
   const displayName = String(data.displayName || "").trim();
   const phone = String(data.phone || "").trim();
+  const email = String(data.email || "").trim().toLowerCase();
   if (!displayName) throw new HttpsError("invalid-argument", "Full name is required.");
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new HttpsError("invalid-argument", "A valid email address is required.");
   if (role !== "student" && !phone) throw new HttpsError("invalid-argument", "Phone number is required.");
   const db = getFirestore();
   const reference = db.collection("signupRequests").doc();
@@ -135,7 +143,7 @@ export const submitSignupRequest = onCall({ region }, async (request) => {
     role,
     displayName,
     phone,
-    email: String(data.email || "").trim().toLowerCase(),
+    email,
     extra: asRecord(data.extra),
     status: "pending",
     createdAt: FieldValue.serverTimestamp(),
@@ -188,7 +196,7 @@ export const decideSignupRequest = onCall({ region, secrets: [twilioAccountSid, 
   if (password.length < 6) throw new HttpsError("invalid-argument", "A temporary password with at least 6 characters is required.");
   const created = await auth.createUser({ email, password, displayName: String(signup.displayName || "School member") });
   try {
-    const extra = asRecord(signup.extra);
+    const extra: Record<string, unknown> = { ...asRecord(signup.extra), phone: String(signup.phone || ""), contactEmail: String(signup.email || "") };
     const batch = db.batch();
     batch.set(db.collection("users").doc(created.uid), { uid: created.uid, id, role, email, displayName: String(signup.displayName || "School member"), createdAt: FieldValue.serverTimestamp(), status: "active", tenantId: TENANT_ID, ...extra });
     batch.set(db.collection(profileCollections[role]).doc(id), { ...profileData(role, id, created.uid, String(signup.displayName || "School member"), email, extra), createdAt: FieldValue.serverTimestamp() });
@@ -197,10 +205,13 @@ export const decideSignupRequest = onCall({ region, secrets: [twilioAccountSid, 
     }
     batch.update(requestRef, { status: "approved", approvedUserId: created.uid, approvedAccountId: id, decidedBy: request.auth?.uid, decidedAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
     await batch.commit();
-    let deliveryStatus = "no-contact";
-    try { if (signup.email) deliveryStatus = `email-${await sendCredentialEmail(String(signup.email), id, password)}`; } catch (deliveryError) { deliveryStatus = "email-failed"; }
-    if (deliveryStatus !== "email-sent") { try { deliveryStatus = `sms-${await sendCredentialSms(String(signup.phone || ""), id, password)}`; } catch (deliveryError) { deliveryStatus = "sms-failed"; } }
-    return { status: "approved", uid: created.uid, id, temporaryPassword: password, deliveryStatus };
+    let deliveryStatus = "no-contact"; let deliveryError = ""; let emailStatus = "not-attempted"; let emailError = ""; let smsStatus = "not-attempted"; let smsError = "";
+    try { emailStatus = `email-${await sendCredentialEmail(String(signup.email), id, password)}`; } catch (deliveryFailure) { emailStatus = "email-failed"; emailError = deliveryFailure instanceof Error ? deliveryFailure.message : "Email delivery failed."; }
+    if (emailStatus !== "email-sent") { try { smsStatus = `sms-${await sendCredentialSms(String(signup.phone || ""), id, password)}`; } catch (deliveryFailure) { smsStatus = "sms-failed"; smsError = deliveryFailure instanceof Error ? deliveryFailure.message : "SMS delivery failed."; } }
+    deliveryStatus = emailStatus === "email-sent" ? emailStatus : smsStatus === "sms-failed" && emailStatus === "email-failed" ? "email-failed-sms-failed" : smsStatus;
+    deliveryError = [emailError && `Email: ${emailError}`, smsError && `SMS: ${smsError}`].filter(Boolean).join(" ");
+    await requestRef.update({ deliveryStatus, emailStatus, emailError: emailError || null, smsStatus, smsError: smsError || null, deliveryError: deliveryError || null, deliveryUpdatedAt: FieldValue.serverTimestamp() });
+    return { status: "approved", uid: created.uid, id, temporaryPassword: password, deliveryStatus, emailStatus, emailError: emailError || undefined, smsStatus, smsError: smsError || undefined, deliveryError: deliveryError || undefined };
   } catch (error) {
     await auth.deleteUser(created.uid).catch(() => undefined);
     throw error;
@@ -246,6 +257,39 @@ export const createManagedUser = onCall({ region }, async (request) => {
     throw error;
   }
   return { uid: created.uid, id, role, email, displayName };
+});
+
+export const createTenantWithAdmin = onCall({ region }, async (request) => {
+  await assertSuperAdmin(request.auth?.uid);
+  const data = asRecord(request.data);
+  const schoolName = String(data.schoolName || "").trim();
+  const tenantId = cleanTenantId(data.schoolCode);
+  const adminName = String(data.adminName || "").trim();
+  const adminEmail = String(data.adminEmail || "").trim().toLowerCase();
+  const password = String(data.password || "");
+  const phone = String(data.phone || "").trim();
+  if (!schoolName) throw new HttpsError("invalid-argument", "School name is required.");
+  if (!adminName) throw new HttpsError("invalid-argument", "Tenant Admin name is required.");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail)) throw new HttpsError("invalid-argument", "A valid Admin email is required.");
+  if (password.length < 6) throw new HttpsError("invalid-argument", "The temporary password must contain at least 6 characters.");
+  const db = getFirestore();
+  const tenantRef = db.collection("tenants").doc(tenantId);
+  if ((await tenantRef.get()).exists) throw new HttpsError("already-exists", `School code "${tenantId}" is already in use.`);
+  const adminId = await generateAccountId("admin");
+  const auth = getAuth();
+  const created = await auth.createUser({ email: idToEmail(adminId), password, displayName: adminName });
+  try {
+    const now = FieldValue.serverTimestamp();
+    const batch = db.batch();
+    batch.set(tenantRef, { tenantId, schoolCode: tenantId, schoolName, contactEmail: adminEmail, phone, status: "active", createdBy: request.auth?.uid, createdAt: now, updatedAt: now });
+    batch.set(db.collection("users").doc(created.uid), { uid: created.uid, id: adminId, role: "admin", email: idToEmail(adminId), contactEmail: adminEmail, displayName: adminName, phone, tenantId, status: "active", createdAt: now, updatedAt: now });
+    batch.set(db.collection("admins").doc(adminId), { ...profileData("admin", adminId, created.uid, adminName, idToEmail(adminId), { phone, contactEmail: adminEmail }), tenantId, phone, contactEmail: adminEmail, createdAt: now });
+    await batch.commit();
+  } catch (error) {
+    await auth.deleteUser(created.uid).catch(() => undefined);
+    throw error;
+  }
+  return { tenantId, schoolName, adminUid: created.uid, adminId, loginEmail: idToEmail(adminId) };
 });
 
 export const updateManagedUserRole = onCall({ region }, async (request) => {

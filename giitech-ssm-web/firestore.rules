@@ -46,6 +46,12 @@ service cloud.firestore {
       return hasRole("staff");
     }
 
+    function sameTenant(data) {
+      return signedIn() && hasUserProfile() &&
+        ((isSuperAdmin() && data.get("tenantId", "") == "astem-ssm-001") ||
+          data.get("tenantId", "") == userProfile().get("tenantId", ""));
+    }
+
     function teacherOwnsAssignment(assignmentId) {
       return isTeacher() &&
         exists(/databases/$(database)/documents/assignments/$(assignmentId)) &&
@@ -59,6 +65,8 @@ service cloud.firestore {
     function isOwnStudent(studentId) {
       return isStudent() &&
         (studentId == request.auth.uid ||
+          studentId == userProfile().get("id", "") ||
+          studentId == userProfile().get("studentId", "") ||
           (studentExists(studentId) &&
             get(/databases/$(database)/documents/students/$(studentId)).data.userId == request.auth.uid));
     }
@@ -77,8 +85,14 @@ service cloud.firestore {
       return resource.data.audience == "all" || resource.data.audience == userProfile().role;
     }
 
+    match /tenants/{tenantId} {
+      allow read: if isSuperAdmin() || (isAdmin() && hasUserProfile() && tenantId == userProfile().get("tenantId", ""));
+      allow write: if isSuperAdmin();
+    }
+
     match /users/{userId} {
-      allow read: if signedIn() && (request.auth.uid == userId || isAdminStaff());
+      allow read: if signedIn() && (request.auth.uid == userId || isSuperAdmin() ||
+        (isAdmin() && resource.data.get("tenantId", "") == userProfile().get("tenantId", "")));
       allow create: if isSuperAdmin() || (isAdmin() && request.resource.data.role == "staff");
       allow update: if isSuperAdmin() ||
         (signedIn() && request.auth.uid == userId &&
@@ -87,29 +101,30 @@ service cloud.firestore {
     }
 
     match /admins/{adminId} {
-      allow read: if isAdminStaff() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow read: if sameTenant(resource.data) && (isAdminStaff() || (signedIn() && resource.data.userId == request.auth.uid));
       allow write: if isSuperAdmin();
     }
 
     match /teachers/{teacherId} {
-      allow read: if isAdminStaff() || isTeacher() || (signedIn() && resource.data.userId == request.auth.uid);
-      allow write: if isAdminStaff();
+      allow read: if sameTenant(resource.data) && (isAdminStaff() || isTeacher() || (signedIn() && resource.data.userId == request.auth.uid));
+      allow write: if sameTenant(request.resource.data) && isAdminStaff();
     }
 
     match /staff/{staffId} {
-      allow read: if isAdminStaff() || (isStaff() && resource.data.userId == request.auth.uid);
-      allow write: if isAdminStaff();
+      allow read: if sameTenant(resource.data) && (isAdminStaff() || (isStaff() && resource.data.userId == request.auth.uid));
+      allow write: if sameTenant(request.resource.data) && isAdminStaff();
     }
 
     match /students/{studentId} {
-      allow read: if isAdminStaff() || isTeacher() || isOwnStudent(studentId) ||
-        (isParent() && resource.data.parentId == userProfile().id);
-      allow write: if isAdminStaff();
+      allow read: if sameTenant(resource.data) && (isAdminStaff() || isTeacher() ||
+        (isStudent() && resource.data.userId == request.auth.uid) || isOwnStudent(studentId) ||
+        (isParent() && resource.data.parentId == userProfile().id));
+      allow write: if sameTenant(request.resource.data) && isAdminStaff();
     }
 
     match /parents/{parentId} {
-      allow read: if isAdminStaff() || (signedIn() && resource.data.userId == request.auth.uid);
-      allow write: if isAdminStaff();
+      allow read: if sameTenant(resource.data) && (isAdminStaff() || (signedIn() && resource.data.userId == request.auth.uid));
+      allow write: if sameTenant(request.resource.data) && isAdminStaff();
     }
 
     match /counters/{counterId} {
@@ -117,28 +132,28 @@ service cloud.firestore {
     }
 
     match /departments/{departmentId} {
-      allow read: if signedIn();
-      allow write: if isAdminStaff();
+      allow read: if sameTenant(resource.data);
+      allow write: if sameTenant(request.resource.data) && isAdminStaff();
     }
 
     match /classes/{classId} {
-      allow read: if signedIn();
-      allow write: if isAdminStaff();
+      allow read: if sameTenant(resource.data);
+      allow write: if sameTenant(request.resource.data) && isAdminStaff();
     }
 
     match /streams/{streamId} {
-      allow read: if signedIn();
-      allow write: if isAdminStaff();
+      allow read: if sameTenant(resource.data);
+      allow write: if sameTenant(request.resource.data) && isAdminStaff();
     }
 
     match /subjects/{subjectId} {
-      allow read: if signedIn();
-      allow write: if isAdminStaff();
+      allow read: if sameTenant(resource.data);
+      allow write: if sameTenant(request.resource.data) && isAdminStaff();
     }
 
     match /terms/{termId} {
-      allow read: if signedIn();
-      allow write: if isAdminStaff();
+      allow read: if sameTenant(resource.data);
+      allow write: if sameTenant(request.resource.data) && isAdminStaff();
     }
 
     match /gradingSystems/{systemId} {
@@ -147,41 +162,43 @@ service cloud.firestore {
     }
 
     match /academicYears/{yearId} {
-      allow read: if signedIn();
-      allow write: if isAdminStaff();
+      allow read: if sameTenant(resource.data);
+      allow write: if sameTenant(request.resource.data) && isAdminStaff();
     }
 
     match /exams/{examId} {
-      allow read: if signedIn();
-      allow write: if isAdminStaff() || isTeacher();
+      allow read: if sameTenant(resource.data);
+      allow write: if sameTenant(request.resource.data) && (isAdminStaff() || isTeacher());
     }
 
     match /assignments/{assignmentId} {
-      allow read: if signedIn();
-      allow create: if isAdminStaff() ||
-        (isTeacher() && request.resource.data.teacherId == request.auth.uid);
-      allow update: if isAdminStaff() ||
-        (isTeacher() && resource.data.teacherId == request.auth.uid && request.resource.data.teacherId == request.auth.uid);
-      allow delete: if isAdminStaff() ||
-        (isTeacher() && resource.data.teacherId == request.auth.uid);
+      allow read: if sameTenant(resource.data);
+      allow create: if sameTenant(request.resource.data) &&
+        (isAdminStaff() ||
+          (isTeacher() && request.resource.data.teacherId == request.auth.uid));
+      allow update: if sameTenant(resource.data) && sameTenant(request.resource.data) &&
+        (isAdminStaff() ||
+          (isTeacher() && resource.data.teacherId == request.auth.uid && request.resource.data.teacherId == request.auth.uid));
+      allow delete: if sameTenant(resource.data) && (isAdminStaff() ||
+        (isTeacher() && resource.data.teacherId == request.auth.uid));
     }
 
     match /learningMaterials/{materialId} {
-      allow read: if signedIn();
-      allow create: if isAdminStaff() || (isTeacher() && request.resource.data.teacherId == request.auth.uid);
-      allow update: if isAdminStaff() || (isTeacher() && resource.data.teacherId == request.auth.uid && request.resource.data.teacherId == request.auth.uid);
-      allow delete: if isAdminStaff() || (isTeacher() && resource.data.teacherId == request.auth.uid);
+      allow read: if sameTenant(resource.data);
+      allow create: if sameTenant(request.resource.data) && (isAdminStaff() || (isTeacher() && request.resource.data.teacherId == request.auth.uid));
+      allow update: if sameTenant(resource.data) && sameTenant(request.resource.data) && (isAdminStaff() || (isTeacher() && resource.data.teacherId == request.auth.uid && request.resource.data.teacherId == request.auth.uid));
+      allow delete: if sameTenant(resource.data) && (isAdminStaff() || (isTeacher() && resource.data.teacherId == request.auth.uid));
     }
 
     match /submissions/{submissionId} {
-      allow read: if isAdminStaff() || teacherOwnsAssignment(resource.data.assignmentId) ||
+      allow read: if sameTenant(resource.data) && (isAdminStaff() || teacherOwnsAssignment(resource.data.assignmentId) ||
         (isStudent() &&
-          (resource.data.studentUid == request.auth.uid || isOwnStudent(resource.data.studentId)));
-      allow create: if isStudent() &&
+          (resource.data.studentUid == request.auth.uid || isOwnStudent(resource.data.studentId))));
+      allow create: if sameTenant(request.resource.data) && isStudent() &&
         request.resource.data.studentUid == request.auth.uid &&
         isOwnStudent(request.resource.data.studentId) &&
         !request.resource.data.keys().hasAny(["score", "grade", "feedback", "aiSuggestion", "aiApprovedBy", "aiApprovedAt", "aiRejectedBy", "aiRejectedAt"]);
-      allow update: if isAdminStaff() ||
+      allow update: if sameTenant(resource.data) && sameTenant(request.resource.data) && (isAdminStaff() ||
         (teacherOwnsAssignment(resource.data.assignmentId) &&
           request.resource.data.assignmentId == resource.data.assignmentId &&
           request.resource.data.studentUid == resource.data.studentUid &&
@@ -189,20 +206,20 @@ service cloud.firestore {
         (isStudent() && resource.data.studentUid == request.auth.uid &&
           request.resource.data.studentUid == request.auth.uid &&
           request.resource.data.studentId == resource.data.studentId &&
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly(["responseText", "responses", "submissionUrl", "submittedAt", "status", "attempts", "createdAt", "syncedAt"]));
-      allow delete: if isAdminStaff() ||
-        (isStudent() && resource.data.studentUid == request.auth.uid);
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(["responseText", "responses", "submissionUrl", "submittedAt", "status", "attempts", "createdAt", "syncedAt"])));
+      allow delete: if sameTenant(resource.data) && (isAdminStaff() ||
+        (isStudent() && resource.data.studentUid == request.auth.uid));
     }
 
     match /grades/{gradeId} {
-      allow read: if isAdminStaff() ||
+      allow read: if sameTenant(resource.data) && (isAdminStaff() ||
         (isTeacher() && resource.data.teacherId == request.auth.uid) ||
-        isStaff() || isOwnStudent(resource.data.studentId) || parentOwnsStudent(resource.data.studentId);
-      allow create: if isAdminStaff() ||
-        (isTeacher() && request.resource.data.teacherId == request.auth.uid);
-      allow update: if isAdminStaff() ||
-        (isTeacher() && resource.data.teacherId == request.auth.uid && request.resource.data.teacherId == request.auth.uid);
-      allow delete: if isAdminStaff() || (isTeacher() && resource.data.teacherId == request.auth.uid);
+        isStaff() || isOwnStudent(resource.data.studentId) || parentOwnsStudent(resource.data.studentId));
+      allow create: if sameTenant(request.resource.data) && (isAdminStaff() ||
+        (isTeacher() && request.resource.data.teacherId == request.auth.uid));
+      allow update: if sameTenant(resource.data) && sameTenant(request.resource.data) && (isAdminStaff() ||
+        (isTeacher() && resource.data.teacherId == request.auth.uid && request.resource.data.teacherId == request.auth.uid));
+      allow delete: if sameTenant(resource.data) && (isAdminStaff() || (isTeacher() && resource.data.teacherId == request.auth.uid));
     }
 
     match /classSubjects/{classId} {
@@ -211,30 +228,30 @@ service cloud.firestore {
     }
 
     match /termComments/{commentId} {
-      allow read: if isAdminStaff() || isTeacher();
-      allow write: if isAdminStaff() || isTeacher();
+      allow read: if sameTenant(resource.data) && (isAdminStaff() || isTeacher());
+      allow write: if sameTenant(request.resource.data) && (isAdminStaff() || isTeacher());
     }
 
     match /reportApprovals/{approvalId} {
-      allow read: if isAdminStaff() || isTeacher();
-      allow write: if isAdminStaff();
+      allow read: if sameTenant(resource.data) && (isAdminStaff() || isTeacher());
+      allow write: if sameTenant(request.resource.data) && isAdminStaff();
     }
 
     match /attendance/{attendanceId} {
-      allow read: if canReadStudentRecord(resource.data.studentId);
-      allow create: if isAdminStaff() ||
+      allow read: if sameTenant(resource.data) && canReadStudentRecord(resource.data.studentId);
+      allow create: if sameTenant(request.resource.data) && (isAdminStaff() ||
         (isTeacher() && request.resource.data.teacherId == request.auth.uid) ||
-        isStaff();
-      allow update: if isAdminStaff() ||
+        isStaff());
+      allow update: if sameTenant(resource.data) && sameTenant(request.resource.data) && (isAdminStaff() ||
         (isTeacher() && resource.data.teacherId == request.auth.uid && request.resource.data.teacherId == request.auth.uid) ||
-        isStaff();
-      allow delete: if isAdminStaff() || isStaff() || (isTeacher() && resource.data.teacherId == request.auth.uid);
+        isStaff());
+      allow delete: if sameTenant(resource.data) && (isAdminStaff() || isStaff() || (isTeacher() && resource.data.teacherId == request.auth.uid));
     }
 
     match /staffAttendance/{attendanceId} {
-      allow read: if isAdminStaff() || (isStaff() && (resource.data.userId == request.auth.uid || resource.data.staffId == request.auth.uid));
-      allow create, update: if isAdminStaff() || (isStaff() && request.resource.data.userId == request.auth.uid);
-      allow delete: if isAdminStaff();
+      allow read: if sameTenant(resource.data) && (isAdminStaff() || (isStaff() && (resource.data.userId == request.auth.uid || resource.data.staffId == request.auth.uid)));
+      allow create, update: if sameTenant(request.resource.data) && (isAdminStaff() || (isStaff() && request.resource.data.userId == request.auth.uid));
+      allow delete: if sameTenant(resource.data) && isAdminStaff();
     }
 
     match /staffAttendanceSettings/{settingId} {

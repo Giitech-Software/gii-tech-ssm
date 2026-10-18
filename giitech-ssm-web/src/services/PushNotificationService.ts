@@ -5,7 +5,7 @@ import { app, db } from "../firebaseConfig";
 export async function registerPushDevice(userId: string) {
   if (!(await isSupported())) throw new Error("This browser does not support push notifications.");
   const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY as string | undefined;
-  if (!vapidKey) throw new Error("Push notifications are not configured yet. Add VITE_FIREBASE_VAPID_KEY to the web environment.");
+  if (!vapidKey) throw new Error("Push notifications are not available yet. Please ask your school administrator to enable browser notifications.");
   const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js");
   if (await Notification.requestPermission() !== "granted") throw new Error("Browser notification permission was not granted.");
   const token = await getToken(getMessaging(app), { vapidKey, serviceWorkerRegistration: registration });

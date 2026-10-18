@@ -25,6 +25,7 @@ interface ExtendedAssignment extends AssignmentType {
   type?: "short-answer" | "objective" | "essay";
   departmentId?: string;
   questions?: {
+    number?: number;
     question: string;
     answer: string;
     options?: string[];
@@ -58,6 +59,7 @@ const TeacherAssignmentsPage: React.FC = () => {
   const [classes, setClasses] = useState<{ id: string; name?: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingDraft, setEditingDraft] = useState<ExtendedAssignment | null>(null);
   const [errors, setErrors] = useState<Record<string, boolean>>({});
 
   const [newAssignment, setNewAssignment] = useState<ExtendedAssignment>({
@@ -177,6 +179,7 @@ const TeacherAssignmentsPage: React.FC = () => {
         prev.map((a) => (a.id === assignment.id ? assignment : a))
       );
       setEditingId(null);
+      setEditingDraft(null);
       toast.success("Assignment updated");
     } catch (error) {
       console.error("Error updating assignment:", error);
@@ -193,6 +196,11 @@ const TeacherAssignmentsPage: React.FC = () => {
         { question: "", answer: "", options: ["", "", "", ""], questionType: "multiple-choice" },
       ],
     }));
+  };
+
+  const updateEditingQuestion = (index: number, changes: Partial<NonNullable<ExtendedAssignment["questions"]>[number]>) => {
+    if (!editingDraft) return;
+    setEditingDraft({ ...editingDraft, questions: (editingDraft.questions || []).map((question, position) => position === index ? { ...question, ...changes } : question) });
   };
 
   const handleQuestionChange = (
@@ -379,12 +387,6 @@ const TeacherAssignmentsPage: React.FC = () => {
               <h3 className="font-semibold text-slate-700 flex items-center gap-2">
                 <ListChecks className="text-blue-500" /> Questions
               </h3>
-              <button
-                onClick={handleAddQuestion}
-                className="text-sm bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700"
-              >
-                + Add Question
-              </button>
             </div>
 
             {newAssignment.questions?.map((q, i) => (
@@ -428,6 +430,9 @@ const TeacherAssignmentsPage: React.FC = () => {
                 />
               </div>
             ))}
+            <button type="button" onClick={handleAddQuestion} className="mt-4 w-full rounded-lg border-2 border-dashed border-blue-300 bg-blue-50 px-4 py-3 text-sm font-bold text-blue-700 hover:bg-blue-100">
+              + Add Question {newAssignment.questions?.length ? `(after Question ${newAssignment.questions.length})` : ""}
+            </button>
           </div>
         )}
 
@@ -440,6 +445,8 @@ const TeacherAssignmentsPage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {editingDraft && <div className="mb-8 rounded-2xl border-2 border-primary/20 bg-blue-50 p-6"><div className="flex items-center justify-between"><div><h2 className="text-xl font-bold text-slate-900">Edit assignment</h2><p className="text-sm text-slate-600">Update instructions and questions before saving.</p></div><button type="button" onClick={() => { setEditingDraft(null); setEditingId(null); }} className="rounded-lg border bg-white px-4 py-3 text-sm font-semibold">Cancel</button></div><input className="mt-5 w-full rounded-lg border p-4 text-base" placeholder="Assignment title" value={editingDraft.title} onChange={event => setEditingDraft({ ...editingDraft, title: event.target.value })} /><textarea className="mt-4 min-h-32 w-full rounded-lg border p-4 text-base leading-6" rows={5} placeholder="Instructions / description" value={editingDraft.description} onChange={event => setEditingDraft({ ...editingDraft, description: event.target.value })} />{(editingDraft.questions || []).map((question, index) => <div key={index} className="mt-4 rounded-lg border bg-white p-5"><p className="mb-3 text-base font-bold text-slate-700">Question {index + 1}</p><textarea className="min-h-24 w-full rounded border p-4 text-base leading-6" rows={3} value={question.question} placeholder="Question text" onChange={event => updateEditingQuestion(index, { question: event.target.value })} /><input className="mt-3 w-full rounded border p-4 text-base" value={question.answer} placeholder="Correct answer" onChange={event => updateEditingQuestion(index, { answer: event.target.value })} />{question.options?.map((option, optionIndex) => <input key={optionIndex} className="mt-3 w-full rounded border p-4 text-base" value={option} placeholder={`Option ${optionIndex + 1}`} onChange={event => updateEditingQuestion(index, { options: question.options?.map((item, position) => position === optionIndex ? event.target.value : item) })} />)}</div>)}<button type="button" onClick={() => setEditingDraft({ ...editingDraft, questions: [...(editingDraft.questions || []), { question: "", answer: "", options: ["", "", "", ""], questionType: "multiple-choice", number: (editingDraft.questions || []).length + 1 }] })} className="mt-5 w-full rounded-lg border-2 border-dashed border-primary px-4 py-4 text-base font-bold text-primary">+ Add Question</button><button type="button" onClick={() => void handleSaveEdit(editingDraft)} className="mt-5 rounded-lg bg-primary px-6 py-4 text-base font-bold text-white">Save assignment changes</button></div>}
 
       {/* Assignment List */}
       <div className="bg-white rounded-2xl shadow border border-slate-100">
@@ -473,21 +480,21 @@ const TeacherAssignmentsPage: React.FC = () => {
               <tbody>
                 {assignments.map((a) => (
                   <tr key={a.id} className="border-b hover:bg-slate-50">
-                    <td className="px-4 py-3 font-medium">{a.title}</td>
+                    <td className="px-4 py-3 font-medium">{editingId === a.id ? <input autoFocus value={a.title} onChange={(event) => setAssignments(current => current.map(item => item.id === a.id ? { ...item, title: event.target.value } : item))} className="w-full rounded border px-2 py-1" /> : a.title}</td>
                     <td className="px-4 py-3 capitalize">{a.type}</td>
                     <td className="px-4 py-3">{a.classId}</td>
-                    <td className="px-4 py-3">{formatDueDate(a.dueDate)}</td>
+                    <td className="px-4 py-3">{editingId === a.id ? <input type="date" value={typeof a.dueDate === "string" ? a.dueDate.slice(0, 10) : ""} onChange={(event) => setAssignments(current => current.map(item => item.id === a.id ? { ...item, dueDate: event.target.value } : item))} className="rounded border px-2 py-1" /> : formatDueDate(a.dueDate)}</td>
                     <td className="px-4 py-3 text-center flex justify-center gap-2">
                       {editingId === a.id ? (
                         <button
-                          onClick={() => handleSaveEdit(a)}
+                          onClick={() => editingDraft && void handleSaveEdit(editingDraft)}
                           className="bg-green-600 text-white p-2 rounded-md hover:bg-green-700"
                         >
                           <Save size={16} />
                         </button>
                       ) : (
                         <button
-                          onClick={() => setEditingId(a.id!)}
+                          onClick={() => { setEditingId(a.id!); setEditingDraft({ ...a, questions: a.questions || [] }); }}
                           className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700"
                         >
                           <Edit3 size={16} />
