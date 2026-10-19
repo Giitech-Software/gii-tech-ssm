@@ -324,7 +324,7 @@ const SharedLayout = () => {
           </div>
           <div className="min-w-0 text-right">
             <p className="truncate text-sm font-medium text-slate-800">{displayName}</p>
-            <p className="truncate text-xs capitalize text-slate-500">{tenantName || "School workspace"} · {role || "user"}</p>
+            <p className="truncate text-xs capitalize text-slate-500">{role || "user"}</p>
           </div>
         </header>
 

@@ -26,7 +26,7 @@ export default function SchoolBrandingPage() {
       const url = await getDownloadURL(logoRef);
       await updateDoc(doc(db, "tenants", tenantId), { logoUrl: url, logoStoragePath: logoRef.fullPath, updatedAt: serverTimestamp() });
       setLogoUrl(url); setMessage("School logo updated. Users will see it after refreshing the app.");
-    } catch (value) { setError(value instanceof Error ? value.message : "Unable to upload the school logo."); }
+    } catch (value) { const code = String((value as { code?: string })?.code || ""); setError(code === "storage/unauthorized" || code === "permission-denied" ? "You do not have permission to update this school logo. Contact your Tenant Administrator." : code === "storage/unknown" ? "School logo storage is not ready yet. Ask the platform administrator to finish Firebase Storage setup." : value instanceof Error ? value.message : "Unable to upload the school logo. Please try again."); }
     finally { setSaving(false); }
   };
 

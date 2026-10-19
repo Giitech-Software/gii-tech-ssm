@@ -80,10 +80,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
         } catch (err) {
           console.warn("Failed to load user doc:", err);
-          setRole(null);
-          setTenantId(null);
-          resetTenantId();
-          setTenantName(null); setTenantCode(null); setTenantLogoUrl(null);
+          // Keep the authenticated session and role when a tenant read is
+          // temporarily unavailable. A branding error must not look like logout.
           setDisplayName(firebaseUser.displayName || null);
         }
       } else {
