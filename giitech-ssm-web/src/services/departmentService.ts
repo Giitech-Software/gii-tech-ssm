@@ -7,13 +7,16 @@ import {
   deleteDoc,
   collection,
   serverTimestamp,
+  query,
+  where,
 } from "firebase/firestore";
 import { generateDepartmentId } from "../utils/idGenerator";
+import { TENANT_ID } from "../config/tenant";
 
 const DEPARTMENTS_COLLECTION = "departments";
 
 export const getDepartments = async () => {
-  const snapshot = await getDocs(collection(db, DEPARTMENTS_COLLECTION));
+  const snapshot = await getDocs(query(collection(db, DEPARTMENTS_COLLECTION), where("tenantId", "==", TENANT_ID)));
   return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
 };
 
@@ -26,13 +29,14 @@ export const addDepartment = async (name: string, head: string) => {
     id: newId,
     name,
     head,
+    tenantId: TENANT_ID,
     createdAt: serverTimestamp(),
   });
 };
 
 export const updateDepartment = async (id: string, name: string, head: string) => {
   const ref = doc(db, DEPARTMENTS_COLLECTION, id);
-  await updateDoc(ref, { name, head });
+  await updateDoc(ref, { name, head, tenantId: TENANT_ID });
 };
 
 export const deleteDepartment = async (id: string) => {

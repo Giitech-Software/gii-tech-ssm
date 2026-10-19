@@ -68,7 +68,7 @@ const SharedLayout = () => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [openAdminGroup, setOpenAdminGroup] = useState<string | null>(null);
   const [collapsedAdminGroups, setCollapsedAdminGroups] = useState<Set<string>>(new Set());
-  const { user, role, logout } = useAuth();
+  const { user, role, tenantName, tenantCode, tenantLogoUrl, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -101,6 +101,7 @@ const SharedLayout = () => {
 
   const navItems: NavItem[] = [
     { to: "/admin/departments", label: "Departments", icon: <Building size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/school-branding", label: "School branding", icon: <Building size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/academic-years", label: "Academic Years and Terms", icon: <CalendarRange size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/classes", label: "Classes", icon: <Layers size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/streams", label: "Streams", icon: <GraduationCap size={18} />, roles: ["superadmin", "admin"] },
@@ -148,6 +149,7 @@ const SharedLayout = () => {
     { to: "/superadmin/users", label: "User Management", icon: <UserCog size={18} />, roles: ["superadmin"] },
     { to: "/superadmin/create-user", label: "Create User", icon: <UserPlus size={18} />, roles: ["superadmin"] },
     { to: "/superadmin/create-school", label: "Create School", icon: <Building size={18} />, roles: ["superadmin"] },
+    { to: "/superadmin/schools", label: "School Management", icon: <Building size={18} />, roles: ["superadmin"] },
     { to: "/admin/reports", label: "Reports", icon: <FileBarChart2 size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/institutional-analytics", label: "Institutional Analytics", icon: <BarChart3 size={18} />, roles: ["superadmin", "admin"] },
     { to: "/teacher/assignments", label: "Assignments", icon: <ClipboardList size={18} />, roles: ["teacher"] },
@@ -225,10 +227,9 @@ const SharedLayout = () => {
   const sidebar = (
     <div className="flex h-full flex-col bg-white">
       <div className="flex h-16 items-center justify-between border-b px-4">
-        <div className={`min-w-0 ${desktopCollapsed ? "md:hidden" : ""}`}>
+          <div className={`flex min-w-0 items-center gap-2 ${desktopCollapsed ? "md:hidden" : ""}`}>{tenantLogoUrl && <img src={tenantLogoUrl} alt="School logo" className="h-8 w-8 rounded-lg object-contain" />}<div>
           <p className="truncate text-base font-black tracking-tight text-primary">ASTEM-SSM</p>
-          <p className="truncate text-xs font-medium text-slate-500">{roleTitles[role || ""] || "School Manager"}</p>
-        </div>
+          <p className="truncate text-xs font-medium text-slate-500">{roleTitles[role || ""] || "School Manager"}</p></div></div>
         <button
           type="button"
           title="Close menu"
@@ -257,8 +258,8 @@ const SharedLayout = () => {
 
         {role === "admin" || role === "superadmin" ? <>
           {renderAdminGroup("people", "People & identity", <Users size={18} />, visibleItems.filter(item => ["Students", "Create Student", "Staff", "Create Staff", "Signup Requests", "User Management", "Create User", "Family Links", "Graduated / Archive", "Graduation Archive"].includes(item.label)))}
-          {role === "superadmin" && renderAdminGroup("platform", "Platform administration", <Building size={18} />, visibleItems.filter(item => ["Create School"].includes(item.label)))}
-          {renderAdminGroup("setup", "School setup", <GraduationCap size={18} />, visibleItems.filter(item => ["Departments", "Academic Years and Terms", "Classes", "Streams", "Grading Configuration", "Assessment Setup"].includes(item.label)))}
+          {role === "superadmin" && renderAdminGroup("platform", "Platform administration", <Building size={18} />, visibleItems.filter(item => ["Create School", "School Management"].includes(item.label)))}
+          {renderAdminGroup("setup", "School setup", <GraduationCap size={18} />, visibleItems.filter(item => ["Departments", "School branding", "Academic Years and Terms", "Classes", "Streams", "Grading Configuration", "Assessment Setup"].includes(item.label)))}
           {renderAdminGroup("communications", "Communications", <Megaphone size={18} />, visibleItems.filter(item => ["Communications", "Bulk SMS / WhatsApp", "Activity Logs"].includes(item.label)))}
           {renderAdminGroup("learning", "Teaching & learning", <BookOpen size={18} />, visibleItems.filter(item => ["Student Promotion", "Learner Progress", "Classwork and Homework", "Tests and Assessment Summary", "Exam/Test Score Entry", "Learner Gradebook", "Student Submissions", "Assignment Grades", "Report Publishing"].includes(item.label)))}
           {renderAdminGroup("reports", "Reports & insights", <BarChart3 size={18} />, visibleItems.filter(item => ["Reports", "Institutional Analytics", "Student Rankings", "Staff Finance Reports", "SSNIT Contribution Report", "SSNIT Remittance Tracking"].includes(item.label)))}
@@ -319,11 +320,11 @@ const SharedLayout = () => {
             >
               <Menu size={20} />
             </button>
-            <p className="truncate text-sm font-semibold text-slate-800">{roleTitles[role || ""] || "Dashboard"}</p>
+            <div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-800">{roleTitles[role || ""] || "Dashboard"}</p><p className="truncate text-xs text-slate-500">{tenantName || "School workspace"} · {tenantCode || "Tenant"}</p></div>
           </div>
           <div className="min-w-0 text-right">
             <p className="truncate text-sm font-medium text-slate-800">{displayName}</p>
-            <p className="truncate text-xs capitalize text-slate-500">{role || "user"}</p>
+            <p className="truncate text-xs capitalize text-slate-500">{tenantName || "School workspace"} · {role || "user"}</p>
           </div>
         </header>
 

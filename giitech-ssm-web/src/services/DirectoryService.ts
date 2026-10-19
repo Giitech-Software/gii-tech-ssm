@@ -1,6 +1,7 @@
-import { collection, doc, getDocs, serverTimestamp, updateDoc } from "firebase/firestore";
+import { collection, doc, getDocs, query, serverTimestamp, updateDoc, where } from "firebase/firestore";
 import type { DocumentData, QuerySnapshot } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 
 export type DirectoryStatus = "active" | "inactive" | "archived";
 
@@ -25,6 +26,7 @@ export interface StudentDirectoryRecord {
 
 export interface StaffDirectoryRecord {
   id: string;
+  collectionName: "teachers" | "staff";
   teacherId: string;
   staffId?: string;
   userId?: string;
@@ -52,20 +54,20 @@ const mapDocs = <T,>(snapshot: QuerySnapshot<DocumentData>) =>
   snapshot.docs.map((item) => ({ id: item.id, ...item.data() })) as T[];
 
 export async function fetchStudentDirectory(): Promise<StudentDirectoryRecord[]> {
-  return mapDocs<StudentDirectoryRecord>(await getDocs(collection(db, "students"))).filter(item => item.status !== "archived");
+  return mapDocs<StudentDirectoryRecord>(await getDocs(query(collection(db, "students"), where("tenantId", "==", TENANT_ID)))).filter(item => item.status !== "archived");
 }
 
 export async function fetchStaffDirectory(): Promise<StaffDirectoryRecord[]> {
-  const [teachers, staff] = await Promise.all([getDocs(collection(db, "teachers")), getDocs(collection(db, "staff"))]);
-  const records = [...mapDocs<StaffDirectoryRecord>(teachers), ...mapDocs<StaffDirectoryRecord>(staff).map(item => ({ ...item, teacherId: item.teacherId || item.staffId || item.id }))];
+  const [teachers, staff] = await Promise.all([getDocs(query(collection(db, "teachers"), where("tenantId", "==", TENANT_ID))), getDocs(query(collection(db, "staff"), where("tenantId", "==", TENANT_ID)))]);
+  const records = [...mapDocs<StaffDirectoryRecord>(teachers).map(item => ({ ...item, collectionName: "teachers" as const })), ...mapDocs<StaffDirectoryRecord>(staff).map(item => ({ ...item, collectionName: "staff" as const, teacherId: item.teacherId || item.staffId || item.id }))];
   return [...new Map(records.map(item => [item.userId || item.id, item])).values()].filter(item => item.status !== "archived");
 }
 
 export async function fetchAcademicOptions() {
   const [departmentSnapshot, classSnapshot, streamSnapshot] = await Promise.all([
-    getDocs(collection(db, "departments")),
-    getDocs(collection(db, "classes")),
-    getDocs(collection(db, "streams")),
+    getDocs(query(collection(db, "departments"), where("tenantId", "==", TENANT_ID))),
+    getDocs(query(collection(db, "classes"), where("tenantId", "==", TENANT_ID))),
+    getDocs(query(collection(db, "streams"), where("tenantId", "==", TENANT_ID))),
   ]);
 
   return {
@@ -107,5 +109,7 @@ export async function updateStaffProfile(
 ) {
   const profile = { ...changes };
   delete profile.id;
-  await updateDoc(doc(db, "teachers", id), { ...profile, updatedAt: serverTimestamp() });
+  const collectionName = profile.collectionName || "teachers";
+  delete profile.collectionName;
+  await updateDoc(doc(db, collectionName, id), { ...profile, updatedAt: serverTimestamp() });
 }

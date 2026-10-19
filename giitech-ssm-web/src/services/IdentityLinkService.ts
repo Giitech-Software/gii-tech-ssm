@@ -1,5 +1,6 @@
-import { arrayRemove, arrayUnion, collection, doc, getDocs, serverTimestamp, writeBatch } from "firebase/firestore";
+import { arrayRemove, arrayUnion, collection, doc, getDocs, query, serverTimestamp, where, writeBatch } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 import type { StudentDirectoryRecord } from "./DirectoryService";
 
 export interface ParentDirectoryRecord {
@@ -12,7 +13,7 @@ export interface ParentDirectoryRecord {
 }
 
 export async function fetchParentDirectory(): Promise<ParentDirectoryRecord[]> {
-  const snapshot = await getDocs(collection(db, "parents"));
+  const snapshot = await getDocs(query(collection(db, "parents"), where("tenantId", "==", TENANT_ID)));
   return snapshot.docs
     .map((item) => {
       const data = item.data();

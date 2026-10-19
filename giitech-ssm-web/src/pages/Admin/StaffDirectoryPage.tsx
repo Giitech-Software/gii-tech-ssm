@@ -71,7 +71,7 @@ export default function StaffDirectoryPage() {
 
   const archiveStaff = async (member: StaffDirectoryRecord) => {
     if (!window.confirm(`Archive ${member.displayName}'s staff record?`)) return;
-    await updateStaffProfile(member.id, { status: "archived" });
+    await updateStaffProfile(member.id, { status: "archived", collectionName: member.collectionName });
     await logActivity(user?.uid || "", "archive_staff_profile", { teacherId: member.teacherId || member.id });
     await loadData();
   };

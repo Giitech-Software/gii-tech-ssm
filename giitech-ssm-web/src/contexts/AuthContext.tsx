@@ -20,6 +20,9 @@ interface AuthContextType {
   user: User | null;
   role: string | null;
   tenantId: string | null;
+  tenantName: string | null;
+  tenantCode: string | null;
+  tenantLogoUrl: string | null;
   displayName: string | null;
   loading: boolean;
   login: (id: string, password: string) => Promise<string>;
@@ -40,6 +43,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [tenantId, setTenantId] = useState<string | null>(null);
+  const [tenantName, setTenantName] = useState<string | null>(null);
+  const [tenantCode, setTenantCode] = useState<string | null>(null);
+  const [tenantLogoUrl, setTenantLogoUrl] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -55,6 +61,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setRole((data.role as string) || null);
             setTenantId((data.tenantId as string) || null);
             setTenantScopeId(data.tenantId);
+            const tenantSnapshot = data.tenantId ? await getDoc(doc(db, "tenants", String(data.tenantId))) : null;
+            const tenant = tenantSnapshot?.data();
+            setTenantName(typeof tenant?.schoolName === "string" ? tenant.schoolName : null);
+            setTenantCode(typeof tenant?.schoolCode === "string" ? tenant.schoolCode : String(data.tenantId || ""));
+            setTenantLogoUrl(typeof tenant?.logoUrl === "string" ? tenant.logoUrl : null);
             setDisplayName(
               (data.displayName as string) ||
                 firebaseUser.displayName ||
@@ -64,6 +75,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             setRole(null);
             setTenantId(null);
             resetTenantId();
+            setTenantName(null); setTenantCode(null); setTenantLogoUrl(null);
             setDisplayName(firebaseUser.displayName || null);
           }
         } catch (err) {
@@ -71,12 +83,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setRole(null);
           setTenantId(null);
           resetTenantId();
+          setTenantName(null); setTenantCode(null); setTenantLogoUrl(null);
           setDisplayName(firebaseUser.displayName || null);
         }
       } else {
         setRole(null);
         setTenantId(null);
         resetTenantId();
+        setTenantName(null); setTenantCode(null); setTenantLogoUrl(null);
         setDisplayName(null);
       }
       setLoading(false);
@@ -329,8 +343,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [user]);
 
   const value = useMemo(
-    () => ({ user, role, tenantId, displayName, loading, login, resetPassword, logout, signup }),
-    [user, role, tenantId, displayName, loading]
+    () => ({ user, role, tenantId, tenantName, tenantCode, tenantLogoUrl, displayName, loading, login, resetPassword, logout, signup }),
+    [user, role, tenantId, tenantName, tenantCode, tenantLogoUrl, displayName, loading]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

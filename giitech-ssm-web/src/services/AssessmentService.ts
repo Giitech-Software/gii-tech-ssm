@@ -10,6 +10,7 @@ import {
   writeBatch,
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 import { calculateFinalScore, getGradingConfiguration } from "./GradingConfigurationService";
 
 export interface AcademicTerm {
@@ -47,14 +48,14 @@ export interface ExamGradeEntry {
 }
 
 export async function fetchTerms(): Promise<AcademicTerm[]> {
-  const snapshot = await getDocs(collection(db, "terms"));
+  const snapshot = await getDocs(query(collection(db, "terms"), where("tenantId", "==", TENANT_ID)));
   return snapshot.docs
     .map((item) => ({ id: item.id, ...item.data() }) as AcademicTerm)
     .sort((left, right) => right.startDate.localeCompare(left.startDate));
 }
 
 export async function createTerm(term: Omit<AcademicTerm, "id">) {
-  return addDoc(collection(db, "terms"), { ...term, createdAt: serverTimestamp() });
+  return addDoc(collection(db, "terms"), { ...term, tenantId: TENANT_ID, createdAt: serverTimestamp() });
 }
 
 export async function deleteTerm(id: string) {
@@ -62,14 +63,14 @@ export async function deleteTerm(id: string) {
 }
 
 export async function fetchExamAssessments(): Promise<ExamAssessment[]> {
-  const snapshot = await getDocs(collection(db, "exams"));
+  const snapshot = await getDocs(query(collection(db, "exams"), where("tenantId", "==", TENANT_ID)));
   return snapshot.docs
     .map((item) => ({ id: item.id, ...item.data() }) as ExamAssessment)
     .sort((left, right) => right.startDate.localeCompare(left.startDate));
 }
 
 export async function createExamAssessment(exam: Omit<ExamAssessment, "id">) {
-  return addDoc(collection(db, "exams"), { ...exam, createdAt: serverTimestamp() });
+  return addDoc(collection(db, "exams"), { ...exam, tenantId: TENANT_ID, createdAt: serverTimestamp() });
 }
 
 export async function deleteExamAssessment(id: string) {

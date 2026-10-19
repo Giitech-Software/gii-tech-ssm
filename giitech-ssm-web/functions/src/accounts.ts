@@ -74,12 +74,12 @@ async function sendCredentialSms(phone: string, id: string, password: string) {
   return "sent";
 }
 
-async function sendCredentialEmail(to: string, id: string, password: string) {
+async function sendCredentialEmail(to: string, id: string, password: string, schoolName = "ASTEM-SSM", schoolCode = TENANT_ID, role = "School member") {
   if (!to || !gmailClientId.value() || !gmailClientSecret.value() || !gmailRefreshToken.value()) return "not-configured";
   const authClient = new google.auth.OAuth2(gmailClientId.value(), gmailClientSecret.value());
   authClient.setCredentials({ refresh_token: gmailRefreshToken.value() });
   const gmail = google.gmail({ version: "v1", auth: authClient });
-  const body = [`From: ${gmailSender}`, `To: ${to}`, "Subject: Your ASTEM-SSM account has been approved", "Content-Type: text/plain; charset=utf-8", "", "Your account has been approved.", `Login ID: ${id}`, `Temporary password: ${password}`, "Please sign in and reset your password after your first login."].join("\r\n");
+  const body = [`From: ${gmailSender}`, `To: ${to}`, `Subject: Welcome to ${schoolName}`, "Content-Type: text/plain; charset=utf-8", "", `Your ${role} account for ${schoolName} has been created.`, `School code: ${schoolCode}`, `Login ID: ${id}`, `Temporary password: ${password}`, "Please sign in and reset your password after your first login."].join("\r\n");
   await gmail.users.messages.send({ userId: "me", requestBody: { raw: Buffer.from(body).toString("base64url") } });
   return "sent";
 }
@@ -129,6 +129,7 @@ function signupRole(value: unknown): AccountRole {
 export const submitSignupRequest = onCall({ region }, async (request) => {
   const data = asRecord(request.data);
   const role = signupRole(data.role);
+  const requestedTenantId = cleanTenantId(data.schoolCode);
   const displayName = String(data.displayName || "").trim();
   const phone = String(data.phone || "").trim();
   const email = String(data.email || "").trim().toLowerCase();
@@ -136,10 +137,12 @@ export const submitSignupRequest = onCall({ region }, async (request) => {
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new HttpsError("invalid-argument", "A valid email address is required.");
   if (role !== "student" && !phone) throw new HttpsError("invalid-argument", "Phone number is required.");
   const db = getFirestore();
+  const tenantSnapshot = await db.collection("tenants").doc(requestedTenantId).get();
+  if (!requestedTenantId || !tenantSnapshot.exists || tenantSnapshot.data()?.status !== "active") throw new HttpsError("not-found", "That school code is not active or does not exist.");
   const reference = db.collection("signupRequests").doc();
   await reference.set({
     requestId: reference.id,
-    tenantId: TENANT_ID,
+    tenantId: requestedTenantId,
     role,
     displayName,
     phone,
@@ -160,9 +163,9 @@ export const fetchSignupOptions = onCall({ region }, async () => {
 });
 
 export const fetchSignupRequests = onCall({ region }, async (request) => {
-  await assertSuperAdminOrAdmin(request.auth?.uid);
+  const caller = await getAdminCaller(request.auth?.uid);
   const snapshot = await getFirestore().collection("signupRequests").orderBy("createdAt", "desc").get();
-  return { requests: snapshot.docs.filter((item) => !item.data().tenantId || item.data().tenantId === TENANT_ID).map((item) => ({ id: item.id, ...item.data(), tenantId: item.data().tenantId || TENANT_ID })) };
+  return { requests: snapshot.docs.filter((item) => caller.role === "superadmin" || !item.data().tenantId || item.data().tenantId === caller.tenantId).map((item) => ({ id: item.id, ...item.data(), tenantId: item.data().tenantId || TENANT_ID })) };
 });
 
 async function assertSuperAdminOrAdmin(uid?: string) {
@@ -171,8 +174,17 @@ async function assertSuperAdminOrAdmin(uid?: string) {
   if (!["admin", "superadmin"].includes(String(profile.data()?.role || "").toLowerCase())) throw new HttpsError("permission-denied", "Administrator access is required.");
 }
 
+async function getAdminCaller(uid?: string) {
+  if (!uid) throw new HttpsError("unauthenticated", "Sign in is required.");
+  const profile = await getFirestore().collection("users").doc(uid).get();
+  const data = profile.data() || {};
+  const role = String(data.role || "").toLowerCase();
+  if (!["admin", "superadmin"].includes(role)) throw new HttpsError("permission-denied", "Administrator access is required.");
+  return { role, tenantId: String(data.tenantId || TENANT_ID) };
+}
+
 export const decideSignupRequest = onCall({ region, secrets: [twilioAccountSid, twilioAuthToken, twilioSmsFrom, gmailClientId, gmailClientSecret, gmailRefreshToken] }, async (request) => {
-  await assertSuperAdminOrAdmin(request.auth?.uid);
+  const caller = await getAdminCaller(request.auth?.uid);
   const data = asRecord(request.data);
   const requestId = String(data.requestId || "");
   const decision = String(data.decision || "").toLowerCase();
@@ -182,7 +194,10 @@ export const decideSignupRequest = onCall({ region, secrets: [twilioAccountSid, 
   const snapshot = await requestRef.get();
   if (!snapshot.exists) throw new HttpsError("not-found", "Signup request not found.");
   const signup = snapshot.data() || {};
-  if (signup.tenantId && String(signup.tenantId) !== TENANT_ID) throw new HttpsError("permission-denied", "This request belongs to another tenant.");
+  const signupTenantId = String(signup.tenantId || TENANT_ID);
+  if (caller.role !== "superadmin" && signupTenantId !== caller.tenantId) throw new HttpsError("permission-denied", "This request belongs to another school.");
+  const tenantSnapshot = await db.collection("tenants").doc(signupTenantId).get();
+  if (!tenantSnapshot.exists || tenantSnapshot.data()?.status !== "active") throw new HttpsError("failed-precondition", "This school is not active.");
   if (signup.status !== "pending") throw new HttpsError("failed-precondition", "This request has already been decided.");
   if (decision === "reject") {
     await requestRef.update({ status: "rejected", decidedBy: request.auth?.uid, decidedAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
@@ -198,8 +213,8 @@ export const decideSignupRequest = onCall({ region, secrets: [twilioAccountSid, 
   try {
     const extra: Record<string, unknown> = { ...asRecord(signup.extra), phone: String(signup.phone || ""), contactEmail: String(signup.email || "") };
     const batch = db.batch();
-    batch.set(db.collection("users").doc(created.uid), { uid: created.uid, id, role, email, displayName: String(signup.displayName || "School member"), createdAt: FieldValue.serverTimestamp(), status: "active", tenantId: TENANT_ID, ...extra });
-    batch.set(db.collection(profileCollections[role]).doc(id), { ...profileData(role, id, created.uid, String(signup.displayName || "School member"), email, extra), createdAt: FieldValue.serverTimestamp() });
+    batch.set(db.collection("users").doc(created.uid), { uid: created.uid, id, role, email, displayName: String(signup.displayName || "School member"), createdAt: FieldValue.serverTimestamp(), status: "active", tenantId: signupTenantId, ...extra });
+    batch.set(db.collection(profileCollections[role]).doc(id), { ...profileData(role, id, created.uid, String(signup.displayName || "School member"), email, extra), tenantId: signupTenantId, createdAt: FieldValue.serverTimestamp() });
     if (role === "parent" && Array.isArray(extra.studentIds)) {
       for (const studentId of extra.studentIds.map(String)) batch.set(db.collection("students").doc(studentId), { parentId: id, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
     }
@@ -223,7 +238,9 @@ export const createManagedUser = onCall({ region }, async (request) => {
   const data = asRecord(request.data);
   const role = asRole(data.role);
   const caller = await getFirestore().collection("users").doc(String(request.auth?.uid || "")).get();
-  if (String(caller.data()?.role || "").toLowerCase() === "admin" && role !== "student") throw new HttpsError("permission-denied", "Administrators can provision student accounts only.");
+  const callerData = caller.data() || {};
+  if (String(callerData.role || "").toLowerCase() === "admin" && !["student", "staff"].includes(role)) throw new HttpsError("permission-denied", "Tenant Administrators can provision student and staff accounts only.");
+  const tenantId = String(callerData.tenantId || TENANT_ID);
   const displayName = String(data.displayName || "").trim();
   const password = String(data.password || "");
   if (!displayName) throw new HttpsError("invalid-argument", "Display name is required.");
@@ -245,10 +262,13 @@ export const createManagedUser = onCall({ region }, async (request) => {
       role,
       email,
       displayName,
+      tenantId,
       createdAt: FieldValue.serverTimestamp(),
+      status: "active",
     });
     batch.set(db.collection(profileCollections[role]).doc(id), {
       ...profileData(role, id, created.uid, displayName, email, asRecord(data.extra)),
+      tenantId,
       createdAt: FieldValue.serverTimestamp(),
     });
     await batch.commit();
@@ -259,7 +279,7 @@ export const createManagedUser = onCall({ region }, async (request) => {
   return { uid: created.uid, id, role, email, displayName };
 });
 
-export const createTenantWithAdmin = onCall({ region }, async (request) => {
+export const createTenantWithAdmin = onCall({ region, secrets: [gmailClientId, gmailClientSecret, gmailRefreshToken] }, async (request) => {
   await assertSuperAdmin(request.auth?.uid);
   const data = asRecord(request.data);
   const schoolName = String(data.schoolName || "").trim();
@@ -289,7 +309,48 @@ export const createTenantWithAdmin = onCall({ region }, async (request) => {
     await auth.deleteUser(created.uid).catch(() => undefined);
     throw error;
   }
-  return { tenantId, schoolName, adminUid: created.uid, adminId, loginEmail: idToEmail(adminId) };
+  let deliveryStatus = "email-not-sent";
+  try {
+    deliveryStatus = `email-${await sendCredentialEmail(adminEmail, adminId, password, schoolName, tenantId, "Tenant Administrator")}`;
+  } catch {
+    deliveryStatus = "email-failed";
+  }
+  return { tenantId, schoolName, adminUid: created.uid, adminId, loginEmail: idToEmail(adminId), deliveryStatus };
+});
+
+export const manageTenants = onCall({ region, secrets: [gmailClientId, gmailClientSecret, gmailRefreshToken] }, async (request) => {
+  await assertSuperAdmin(request.auth?.uid);
+  const data = asRecord(request.data); const action = String(data.action || "list").toLowerCase(); const db = getFirestore();
+  if (action === "list") {
+    const [tenants, admins] = await Promise.all([db.collection("tenants").orderBy("schoolName").get(), db.collection("admins").get()]);
+    const adminByTenant = new Map(admins.docs.filter((item) => String(item.data().tenantId || "")).map((item) => [String(item.data().tenantId), { id: item.id, ...item.data() }]));
+    return { tenants: tenants.docs.map((item) => ({ id: item.id, ...item.data(), admin: adminByTenant.get(item.id) || null })) };
+  }
+  const tenantId = cleanTenantId(data.tenantId); const tenantRef = db.collection("tenants").doc(tenantId); const before = await tenantRef.get();
+  if (!before.exists) throw new HttpsError("not-found", "School not found.");
+  const actor = request.auth?.uid || ""; const now = FieldValue.serverTimestamp();
+  if (action === "update") {
+    const schoolName = String(data.schoolName || "").trim(); const contactEmail = String(data.contactEmail || "").trim().toLowerCase(); const phone = String(data.phone || "").trim();
+    if (!schoolName || !contactEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) throw new HttpsError("invalid-argument", "School name and a valid contact email are required.");
+    await tenantRef.update({ schoolName, contactEmail, phone, updatedAt: now });
+    await db.collection("activityLogs").add({ userId: actor, action: "update_tenant", details: { tenantId, schoolName, contactEmail, phone }, createdAt: now });
+    return { status: "updated" };
+  }
+  if (action === "status") {
+    const status = String(data.status || "").toLowerCase(); if (!["active", "suspended", "archived"].includes(status)) throw new HttpsError("invalid-argument", "Invalid school status.");
+    await tenantRef.update({ status, updatedAt: now });
+    await db.collection("activityLogs").add({ userId: actor, action: `tenant_${status}`, details: { tenantId, previousStatus: before.data()?.status || "active", status }, createdAt: now });
+    return { status };
+  }
+  if (action === "reset-admin") {
+    const adminSnapshot = await db.collection("admins").where("tenantId", "==", tenantId).limit(1).get(); if (adminSnapshot.empty) throw new HttpsError("not-found", "No Tenant Administrator was found.");
+    const admin = adminSnapshot.docs[0].data(); const password = String(data.password || `Astem-${Math.random().toString(36).slice(2, 8)}!`); if (password.length < 6) throw new HttpsError("invalid-argument", "Password must contain at least 6 characters.");
+    await getAuth().updateUser(String(admin.userId), { password });
+    let deliveryStatus = "no-contact"; try { deliveryStatus = `email-${await sendCredentialEmail(String(admin.contactEmail || admin.email || ""), String(admin.adminId || adminSnapshot.docs[0].id), password, String(before.data()?.schoolName || "School"), tenantId, "Tenant Administrator")}`; } catch { deliveryStatus = "email-failed"; }
+    await db.collection("activityLogs").add({ userId: actor, action: "reset_tenant_admin_password", details: { tenantId, adminId: admin.adminId || adminSnapshot.docs[0].id, deliveryStatus }, createdAt: now });
+    return { status: "reset", adminId: admin.adminId || adminSnapshot.docs[0].id, temporaryPassword: password, deliveryStatus };
+  }
+  throw new HttpsError("invalid-argument", "Unsupported tenant management action.");
 });
 
 export const updateManagedUserRole = onCall({ region }, async (request) => {

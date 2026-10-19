@@ -95,6 +95,8 @@ import GraduationArchivePage from "./pages/Admin/GraduationArchivePage";
 import SignupPage from "./pages/Signup";
 import SignupRequestsPage from "./pages/Admin/SignupRequestsPage";
 import CreateSchoolPage from "./pages/SuperAdmin/CreateSchoolPage";
+import SchoolManagementPage from "./pages/SuperAdmin/SchoolManagementPage";
+import SchoolBrandingPage from "./pages/Admin/SchoolBrandingPage";
 
 function LoadingScreen() {
   return (
@@ -168,9 +170,11 @@ export default function App() {
               <Route path="superadmin/users" element={<UserManagementPage />} />
               <Route path="superadmin/create-user" element={<Signup />} />
               <Route path="superadmin/create-school" element={<CreateSchoolPage />} />
+              <Route path="superadmin/schools" element={<SchoolManagementPage />} />
             </Route>
             <Route element={<RoleProtectedRoute allowedRoles={["admin", "superadmin"]} />}>
               <Route path="admin/create-student" element={<Signup />} />
+              <Route path="admin/school-branding" element={<SchoolBrandingPage />} />
             </Route>
 
             <Route element={<RoleProtectedRoute allowedRoles={["staff"]} />}>

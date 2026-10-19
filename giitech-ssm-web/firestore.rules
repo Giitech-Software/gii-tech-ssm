@@ -86,8 +86,10 @@ service cloud.firestore {
     }
 
     match /tenants/{tenantId} {
-      allow read: if isSuperAdmin() || (isAdmin() && hasUserProfile() && tenantId == userProfile().get("tenantId", ""));
-      allow write: if isSuperAdmin();
+      allow read: if signedIn() && hasUserProfile() && tenantId == userProfile().get("tenantId", "");
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin() || (isAdmin() && tenantId == userProfile().get("tenantId", "") && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["logoUrl", "logoStoragePath", "updatedAt"]));
+      allow delete: if isSuperAdmin();
     }
 
     match /users/{userId} {

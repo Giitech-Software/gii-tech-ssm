@@ -52,6 +52,13 @@ service firebase.storage {
       allow delete: if isAdminStaff() || (isTeacher() && request.auth.uid == teacherId);
     }
 
+    match /tenants/{tenantId}/branding/{fileName} {
+      allow read: if signedIn();
+      allow create, update: if isAdminStaff() && userProfile().tenantId == tenantId &&
+        request.resource.size < 2 * 1024 * 1024 && request.resource.contentType.matches("image/.*");
+      allow delete: if isAdminStaff() && userProfile().tenantId == tenantId;
+    }
+
     match /{allPaths=**} {
       allow read, write: if false;
     }

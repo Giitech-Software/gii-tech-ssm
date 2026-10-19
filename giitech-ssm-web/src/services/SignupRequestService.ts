@@ -8,7 +8,7 @@ export type SignupOptions = { departments: { id: string; name: string }[]; subje
 
 export async function fetchSignupOptions() { const call = httpsCallable<void, SignupOptions>(functions, "fetchSignupOptions"); return (await call()).data; }
 
-export async function submitSignupRequest(input: { role: SignupRole; displayName: string; phone?: string; email?: string; extra?: Record<string, unknown> }) {
+export async function submitSignupRequest(input: { role: SignupRole; displayName: string; phone?: string; email?: string; schoolCode?: string; extra?: Record<string, unknown> }) {
   const call = httpsCallable<typeof input, { requestId: string; status: string }>(functions, "submitSignupRequest");
   return (await call(input)).data;
 }

@@ -1,5 +1,6 @@
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 import {
   fetchRecentActivityLogs,
   type ActivityLogRecord,
@@ -104,17 +105,17 @@ export async function fetchOperationalMetrics(): Promise<OperationalMetrics> {
     loadMetric("exams", fetchExamAssessments, []),
     loadMetric(
       "submissions",
-      async () => (await getDocs(collection(db, "submissions"))).docs.map((document) => document.data()),
+      async () => (await getDocs(query(collection(db, "submissions"), where("tenantId", "==", TENANT_ID)))).docs.map((document) => document.data()),
       [],
     ),
     loadMetric(
       "attendance",
-      async () => (await getDocs(collection(db, "attendance"))).docs.map((document) => document.data()),
+      async () => (await getDocs(query(collection(db, "attendance"), where("tenantId", "==", TENANT_ID)))).docs.map((document) => document.data()),
       [],
     ),
     loadMetric(
       "accounts",
-      async () => (await getDocs(collection(db, "users"))).docs.map((document) => document.data()),
+      async () => (await getDocs(query(collection(db, "users"), where("tenantId", "==", TENANT_ID)))).docs.map((document) => document.data()),
       [],
     ),
     loadMetric("recent activity", () => fetchRecentActivityLogs(8), []),
