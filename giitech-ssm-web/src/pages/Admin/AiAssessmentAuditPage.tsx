@@ -1,7 +1,8 @@
 import { RefreshCw, ShieldCheck } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
+import { TENANT_ID } from "../../config/tenant";
 
 type AuditItem = { id: string; assignmentName?: string; studentName?: string; aiSuggestion?: { score: number; feedback: string; model?: string; status?: string }; aiApprovedBy?: string; aiRejectedBy?: string };
 type Filter = "all" | "pending" | "approved" | "rejected";
@@ -9,7 +10,7 @@ const decisionOf = (item: AuditItem) => item.aiSuggestion?.status === "approved"
 
 export default function AiAssessmentAuditPage() {
   const [items, setItems] = useState<AuditItem[]>([]); const [filter, setFilter] = useState<Filter>("all"); const [loading, setLoading] = useState(true); const [error, setError] = useState("");
-  const load = async () => { setLoading(true); setError(""); try { const snapshot = await getDocs(collection(db, "submissions")); setItems(snapshot.docs.map((item) => ({ id: item.id, ...item.data() } as AuditItem)).filter((item) => !!item.aiSuggestion)); } catch (loadError) { setError(loadError instanceof Error ? loadError.message : "Unable to load AI audit records."); } finally { setLoading(false); } };
+  const load = async () => { setLoading(true); setError(""); try { const snapshot = await getDocs(query(collection(db, "submissions"), where("tenantId", "==", TENANT_ID))); setItems(snapshot.docs.map((item) => ({ id: item.id, ...item.data() } as AuditItem)).filter((item) => !!item.aiSuggestion)); } catch (loadError) { setError(loadError instanceof Error ? loadError.message : "Unable to load AI audit records."); } finally { setLoading(false); } };
   useEffect(() => { void load(); }, []);
   const counts = useMemo(() => ({ all: items.length, pending: items.filter((item) => decisionOf(item) === "pending").length, approved: items.filter((item) => decisionOf(item) === "approved").length, rejected: items.filter((item) => decisionOf(item) === "rejected").length }), [items]);
   const visibleItems = filter === "all" ? items : items.filter((item) => decisionOf(item) === filter);

@@ -2,7 +2,6 @@ import { getAuth } from "firebase-admin/auth";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
-import { google } from "googleapis";
 
 const twilioAccountSid = defineSecret("TWILIO_ACCOUNT_SID");
 const twilioAuthToken = defineSecret("TWILIO_AUTH_TOKEN");
@@ -76,6 +75,7 @@ async function sendCredentialSms(phone: string, id: string, password: string) {
 
 async function sendCredentialEmail(to: string, id: string, password: string, schoolName = "ASTEM-SSM", schoolCode = TENANT_ID, role = "School member") {
   if (!to || !gmailClientId.value() || !gmailClientSecret.value() || !gmailRefreshToken.value()) return "not-configured";
+  const { google } = await import("googleapis");
   const authClient = new google.auth.OAuth2(gmailClientId.value(), gmailClientSecret.value());
   authClient.setCredentials({ refresh_token: gmailRefreshToken.value() });
   const gmail = google.gmail({ version: "v1", auth: authClient });

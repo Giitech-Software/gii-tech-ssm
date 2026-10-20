@@ -7,18 +7,21 @@ import {
   deleteDoc,
   getDoc,
   serverTimestamp,
+  query,
+  where,
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import {
   generateClassId,
   generateStreamId,
 } from "../utils/idGenerator";
+import { TENANT_ID } from "../config/tenant";
 
 /**
  * ✅ Fetch all classes with their department names and streams
  */
 export const fetchClasses = async () => {
-  const snapshot = await getDocs(collection(db, "classes"));
+  const snapshot = await getDocs(query(collection(db, "classes"), where("tenantId", "==", TENANT_ID)));
   return snapshot.docs.map((docSnap) => ({
     id: docSnap.id,
     ...docSnap.data(),
@@ -44,6 +47,7 @@ export const addClass = async (
     departmentName,
     createdAt: serverTimestamp(),
     streams: [],
+    tenantId: TENANT_ID,
   });
 };
 

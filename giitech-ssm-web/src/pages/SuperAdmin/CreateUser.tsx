@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
+import { TENANT_ID } from "../../config/tenant";
 import { Eye, EyeOff } from "lucide-react";
 
 interface ClassItem {
@@ -54,7 +55,7 @@ export default function Signup() {
     const fetchDropdownData = async () => {
       try {
         // Fetch classes
-        const classSnap = await getDocs(collection(db, "classes"));
+        const classSnap = await getDocs(query(collection(db, "classes"), where("tenantId", "==", TENANT_ID)));
         const classList = classSnap.docs.map((doc) => ({
           id: doc.id,
           name: doc.data().name || doc.data().title || doc.id, // fallback
@@ -62,7 +63,7 @@ export default function Signup() {
         setClasses(classList);
 
         // Fetch streams
-        const streamSnap = await getDocs(collection(db, "streams"));
+        const streamSnap = await getDocs(query(collection(db, "streams"), where("tenantId", "==", TENANT_ID)));
         const streamList = streamSnap.docs.map((doc) => ({
           id: doc.id,
           name: doc.data().name || doc.id,
@@ -70,13 +71,13 @@ export default function Signup() {
         setStreams(streamList);
 
         // Fetch subjects
-        const subjectSnap = await getDocs(collection(db, "subjects"));
+        const subjectSnap = await getDocs(query(collection(db, "subjects"), where("tenantId", "==", TENANT_ID)));
         const subjectList = subjectSnap.docs.map((doc) => ({
           id: doc.id,
           title: doc.data().name || doc.data().title || doc.id,
         }));
         setSubjects(subjectList);
-        const departmentSnap = await getDocs(collection(db, "departments"));
+        const departmentSnap = await getDocs(query(collection(db, "departments"), where("tenantId", "==", TENANT_ID)));
         setDepartments(departmentSnap.docs.map((item) => ({ id: item.id, name: item.data().name || item.id })));
       } catch (err) {
         console.error("Error loading dropdowns:", err);
