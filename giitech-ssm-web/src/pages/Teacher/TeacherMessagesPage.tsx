@@ -19,6 +19,7 @@ interface ChatMessage {
   participants: string[];
   timestamp: any;
   read?: boolean;
+  readBy?: string[];
 }
 
 /* 🔹 Reusable Local UI */
@@ -84,7 +85,7 @@ export default function TeacherMessagesPage() {
           (a, b) => b.timestamp.seconds - a.timestamp.seconds
         );
         const unread = sorted.filter(
-          (m) => m.sender !== currentUser.email && !m.read
+          (m) => m.sender !== currentUser.email && !m.readBy?.includes(currentUser.email || "") && m.read !== true
         ).length;
         return {
           parentEmail,
@@ -159,7 +160,7 @@ export default function TeacherMessagesPage() {
                       {chat.parentEmail}
                     </h3>
                     {chat.unreadCount > 0 && (
-                      <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      <span className="animate-pulse bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                         {chat.unreadCount}
                       </span>
                     )}

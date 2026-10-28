@@ -1,5 +1,6 @@
 import { collection, documentId, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 
 export interface StudentAcademicProfile {
   id: string;
@@ -44,7 +45,7 @@ const chunkIds = (ids: string[]) => {
 };
 
 export async function fetchStudentProfileByUserId(userId: string): Promise<StudentAcademicProfile | null> {
-  const studentQuery = query(collection(db, "students"), where("userId", "==", userId));
+  const studentQuery = query(collection(db, "students"), where("tenantId", "==", TENANT_ID), where("userId", "==", userId));
   const snapshot = await getDocs(studentQuery);
   if (snapshot.empty) return null;
 
@@ -62,7 +63,7 @@ export async function fetchStudentProfileByUserId(userId: string): Promise<Stude
 }
 
 export async function fetchGradesByStudentId(studentId: string): Promise<StudentGradeRecord[]> {
-  const gradeQuery = query(collection(db, "grades"), where("studentId", "==", studentId));
+  const gradeQuery = query(collection(db, "grades"), where("tenantId", "==", TENANT_ID), where("studentId", "==", studentId));
   const snapshot = await getDocs(gradeQuery);
   return snapshot.docs.map((item) => ({ id: item.id, ...item.data() })) as StudentGradeRecord[];
 }
@@ -70,7 +71,7 @@ export async function fetchGradesByStudentId(studentId: string): Promise<Student
 export async function fetchGradesByStudentIds(studentIds: string[]): Promise<StudentGradeRecord[]> {
   const snapshots = await Promise.all(
     chunkIds(studentIds).map((ids) =>
-      getDocs(query(collection(db, "grades"), where("studentId", "in", ids)))
+      getDocs(query(collection(db, "grades"), where("tenantId", "==", TENANT_ID), where("studentId", "in", ids)))
     )
   );
   return snapshots.flatMap((snapshot) =>
@@ -79,7 +80,7 @@ export async function fetchGradesByStudentIds(studentIds: string[]): Promise<Stu
 }
 
 export async function fetchAttendanceByStudentId(studentId: string): Promise<StudentAttendanceRecord[]> {
-  const attendanceQuery = query(collection(db, "attendance"), where("studentId", "==", studentId));
+  const attendanceQuery = query(collection(db, "attendance"), where("tenantId", "==", TENANT_ID), where("studentId", "==", studentId));
   const snapshot = await getDocs(attendanceQuery);
   return snapshot.docs
     .map((item) => {

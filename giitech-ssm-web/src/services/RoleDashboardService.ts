@@ -110,14 +110,20 @@ export async function fetchTeacherDashboard(userId: string): Promise<RoleDashboa
 export async function fetchStudentDashboard(userId: string): Promise<RoleDashboardData | null> {
   const student = await fetchStudentProfileByUserId(userId);
   if (!student) return null;
-  const [assignments, grades, attendance, submissionSnapshot, notifications] = await Promise.all([
+  const results = await Promise.allSettled([
     student.classId ? fetchAssignmentsByClass(student.classId) : [],
     fetchGradesByStudentId(student.studentId),
     fetchAttendanceByStudentId(student.studentId),
     getDocs(query(collection(db, "submissions"), where("studentUid", "==", userId))),
     fetchNotificationsForUser({ userId, role: "student", studentIds: [student.studentId] }),
   ]);
-  const submissions = submissionSnapshot.docs.map((item) => item.data());
+  const value = <T,>(index: number, fallback: T): T => results[index].status === "fulfilled" ? results[index].value as T : fallback;
+  const assignments = value(0, [] as Awaited<ReturnType<typeof fetchAssignmentsByClass>>);
+  const grades = value(1, [] as Awaited<ReturnType<typeof fetchGradesByStudentId>>);
+  const attendance = value(2, [] as Awaited<ReturnType<typeof fetchAttendanceByStudentId>>);
+  const submissionSnapshot = results[3].status === "fulfilled" ? results[3].value : null;
+  const notifications = value(4, [] as WorkflowNotification[]);
+  const submissions = submissionSnapshot ? submissionSnapshot.docs.map((item) => item.data()) : [];
   const submittedAssignmentIds = new Set(submissions.map((submission) => submission.assignmentId));
   const outstanding = assignments.filter((assignment) => isActive(assignment) && !submittedAssignmentIds.has(assignment.id));
 

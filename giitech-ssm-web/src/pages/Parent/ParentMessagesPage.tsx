@@ -20,6 +20,7 @@ type Message = {
   timestamp?: { seconds: number; nanoseconds: number };
   role?: string;
   read?: boolean;
+  readBy?: string[];
 };
 
 /* 🔹 Local reusable UI components */
@@ -93,7 +94,7 @@ export default function ParentMessagesPage() {
           (a, b) => (b.timestamp?.seconds || 0) - (a.timestamp?.seconds || 0)
         );
         const unread = sorted.filter(
-          (m) => m.sender !== currentUser.email && !m.read
+          (m) => m.sender !== currentUser.email && !m.readBy?.includes(currentUser.email || "") && m.read !== true
         ).length;
 
         return {
@@ -170,7 +171,7 @@ export default function ParentMessagesPage() {
                       {chat.teacherEmail}
                     </h3>
                     {chat.unreadCount > 0 && (
-                      <span className="bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+                      <span className="animate-pulse bg-red-500 text-white text-xs px-2 py-1 rounded-full">
                         {chat.unreadCount}
                       </span>
                     )}

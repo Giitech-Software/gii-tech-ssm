@@ -1,5 +1,6 @@
 import { collection, getDocs, query, where, type Timestamp } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 
 export type NotificationCategory = "announcement" | "alert" | "info";
 
@@ -45,10 +46,10 @@ export async function fetchNotificationsForUser({
   const targetValues = [...new Set(["all", ...studentIds].filter(Boolean))];
   const notificationCollection = collection(db, "notifications");
   const snapshots = await Promise.all([
-    getDocs(query(notificationCollection, where("recipientUserId", "==", userId))),
-    getDocs(query(notificationCollection, where("recipientRoles", "array-contains", role))),
+    getDocs(query(notificationCollection, where("tenantId", "==", TENANT_ID), where("recipientUserId", "==", userId))),
+    getDocs(query(notificationCollection, where("tenantId", "==", TENANT_ID), where("recipientRoles", "array-contains", role))),
     ...chunks(targetValues).map((targets) =>
-      getDocs(query(notificationCollection, where("target", "in", targets))),
+      getDocs(query(notificationCollection, where("tenantId", "==", TENANT_ID), where("target", "in", targets))),
     ),
   ]);
   const notifications = new Map<string, WorkflowNotification>();

@@ -41,7 +41,7 @@ import {
   UserPlus,
   X,
 } from "lucide-react";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { arrayUnion, collection, onSnapshot, query, updateDoc, where, getDocs, doc } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { db } from "../firebaseConfig";
 
@@ -86,18 +86,26 @@ const SharedLayout = () => {
       messagesQuery,
       (snapshot) => {
         const unread = snapshot.docs.filter(({ data }) => {
-          const lastMessage = data().lastMessage;
-          return (
-            lastMessage &&
-            lastMessage.sender !== user.email &&
-            !lastMessage.readBy?.includes(user.email)
-          );
+          const message = data();
+          return message.sender !== user.email && !message.readBy?.includes(user.email) && message.read !== true;
         }).length;
         setUnreadCount(unread);
       },
       (error) => console.warn("Unable to load unread messages:", error)
     );
   }, [user?.email]);
+
+  useEffect(() => {
+    if (!user?.email || !location.pathname.includes("/messages")) return;
+    const markViewed = async () => {
+      const snapshot = await getDocs(query(collection(db, "messages"), where("participants", "array-contains", user.email)));
+      await Promise.all(snapshot.docs.filter((item) => {
+        const data = item.data();
+        return data.sender !== user.email && !data.readBy?.includes(user.email) && data.read !== true;
+      }).map((item) => updateDoc(doc(db, "messages", item.id), { read: true, readBy: arrayUnion(user.email) })));
+    };
+    void markViewed().catch((error) => console.warn("Unable to mark messages as read:", error));
+  }, [location.pathname, user?.email]);
 
   const navItems: NavItem[] = [
     { to: "/admin/departments", label: "Departments", icon: <Building size={18} />, roles: ["superadmin", "admin"] },
@@ -175,7 +183,7 @@ const SharedLayout = () => {
     { to: "/parent/performance", label: "Performance", icon: <BarChart3 size={18} />, roles: ["parent"] },
     { to: "/parent/attendance", label: "Attendance", icon: <Calendar size={18} />, roles: ["parent"] },
     { to: "/parent/reports", label: "Reports", icon: <FileText size={18} />, roles: ["parent"] },
-    { to: "/notifications", label: "Notifications", icon: <Bell size={18} />, roles: ["superadmin", "admin", "teacher", "student", "parent", "staff"] },
+    { to: "/notifications", label: "Notifications", icon: <Bell size={18} />, roles: ["superadmin", "admin", "teacher", "student", "parent", "staff"], badge: unreadCount },
     { to: "/notification-preferences", label: "Delivery Preferences", icon: <Bell size={18} />, roles: ["superadmin", "admin", "teacher", "student", "parent", "staff"] },
     { to: "/parent/messages", label: "Messages", icon: <MessageCircle size={18} />, roles: ["parent"], badge: unreadCount },
     { to: "/parent/fees", label: "Fees", icon: <DollarSign size={18} />, roles: ["parent"] },
@@ -202,7 +210,7 @@ const SharedLayout = () => {
     >
       {item.icon}
       <span className={`flex-1 ${desktopCollapsed ? "md:hidden" : ""}`}>{item.label}</span>
-      {!!item.badge && <span className={`rounded-full bg-red-500 px-2 py-0.5 text-xs font-bold text-white ${desktopCollapsed ? "md:hidden" : ""}`}>{item.badge}</span>}
+      {!!item.badge && <span className={`animate-pulse rounded-full bg-red-600 px-2 py-0.5 text-xs font-bold text-white shadow-sm shadow-red-300 ${desktopCollapsed ? "md:hidden" : ""}`}>{item.badge}</span>}
     </NavLink>
   ));
 
