@@ -8,7 +8,10 @@ import {
   updateDoc,
   getDoc,
   serverTimestamp,
+  query,
+  where,
 } from "firebase/firestore";
+import { TENANT_ID } from "../config/tenant";
 
 const STUDENTS_COLLECTION = "students";
 
@@ -16,7 +19,7 @@ const STUDENTS_COLLECTION = "students";
  * Fetch all students
  */
 export const fetchStudents = async () => {
-  const snapshot = await getDocs(collection(db, STUDENTS_COLLECTION));
+  const snapshot = await getDocs(query(collection(db, STUDENTS_COLLECTION), where("tenantId", "==", TENANT_ID)));
   return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
 };
 

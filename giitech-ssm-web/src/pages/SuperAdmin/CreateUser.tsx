@@ -287,22 +287,8 @@ export default function Signup() {
           {role === "teacher" && (
             <div>
               <label className="block text-sm font-medium text-dark mb-1">Subject</label>
-              <select
-                value={selectedSubject}
-                onChange={(e) => setSelectedSubject(e.target.value)}
-                className="w-full rounded-md border border-neutral px-3 py-2 focus:border-primary focus:outline-none"
-              >
-                <option value="">Select Subject</option>
-                {subjects.length > 0 ? (
-                  subjects.map((sub) => (
-                    <option key={sub.id} value={sub.id}>
-                      {sub.title}
-                    </option>
-                  ))
-                ) : (
-                  <option disabled>No subjects found</option>
-                )}
-              </select>
+              <input list="teacher-subject-options" value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} placeholder="Enter primary subject" className="w-full rounded-md border border-neutral px-3 py-2 focus:border-primary focus:outline-none" />
+              <datalist id="teacher-subject-options">{subjects.map((sub) => <option key={sub.id} value={sub.title} />)}</datalist>
             </div>
           )}
 

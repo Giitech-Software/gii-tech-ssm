@@ -6,6 +6,7 @@ import {
   where,
 } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 
 /**
  * Fetch performance data for a class and exam.
@@ -19,6 +20,7 @@ export const fetchPerformanceData = async (
   try {
     let q = query(
       collection(db, "grades"),
+      where("tenantId", "==", TENANT_ID),
       where("classId", "==", classId),
       where("examId", "==", examId)
     );
@@ -26,6 +28,7 @@ export const fetchPerformanceData = async (
     if (studentId) {
       q = query(
         collection(db, "grades"),
+        where("tenantId", "==", TENANT_ID),
         where("classId", "==", classId),
         where("examId", "==", examId),
         where("studentId", "==", studentId)
@@ -43,7 +46,7 @@ export const fetchPerformanceData = async (
         studentName: d.studentName || "Unknown",
         classId: d.classId,
         subject: d.subject,
-        mark: d.mark,
+        mark: Number(d.mark ?? d.finalScore ?? d.percentage ?? d.score),
         examId: d.examId,
       });
     });
@@ -67,6 +70,6 @@ export const fetchPerformanceData = async (
     return withAverages;
   } catch (error) {
     console.error("Error fetching performance data:", error);
-    return [];
+    throw error;
   }
 };

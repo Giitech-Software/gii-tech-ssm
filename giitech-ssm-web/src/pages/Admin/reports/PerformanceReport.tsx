@@ -112,7 +112,7 @@ const PerformanceReport: React.FC = () => {
         >
           <option value="">Select Exam</option>
           {exams.map((ex) => (
-            <option key={ex.examId} value={ex.examId}>
+            <option key={ex.id} value={ex.id}>
               {ex.name}
             </option>
           ))}

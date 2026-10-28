@@ -125,7 +125,7 @@ const SharedLayout = () => {
     { to: "/admin/ai-alerts", label: "AI Budget Alerts", icon: <AlertTriangle size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/ai-monthly-costs", label: "AI Monthly Costs", icon: <BarChart3 size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/activity", label: "Activity Logs", icon: <Activity size={18} />, roles: ["superadmin", "admin"] },
-    { to: "/admin/communications", label: "Communications", icon: <Megaphone size={18} />, roles: ["superadmin", "admin"] },
+    { to: "/admin/communications", label: "Notices & announcements", icon: <Megaphone size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/bulk-messaging", label: "Bulk SMS / WhatsApp", icon: <Megaphone size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/promotions", label: "Student Promotion", icon: <ArrowUpRight size={18} />, roles: ["superadmin", "admin"] },
     { to: "/admin/term-comments", label: "Learner Progress", icon: <FileText size={18} />, roles: ["superadmin", "admin"] },
@@ -260,10 +260,11 @@ const SharedLayout = () => {
           {renderAdminGroup("people", "People & identity", <Users size={18} />, visibleItems.filter(item => ["Students", "Create Student", "Staff", "Create Staff", "Signup Requests", "User Management", "Create User", "Family Links", "Graduated / Archive", "Graduation Archive"].includes(item.label)))}
           {role === "superadmin" && renderAdminGroup("platform", "Platform administration", <Building size={18} />, visibleItems.filter(item => ["Create School", "School Management"].includes(item.label)))}
           {renderAdminGroup("setup", "School setup", <GraduationCap size={18} />, visibleItems.filter(item => ["Departments", "School branding", "Academic Years and Terms", "Classes", "Streams", "Grading Configuration", "Assessment Setup"].includes(item.label)))}
-          {renderAdminGroup("communications", "Communications", <Megaphone size={18} />, visibleItems.filter(item => ["Communications", "Bulk SMS / WhatsApp", "Activity Logs"].includes(item.label)))}
+          {renderAdminGroup("communications", "Communications", <Megaphone size={18} />, visibleItems.filter(item => ["Notices & announcements", "Bulk SMS / WhatsApp", "Activity Logs"].includes(item.label)))}
           {renderAdminGroup("learning", "Teaching & learning", <BookOpen size={18} />, visibleItems.filter(item => ["Student Promotion", "Learner Progress", "Classwork and Homework", "Tests and Assessment Summary", "Exam/Test Score Entry", "Learner Gradebook", "Student Submissions", "Assignment Grades", "Report Publishing"].includes(item.label)))}
           {renderAdminGroup("reports", "Reports & insights", <BarChart3 size={18} />, visibleItems.filter(item => ["Reports", "Institutional Analytics", "Student Rankings", "Staff Finance Reports", "SSNIT Contribution Report", "SSNIT Remittance Tracking"].includes(item.label)))}
-          {renderAdminGroup("operations", "Attendance, finance & operations", <CalendarCheck2 size={18} />, visibleItems.filter(item => ["Student Attendance", "Staff Attendance", "Attendance Administration", "Payment Intents", "Fee Structures", "Student Ledger", "School Library", "Staff Financial Records", "Staff Loan Repayments"].includes(item.label)))}
+          {renderAdminGroup("attendance", "Attendance", <CalendarCheck2 size={18} />, visibleItems.filter(item => ["Student Attendance", "Staff Attendance", "Attendance Administration"].includes(item.label)))}
+          {renderAdminGroup("operations", "Finance & operations", <WalletCards size={18} />, visibleItems.filter(item => ["Payment Intents", "Fee Structures", "Student Ledger", "Staff Financial Records", "Staff Loan Repayments"].includes(item.label)))}
           {renderAdminGroup("ai", "AI tools", <Sparkles size={18} />, visibleItems.filter(item => ["AI Grading Audit", "AI Usage Settings", "AI Usage Report", "AI Cost Controls", "AI Budget Alerts", "AI Monthly Costs"].includes(item.label)))}
         </> : renderNavItems(visibleItems)}
       </nav>

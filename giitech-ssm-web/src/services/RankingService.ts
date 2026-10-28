@@ -1,10 +1,11 @@
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 import { calculateFinalScore, getGradingConfiguration } from "./GradingConfigurationService";
 
 export type RankingRow = { studentId: string; studentName: string; classId: string; streamId: string; departmentId: string; subjectAverages: Record<string, number>; overallAverage: number; rank: number };
 export async function calculateRankings(filters: { subject?: string; classId?: string; streamId?: string; departmentId?: string; academicYear?: string; term?: string } = {}) {
-  const [studentSnapshot, gradeSnapshot, gradingConfiguration] = await Promise.all([getDocs(collection(db, "students")), getDocs(collection(db, "grades")), getGradingConfiguration()]);
+  const [studentSnapshot, gradeSnapshot, gradingConfiguration] = await Promise.all([getDocs(query(collection(db, "students"), where("tenantId", "==", TENANT_ID))), getDocs(query(collection(db, "grades"), where("tenantId", "==", TENANT_ID))), getGradingConfiguration()]);
   const profiles = new Map<string, { name: string; classId: string; streamId: string; departmentId: string }>();
   studentSnapshot.docs.forEach(item => { const data = item.data(); const id = String(data.studentId || item.id); profiles.set(id, { name: String(data.displayName || data.studentName || id), classId: String(data.classId || ""), streamId: String(data.streamId || data.stream || ""), departmentId: String(data.departmentId || data.department || "") }); });
   const scores = new Map<string, Map<string, number[]>>();

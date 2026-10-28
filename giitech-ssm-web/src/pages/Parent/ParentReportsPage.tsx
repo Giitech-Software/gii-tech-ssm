@@ -3,6 +3,7 @@ import { Download, FileText } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { exportToCSV, exportToPDF } from "../Admin/reports/utils/reportExports";
 import { getParentProfileByUserId } from "../../services/ParentService";
+import { LoadingState } from "../../components/LoadingState";
 import {
   fetchPublishedReportsByStudentIds,
   type PublishedStudentReport,
@@ -43,7 +44,7 @@ export default function ParentReportsPage() {
         </div>
       </div>
       {error && <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
-      {loading ? <p className="py-10 text-center text-sm text-slate-500">Loading reports...</p> : (
+      {loading ? <LoadingState label="Loading reports..." /> : (
         <div className="grid gap-4 xl:grid-cols-2">
           {reports.map((report) => (
             <article key={report.id} className="border bg-white p-4">

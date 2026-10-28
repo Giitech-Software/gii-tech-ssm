@@ -213,8 +213,9 @@ export const decideSignupRequest = onCall({ region, secrets: [twilioAccountSid, 
   try {
     const extra: Record<string, unknown> = { ...asRecord(signup.extra), phone: String(signup.phone || ""), contactEmail: String(signup.email || "") };
     const batch = db.batch();
-    batch.set(db.collection("users").doc(created.uid), { uid: created.uid, id, role, email, displayName: String(signup.displayName || "School member"), createdAt: FieldValue.serverTimestamp(), status: "active", tenantId: signupTenantId, ...extra });
-    batch.set(db.collection(profileCollections[role]).doc(id), { ...profileData(role, id, created.uid, String(signup.displayName || "School member"), email, extra), tenantId: signupTenantId, createdAt: FieldValue.serverTimestamp() });
+    const contactEmail = String(signup.email || "").trim().toLowerCase();
+    batch.set(db.collection("users").doc(created.uid), { uid: created.uid, id, role, email: contactEmail, loginEmail: email, contactEmail, displayName: String(signup.displayName || "School member"), createdAt: FieldValue.serverTimestamp(), status: "active", tenantId: signupTenantId, ...extra });
+    batch.set(db.collection(profileCollections[role]).doc(id), { ...profileData(role, id, created.uid, String(signup.displayName || "School member"), contactEmail, extra), email: contactEmail, loginEmail: email, phone: String(signup.phone || ""), contactEmail, tenantId: signupTenantId, createdAt: FieldValue.serverTimestamp() });
     if (role === "parent" && Array.isArray(extra.studentIds)) {
       for (const studentId of extra.studentIds.map(String)) batch.set(db.collection("students").doc(studentId), { parentId: id, updatedAt: FieldValue.serverTimestamp() }, { merge: true });
     }

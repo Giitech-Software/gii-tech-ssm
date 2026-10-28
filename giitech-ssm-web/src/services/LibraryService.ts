@@ -1,5 +1,6 @@
-import { addDoc, collection, doc, getDocs, orderBy, query, serverTimestamp, updateDoc, where } from "firebase/firestore";
+import { addDoc, collection, doc, getDocs, query, serverTimestamp, updateDoc, where } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 
 export type LibraryBook = {
   id: string;
@@ -29,13 +30,14 @@ export type LibraryLoan = {
 };
 
 export async function fetchLibraryBooks(): Promise<LibraryBook[]> {
-  const snapshot = await getDocs(query(collection(db, "libraryBooks"), orderBy("title")));
-  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() })) as LibraryBook[];
+  const snapshot = await getDocs(query(collection(db, "libraryBooks"), where("tenantId", "==", TENANT_ID)));
+  return snapshot.docs.map((item) => ({ id: item.id, ...item.data() }) as LibraryBook).sort((a, b) => a.title.localeCompare(b.title));
 }
 
 export async function addLibraryBook(input: Omit<LibraryBook, "id" | "availableCopies" | "active">) {
   await addDoc(collection(db, "libraryBooks"), {
     ...input,
+    tenantId: TENANT_ID,
     availableCopies: input.totalCopies,
     active: true,
     createdAt: serverTimestamp(),
@@ -44,17 +46,17 @@ export async function addLibraryBook(input: Omit<LibraryBook, "id" | "availableC
 }
 
 export async function fetchLibraryLoans(): Promise<LibraryLoan[]> {
-  const snapshot = await getDocs(query(collection(db, "libraryLoans"), orderBy("dueDate", "asc")));
+  const snapshot = await getDocs(query(collection(db, "libraryLoans"), where("tenantId", "==", TENANT_ID)));
   const today = new Date().toISOString().slice(0, 10);
   return snapshot.docs.map((item) => {
     const data = item.data() as Omit<LibraryLoan, "id">;
     const status = data.status === "borrowed" && data.dueDate < today ? "overdue" : data.status;
     return { id: item.id, ...data, status };
-  });
+  }).sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 }
 
 export async function fetchUserLibraryLoans(userId: string): Promise<LibraryLoan[]> {
-  const snapshot = await getDocs(query(collection(db, "libraryLoans"), where("borrowerId", "==", userId), orderBy("dueDate", "asc")));
+  const snapshot = await getDocs(query(collection(db, "libraryLoans"), where("tenantId", "==", TENANT_ID), where("borrowerId", "==", userId)));
   const today = new Date().toISOString().slice(0, 10);
   return snapshot.docs.map((item) => {
     const data = item.data() as Omit<LibraryLoan, "id">;
@@ -64,10 +66,11 @@ export async function fetchUserLibraryLoans(userId: string): Promise<LibraryLoan
 
 export async function issueLibraryBook(book: LibraryBook, borrowerId: string, borrowerName: string, dueDate: string) {
   if (book.availableCopies < 1) throw new Error("This book has no available copies.");
-  const existing = await getDocs(query(collection(db, "libraryLoans"), where("borrowerId", "==", borrowerId), where("status", "in", ["borrowed", "overdue"])));
+  const existing = await getDocs(query(collection(db, "libraryLoans"), where("tenantId", "==", TENANT_ID), where("borrowerId", "==", borrowerId), where("status", "in", ["borrowed", "overdue"])));
   if (!existing.empty) throw new Error("This borrower has an unreturned book and cannot borrow another.");
   await addDoc(collection(db, "libraryLoans"), {
     bookId: book.id,
+    tenantId: TENANT_ID,
     bookTitle: book.title,
     bookNumber: book.bookNumber,
     borrowerId,
@@ -82,6 +85,7 @@ export async function issueLibraryBook(book: LibraryBook, borrowerId: string, bo
     updatedAt: serverTimestamp(),
   });
   await addDoc(collection(db, "notifications"), {
+    tenantId: TENANT_ID,
     recipientUserId: borrowerId,
     title: "Library book issued",
     message: `\"${book.title}\" is due on ${dueDate}. Please return it on time.`,
@@ -97,7 +101,7 @@ export async function returnLibraryBook(loan: LibraryLoan) {
     returnedAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
-  const book = await getDocs(query(collection(db, "libraryBooks"), where("title", "==", loan.bookTitle)));
+  const book = await getDocs(query(collection(db, "libraryBooks"), where("tenantId", "==", TENANT_ID), where("title", "==", loan.bookTitle)));
   const match = book.docs.find((item) => item.id === loan.bookId);
   if (match) await updateDoc(doc(db, "libraryBooks", loan.bookId), { availableCopies: (match.data().availableCopies || 0) + 1, updatedAt: serverTimestamp() });
 }

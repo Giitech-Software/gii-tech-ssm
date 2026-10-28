@@ -10,18 +10,12 @@ export interface ParentProfile {
 }
 
 export async function getParentProfileByUserId(userId: string): Promise<ParentProfile | null> {
-  const profileQuery = query(
-    collection(db, "parents"),
-    where("userId", "==", userId),
-    limit(1)
-  );
-  const profileSnapshot = await getDocs(profileQuery);
-
-  if (!profileSnapshot.empty) {
-    return profileSnapshot.docs[0].data() as ParentProfile;
+  try {
+    const profileSnapshot = await getDocs(query(collection(db, "parents"), where("userId", "==", userId), limit(1)));
+    if (!profileSnapshot.empty) return profileSnapshot.docs[0].data() as ParentProfile;
+    const legacySnapshot = await getDoc(doc(db, "parents", userId));
+    return legacySnapshot.exists() ? (legacySnapshot.data() as ParentProfile) : null;
+  } catch {
+    return null;
   }
-
-  // Supports any older records that were stored directly under the Auth UID.
-  const legacySnapshot = await getDoc(doc(db, "parents", userId));
-  return legacySnapshot.exists() ? (legacySnapshot.data() as ParentProfile) : null;
 }

@@ -1,5 +1,6 @@
-import { collection, getDocs, query, where, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 
 export interface Exam {
   id: string;
@@ -15,12 +16,12 @@ export interface Exam {
  */
 export const fetchExams = async (): Promise<Exam[]> => {
   try {
-    const q = query(collection(db, "exams"), orderBy("name"));
+    const q = query(collection(db, "exams"), where("tenantId", "==", TENANT_ID));
     const snapshot = await getDocs(q);
     return snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-    })) as Exam[];
+    })).sort((a, b) => String((a as Exam).name || "").localeCompare(String((b as Exam).name || ""))) as Exam[];
   } catch (error) {
     console.error("Error fetching exams:", error);
     return [];
@@ -36,14 +37,14 @@ export const fetchExamsByClass = async (classId: string): Promise<Exam[]> => {
   try {
     const q = query(
       collection(db, "exams"),
-      where("classId", "==", classId),
-      orderBy("name")
+      where("tenantId", "==", TENANT_ID),
+      where("classId", "==", classId)
     );
     const snapshot = await getDocs(q);
     return snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-    })) as Exam[];
+    })).sort((a, b) => String((a as Exam).name || "").localeCompare(String((b as Exam).name || ""))) as Exam[];
   } catch (error) {
     console.error("Error fetching exams for class:", error);
     return [];

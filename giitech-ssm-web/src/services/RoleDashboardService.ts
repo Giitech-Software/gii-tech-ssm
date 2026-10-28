@@ -148,7 +148,7 @@ export async function fetchParentDashboard(userId: string): Promise<RoleDashboar
   const parent = await getParentProfileByUserId(userId);
   if (!parent) return null;
   const studentIds = parent.studentIds || [];
-  const [students, grades, attendance, charges, payments, reports, notifications] = await Promise.all([
+  const results = await Promise.allSettled([
     fetchStudentProfilesByIds(studentIds),
     fetchGradesByStudentIds(studentIds),
     fetchAttendanceByStudentIds(studentIds),
@@ -157,6 +157,14 @@ export async function fetchParentDashboard(userId: string): Promise<RoleDashboar
     fetchPublishedReportsByStudentIds(studentIds),
     fetchNotificationsForUser({ userId, role: "parent", studentIds }),
   ]);
+  const value = <T,>(index: number, fallback: T): T => results[index].status === "fulfilled" ? results[index].value as T : fallback;
+  const students = value(0, [] as Awaited<ReturnType<typeof fetchStudentProfilesByIds>>);
+  const grades = value(1, [] as Awaited<ReturnType<typeof fetchGradesByStudentIds>>);
+  const attendance = value(2, [] as Awaited<ReturnType<typeof fetchAttendanceByStudentIds>>);
+  const charges = value(3, [] as Awaited<ReturnType<typeof fetchStudentChargesByStudentIds>>);
+  const payments = value(4, [] as Awaited<ReturnType<typeof fetchFeePaymentsByStudentIds>>);
+  const reports = value(5, [] as Awaited<ReturnType<typeof fetchPublishedReportsByStudentIds>>);
+  const notifications = value(6, [] as WorkflowNotification[]);
   const ledgers = buildLedgerSummaries(charges, payments);
   const balance = ledgers.reduce((sum, ledger) => sum + Math.max(ledger.balance, 0), 0);
 

@@ -7,11 +7,14 @@ import {
   doc,
   deleteDoc,
   serverTimestamp,
+  query,
+  where,
 } from "firebase/firestore";
 import { generateUserId } from "../utils/idGenerator";
+import { TENANT_ID } from "../config/tenant";
 
 export const fetchStreams = async () => {
-  const snapshot = await getDocs(collection(db, "streams"));
+  const snapshot = await getDocs(query(collection(db, "streams"), where("tenantId", "==", TENANT_ID)));
   return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
 };
 
@@ -24,6 +27,7 @@ export const addStream = async (name: string, classId: string) => {
     streamId,
     name,
     classId,
+    tenantId: TENANT_ID,
     createdAt: serverTimestamp(),
   });
 };
