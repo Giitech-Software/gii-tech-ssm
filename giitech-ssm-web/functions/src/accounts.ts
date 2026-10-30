@@ -2,6 +2,7 @@ import { getAuth } from "firebase-admin/auth";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
+import { logger } from "firebase-functions";
 
 const twilioAccountSid = defineSecret("TWILIO_ACCOUNT_SID");
 const twilioAuthToken = defineSecret("TWILIO_AUTH_TOKEN");
@@ -127,12 +128,15 @@ function signupRole(value: unknown): AccountRole {
 }
 
 export const submitSignupRequest = onCall({ region }, async (request) => {
+  if (!request.auth?.uid) throw new HttpsError("unauthenticated", "Create an account and verify your email before submitting a signup request.");
   const data = asRecord(request.data);
   const role = signupRole(data.role);
   const requestedTenantId = cleanTenantId(data.schoolCode);
   const displayName = String(data.displayName || "").trim();
   const phone = String(data.phone || "").trim();
   const email = String(data.email || "").trim().toLowerCase();
+  const authenticatedUser = await getAuth().getUser(request.auth.uid);
+  if (authenticatedUser.email?.toLowerCase() !== email) throw new HttpsError("permission-denied", "Use the same email address as your Firebase account.");
   if (!displayName) throw new HttpsError("invalid-argument", "Full name is required.");
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new HttpsError("invalid-argument", "A valid email address is required.");
   if (role !== "student" && !phone) throw new HttpsError("invalid-argument", "Phone number is required.");
@@ -147,6 +151,8 @@ export const submitSignupRequest = onCall({ region }, async (request) => {
     displayName,
     phone,
     email,
+    authUid: request.auth.uid,
+    emailVerified: authenticatedUser.emailVerified,
     extra: asRecord(data.extra),
     status: "pending",
     createdAt: FieldValue.serverTimestamp(),
@@ -194,11 +200,16 @@ export const decideSignupRequest = onCall({ region, secrets: [twilioAccountSid, 
   const snapshot = await requestRef.get();
   if (!snapshot.exists) throw new HttpsError("not-found", "Signup request not found.");
   const signup = snapshot.data() || {};
+  const auth = getAuth();
   const signupTenantId = String(signup.tenantId || TENANT_ID);
   if (caller.role !== "superadmin" && signupTenantId !== caller.tenantId) throw new HttpsError("permission-denied", "This request belongs to another school.");
   const tenantSnapshot = await db.collection("tenants").doc(signupTenantId).get();
   if (!tenantSnapshot.exists || tenantSnapshot.data()?.status !== "active") throw new HttpsError("failed-precondition", "This school is not active.");
   if (signup.status !== "pending") throw new HttpsError("failed-precondition", "This request has already been decided.");
+  if (decision === "approve" && signup.authUid) {
+    const applicant = await auth.getUser(String(signup.authUid));
+    if (!applicant.emailVerified) throw new HttpsError("failed-precondition", "The applicant must verify their email before approval.");
+  }
   if (decision === "reject") {
     await requestRef.update({ status: "rejected", decidedBy: request.auth?.uid, decidedAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
     return { status: "rejected" };
@@ -206,10 +217,11 @@ export const decideSignupRequest = onCall({ region, secrets: [twilioAccountSid, 
   const role = signupRole(signup.role);
   const id = cleanId(data.id) || await generateAccountId(role);
   const email = idToEmail(id);
-  const auth = getAuth();
   const password = String(data.password || `Astem-${Math.random().toString(36).slice(2, 8)}!`);
   if (password.length < 6) throw new HttpsError("invalid-argument", "A temporary password with at least 6 characters is required.");
-  const created = await auth.createUser({ email, password, displayName: String(signup.displayName || "School member") });
+  const existingApplicant = signup.authUid ? await auth.getUser(String(signup.authUid)) : null;
+  const created = existingApplicant || await auth.createUser({ email, password, displayName: String(signup.displayName || "School member") });
+  if (existingApplicant) await auth.updateUser(existingApplicant.uid, { email, displayName: String(signup.displayName || "School member"), emailVerified: true });
   try {
     const extra: Record<string, unknown> = { ...asRecord(signup.extra), phone: String(signup.phone || ""), contactEmail: String(signup.email || "") };
     const batch = db.batch();
@@ -222,14 +234,15 @@ export const decideSignupRequest = onCall({ region, secrets: [twilioAccountSid, 
     batch.update(requestRef, { status: "approved", approvedUserId: created.uid, approvedAccountId: id, decidedBy: request.auth?.uid, decidedAt: FieldValue.serverTimestamp(), updatedAt: FieldValue.serverTimestamp() });
     await batch.commit();
     let deliveryStatus = "no-contact"; let deliveryError = ""; let emailStatus = "not-attempted"; let emailError = ""; let smsStatus = "not-attempted"; let smsError = "";
-    try { emailStatus = `email-${await sendCredentialEmail(String(signup.email), id, password)}`; } catch (deliveryFailure) { emailStatus = "email-failed"; emailError = deliveryFailure instanceof Error ? deliveryFailure.message : "Email delivery failed."; }
-    if (emailStatus !== "email-sent") { try { smsStatus = `sms-${await sendCredentialSms(String(signup.phone || ""), id, password)}`; } catch (deliveryFailure) { smsStatus = "sms-failed"; smsError = deliveryFailure instanceof Error ? deliveryFailure.message : "SMS delivery failed."; } }
+    try { emailStatus = `email-${await sendCredentialEmail(String(signup.email), id, password)}`; } catch (deliveryFailure) { emailStatus = "email-failed"; emailError = deliveryFailure instanceof Error ? deliveryFailure.message : "Email delivery failed."; logger.error("Credential email delivery failed", { accountId: id, recipient: String(signup.email || ""), error: emailError }); }
+    if (emailStatus !== "email-sent") { try { smsStatus = `sms-${await sendCredentialSms(String(signup.phone || ""), id, password)}`; } catch (deliveryFailure) { smsStatus = "sms-failed"; smsError = deliveryFailure instanceof Error ? deliveryFailure.message : "SMS delivery failed."; logger.error("Credential SMS delivery failed", { accountId: id, phone: String(signup.phone || "").replace(/\d(?=\d{4})/g, "*") , error: smsError }); } }
     deliveryStatus = emailStatus === "email-sent" ? emailStatus : smsStatus === "sms-failed" && emailStatus === "email-failed" ? "email-failed-sms-failed" : smsStatus;
     deliveryError = [emailError && `Email: ${emailError}`, smsError && `SMS: ${smsError}`].filter(Boolean).join(" ");
     await requestRef.update({ deliveryStatus, emailStatus, emailError: emailError || null, smsStatus, smsError: smsError || null, deliveryError: deliveryError || null, deliveryUpdatedAt: FieldValue.serverTimestamp() });
+    if (deliveryStatus === "email-failed-sms-failed") logger.error("All credential delivery channels failed", { accountId: id, emailStatus, smsStatus, deliveryError });
     return { status: "approved", uid: created.uid, id, temporaryPassword: password, deliveryStatus, emailStatus, emailError: emailError || undefined, smsStatus, smsError: smsError || undefined, deliveryError: deliveryError || undefined };
   } catch (error) {
-    await auth.deleteUser(created.uid).catch(() => undefined);
+    if (!existingApplicant) await auth.deleteUser(created.uid).catch(() => undefined);
     throw error;
   }
 });

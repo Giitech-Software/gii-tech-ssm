@@ -196,6 +196,13 @@ const SharedLayout = () => {
 
   const visibleItems = navItems.filter((item) => role && item.roles.includes(role));
   const displayName = user?.displayName || user?.email || "User";
+  const communicationsPath = role === "parent"
+    ? "/parent/messages"
+    : role === "teacher"
+      ? "/teacher/messages"
+      : role === "staff"
+        ? "/staff/messages"
+        : "/notifications";
 
   const renderNavItems = (items: NavItem[]) => items.map((item) => (
     <NavLink
@@ -331,9 +338,21 @@ const SharedLayout = () => {
             </button>
             <div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-800">{roleTitles[role || ""] || "Dashboard"}</p><p className="truncate text-xs text-slate-500">{tenantName || "School workspace"} · {tenantCode || "Tenant"}</p></div>
           </div>
-          <div className="min-w-0 text-right">
+          <div className="flex items-center gap-3">
+            {unreadCount > 0 && <button
+              type="button"
+              title={`${unreadCount} unread communication${unreadCount === 1 ? "" : "s"}`}
+              aria-label={`${unreadCount} unread communication${unreadCount === 1 ? "" : "s"}`}
+              onClick={() => navigate(communicationsPath)}
+              className="relative rounded-full p-2 text-red-600 transition hover:bg-red-50"
+            >
+              <MessageCircle size={21} className="animate-pulse" />
+              <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-red-600 px-1 text-center text-[10px] font-bold leading-5 text-white shadow-sm shadow-red-300">{unreadCount}</span>
+            </button>}
+            <div className="min-w-0 text-right">
             <p className="truncate text-sm font-medium text-slate-800">{displayName}</p>
             <p className="truncate text-xs capitalize text-slate-500">{role || "user"}</p>
+            </div>
           </div>
         </header>
 

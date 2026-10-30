@@ -119,7 +119,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const resetPassword = async (id: string) => {
     const normalizedId = id.trim();
     if (!normalizedId) throw new Error("Enter your User ID first.");
-    await sendPasswordResetEmail(auth, idToEmail(normalizedId));
+    await sendPasswordResetEmail(auth, normalizedId.includes("@") ? normalizedId.toLowerCase() : idToEmail(normalizedId));
   };
 
   /**
