@@ -41,9 +41,9 @@ const currency = new Intl.NumberFormat("en-GH", {
 function MetricCard({ icon, label, value, detail, tone = "bg-primary/10 text-primary" }: MetricCardProps) {
   return (
     <div className="surface surface-hover min-w-0 border-primary/20 p-5">
-      <div className="flex items-center justify-between gap-3 text-slate-500">
-        <span className="text-sm font-medium">{label}</span>
-        <span className={`rounded-lg p-2 ${tone}`}>{icon}</span>
+      <div className="flex min-w-0 items-start justify-between gap-3 text-slate-500">
+        <span className="min-w-0 whitespace-normal text-sm font-medium leading-5">{label}</span>
+        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ${tone}`}>{icon}</span>
       </div>
       <p className="mt-3 text-2xl font-bold tracking-tight text-dark">{value}</p>
       <p className="mt-1 text-xs text-slate-500">{detail}</p>
