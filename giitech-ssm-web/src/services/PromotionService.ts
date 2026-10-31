@@ -13,6 +13,7 @@ export interface PromotionHistoryRecord {
   toStreamId?: string;
   fromAcademicYear?: string;
   toAcademicYear: string;
+  action?: "promote" | "repeat" | "demote";
   promotedBy?: string;
   createdAt?: Timestamp | string;
 }
@@ -23,6 +24,7 @@ export interface PromotionRequest {
   toStreamId?: string;
   toAcademicYear: string;
   promotedBy?: string;
+  action?: "promote" | "repeat" | "demote";
 }
 
 export async function promoteStudents(request: PromotionRequest) {
@@ -47,6 +49,7 @@ export async function promoteStudents(request: PromotionRequest) {
       toStreamId: request.toStreamId || "",
       fromAcademicYear: student.academicYear || "",
       toAcademicYear: request.toAcademicYear,
+      action: request.action || "promote",
       progressCarryForward: true,
       progressSourceStudentId: student.studentId,
       promotedBy: request.promotedBy || "",

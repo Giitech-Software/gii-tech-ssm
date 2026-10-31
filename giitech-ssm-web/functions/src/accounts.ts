@@ -138,7 +138,8 @@ async function generateAccountId(role: AccountRole) {
     const snapshot = await transaction.get(reference);
     const next = Number(snapshot.data()?.last || 0) + 1;
     transaction.set(reference, { last: next }, { merge: true });
-    return `${prefix}${String(next).padStart(3, "0")}`;
+    const sequence = String(next).padStart(3, "0");
+    return role === "student" ? `STU-${new Date().getFullYear().toString().slice(-2)}-${sequence}` : `${prefix}${sequence}`;
   });
 }
 

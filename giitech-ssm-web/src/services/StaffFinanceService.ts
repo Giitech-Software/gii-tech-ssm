@@ -1,4 +1,4 @@
-import { addDoc, collection, doc, getDocs, orderBy, query, serverTimestamp, updateDoc } from "firebase/firestore";
+import { addDoc, collection, doc, getDocs, limit, orderBy, query, serverTimestamp, updateDoc, where } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 
 export type StaffPayroll = { id: string; staffId: string; staffName: string; period: string; grossSalary: number; deductions: number; taxDeduction?: number; ssnitEmployeeRate?: number; ssnitEmployerRate?: number; ssnitEmployeeDeduction?: number; ssnitEmployerContribution?: number; ssnitTotal?: number; deductionsTotal?: number; netSalary: number; status: "draft" | "approved" | "paid"; paidAt?: unknown };
@@ -20,9 +20,24 @@ export async function fetchStaffFinance(): Promise<StaffFinanceData> {
 }
 
 export async function createStaffPayroll(input: Omit<StaffPayroll, "id" | "netSalary" | "status">) {
+  const period = input.period.trim();
+  if (!input.staffId || !period) throw new Error("Staff member and payroll period are required.");
+
+  // A staff member may only have one payroll record per period. This check also
+  // protects records created before the duplicate-safe flow was introduced.
+  const existing = await getDocs(query(
+    collection(db, "staffPayroll"),
+    where("staffId", "==", input.staffId),
+    where("period", "==", period),
+    limit(1),
+  ));
+  if (!existing.empty) {
+    throw new Error("A payroll record already exists for this staff member and period.");
+  }
+
   const employeeRate = input.ssnitEmployeeRate ?? 5.5; const employerRate = input.ssnitEmployerRate ?? 13; const employeeDeduction = input.ssnitEmployeeDeduction ?? Number((input.grossSalary * employeeRate / 100).toFixed(2)); const employerContribution = Number((input.grossSalary * employerRate / 100).toFixed(2));
   const taxDeduction = Math.max(0, Number(input.taxDeduction || 0));
-  await addDoc(collection(db, "staffPayroll"), { ...input, taxDeduction, ssnitEmployeeRate: employeeRate, ssnitEmployerRate: employerRate, ssnitEmployeeDeduction: employeeDeduction, ssnitEmployerContribution: employerContribution, ssnitTotal: employeeDeduction + employerContribution, deductionsTotal: input.deductions + taxDeduction + employeeDeduction, netSalary: input.grossSalary - input.deductions - taxDeduction - employeeDeduction, status: "draft", createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+  await addDoc(collection(db, "staffPayroll"), { ...input, period, taxDeduction, ssnitEmployeeRate: employeeRate, ssnitEmployerRate: employerRate, ssnitEmployeeDeduction: employeeDeduction, ssnitEmployerContribution: employerContribution, ssnitTotal: employeeDeduction + employerContribution, deductionsTotal: input.deductions + taxDeduction + employeeDeduction, netSalary: input.grossSalary - input.deductions - taxDeduction - employeeDeduction, status: "draft", createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
 }
 
 export async function createStaffLoan(input: Omit<StaffLoan, "id" | "balance" | "status">) {

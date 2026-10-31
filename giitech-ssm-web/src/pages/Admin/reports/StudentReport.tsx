@@ -18,6 +18,7 @@ const StudentReport: React.FC = () => {
   const [selectedStream, setSelectedStream] = useState("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   // Load data
   useEffect(() => {
@@ -36,6 +37,7 @@ const StudentReport: React.FC = () => {
         setFiltered(stds);
       } catch (error) {
         console.error("Error loading student report:", error);
+        setError("Unable to load student report data. Please refresh and try again.");
       } finally {
         setLoading(false);
       }
@@ -53,12 +55,19 @@ const StudentReport: React.FC = () => {
       const query = search.toLowerCase();
       result = result.filter(
         (s) =>
-          s.name?.toLowerCase().includes(query) ||
+          (s.name || s.displayName || s.studentName)?.toLowerCase().includes(query) ||
           s.studentId?.toLowerCase().includes(query)
       );
     }
     setFiltered(result);
   }, [students, selectedDept, selectedClass, selectedStream, search]);
+
+  const classId = (value: any) => String(value?.classId || value?.id || "");
+  const className = (value: any) => String(value?.name || value?.className || value?.classId || value?.id || "");
+  const availableClasses = Array.from(new Map([
+    ...classes.map((item) => [classId(item), item] as const),
+    ...students.filter((student) => !selectedDept || student.departmentId === selectedDept).map((student) => [String(student.classId || ""), { classId: String(student.classId || ""), name: String(student.className || student.classId || "") }] as const),
+  ].filter(([id]) => Boolean(id))).values()).filter((item) => !selectedDept || item.departmentId === selectedDept || students.some((student) => student.classId === classId(item) && student.departmentId === selectedDept));
 
   if (loading)
     return <p className="text-slate-500 animate-pulse p-4">Loading student data...</p>;
@@ -67,6 +76,7 @@ const StudentReport: React.FC = () => {
     <div>
       <h2 className="text-xl font-semibold mb-4 text-slate-700">Student Report</h2>
 
+      {error && <p className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
       {/* Filters */}
       <div className="flex flex-wrap gap-3 mb-4">
         <select
@@ -88,11 +98,9 @@ const StudentReport: React.FC = () => {
           className="border p-2 rounded w-48"
         >
           <option value="">All Classes</option>
-          {classes
-            .filter((c) => !selectedDept || c.departmentId === selectedDept)
-            .map((c) => (
-              <option key={c.classId} value={c.classId}>
-                {c.name}
+          {availableClasses.map((c) => (
+              <option key={classId(c)} value={classId(c)}>
+                {className(c)}
               </option>
             ))}
         </select>
@@ -161,13 +169,13 @@ const StudentReport: React.FC = () => {
               filtered.map((s) => (
                 <tr key={s.id} className="border-b hover:bg-slate-50">
                   <td className="p-2 border text-slate-500">{s.studentId}</td>
-                  <td className="p-2 border">{s.name}</td>
+                  <td className="p-2 border">{s.name || s.displayName || s.studentName || "-"}</td>
                   <td className="p-2 border">{s.gender || "—"}</td>
                   <td className="p-2 border">
                     {departments.find((d) => d.departmentId === s.departmentId)?.name || "-"}
                   </td>
                   <td className="p-2 border">
-                    {classes.find((c) => c.classId === s.classId)?.name || "-"}
+                    {className(classes.find((c) => classId(c) === s.classId) || { classId: s.classId }) || "-"}
                   </td>
                   <td className="p-2 border">
                     {streams.find((st) => st.streamId === s.streamId)?.name || "-"}

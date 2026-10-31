@@ -43,8 +43,11 @@ export async function generateId(type: string): Promise<string> {
     const next = last + 1;
     transaction.set(counterRef, { last: next }, { merge: true });
 
-    // Return formatted ID (e.g., CLS001)
-    return `${prefix}${String(next).padStart(3, "0")}`;
+    // New student IDs include the enrollment year; existing IDs remain unchanged.
+    const sequence = String(next).padStart(3, "0");
+    return type.toLowerCase() === "student"
+      ? `STU-${new Date().getFullYear().toString().slice(-2)}-${sequence}`
+      : `${prefix}${sequence}`;
   });
 
   return newId;
