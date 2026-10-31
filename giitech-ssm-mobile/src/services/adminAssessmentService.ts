@@ -1,5 +1,6 @@
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 import { getQueuedWrites, readCachedData, writeCachedData } from "./offlineStore";
 
 const CACHE_SCOPE = "admin-assessments";
@@ -90,8 +91,8 @@ export async function fetchAdminAssessments(userId: string): Promise<AdminAssess
   const writes = await getQueuedWrites();
   try {
     const [terms, exams] = await Promise.all([
-      getDocs(collection(db, "terms")),
-      getDocs(collection(db, "exams")),
+      getDocs(query(collection(db, "terms"), where("tenantId", "==", TENANT_ID))),
+      getDocs(query(collection(db, "exams"), where("tenantId", "==", TENANT_ID))),
     ]);
     const result = mergeQueue({
       terms: terms.docs.map((item) => termFromData(item.id, item.data())),

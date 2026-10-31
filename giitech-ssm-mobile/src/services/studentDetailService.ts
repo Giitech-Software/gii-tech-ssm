@@ -1,5 +1,6 @@
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 import { readCachedData, writeCachedData } from "./offlineStore";
 
 type TimestampLike = {
@@ -120,7 +121,7 @@ export function fetchStudentAssignments(userId: string) {
     if (!student.classId) return [];
 
     const [assignmentSnapshot, submissionSnapshot] = await Promise.all([
-      getDocs(query(collection(db, "assignments"), where("classId", "==", student.classId))),
+      getDocs(query(collection(db, "assignments"), where("tenantId", "==", TENANT_ID), where("classId", "==", student.classId))),
       getDocs(query(collection(db, "submissions"), where("studentUid", "==", userId))),
     ]);
     const submittedIds = new Set(

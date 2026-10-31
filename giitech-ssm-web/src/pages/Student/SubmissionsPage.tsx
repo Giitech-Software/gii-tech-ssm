@@ -25,11 +25,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSearchParams } from "react-router-dom";
-import { runFirestorePermissionDiagnostics } from "../../utils/firestoreDiagnostics";
 import { getQueuedQuizSubmissions, getQuizDraft, queueQuizSubmission, removeQueuedQuizSubmission, saveQuizDraft } from "../../services/OfflineQuizService";
-
-runFirestorePermissionDiagnostics();
-
 
 interface Assignment {
   id: string;

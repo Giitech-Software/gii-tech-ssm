@@ -1,5 +1,6 @@
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 import { getQueuedWrites, readCachedData, writeCachedData } from "./offlineStore";
 
 const CACHE_SCOPE = "admin-operations";
@@ -94,8 +95,8 @@ export async function fetchAdminOperations(userId: string): Promise<AdminOperati
   const queue = await getQueuedWrites();
   try {
     const [attendanceSnapshot, promotionSnapshot] = await Promise.all([
-      getDocs(collection(db, "attendance")),
-      getDocs(collection(db, "promotionHistory")),
+      getDocs(query(collection(db, "attendance"), where("tenantId", "==", TENANT_ID))),
+      getDocs(query(collection(db, "promotionHistory"), where("tenantId", "==", TENANT_ID))),
     ]);
     const result = mergeQueue(
       {

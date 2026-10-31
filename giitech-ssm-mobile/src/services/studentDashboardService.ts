@@ -1,5 +1,6 @@
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 import { readCachedData, writeCachedData } from "./offlineStore";
 
 const CACHE_SCOPE = "student-dashboard";
@@ -57,7 +58,7 @@ export async function fetchStudentDashboardSummary(
     const [assignmentSnapshot, gradeSnapshot, attendanceSnapshot, submissionSnapshot] =
       await Promise.all([
         classId
-          ? getDocs(query(collection(db, "assignments"), where("classId", "==", classId)))
+          ? getDocs(query(collection(db, "assignments"), where("tenantId", "==", TENANT_ID), where("classId", "==", classId)))
           : Promise.resolve(null),
         getDocs(query(collection(db, "grades"), where("studentId", "==", studentId))),
         getDocs(query(collection(db, "attendance"), where("studentId", "==", studentId))),

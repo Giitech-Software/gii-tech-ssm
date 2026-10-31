@@ -1,13 +1,12 @@
-// src/contexts/AuthContext.tsx
+﻿// src/contexts/AuthContext.tsx
 import { createContext, useContext, useEffect, useState, useMemo } from "react";
 import type { User } from "firebase/auth";
 import {
   onAuthStateChanged,
   signOut,
   signInWithEmailAndPassword,
-  sendPasswordResetEmail,
 } from "firebase/auth";
-import { auth, db } from "../firebaseConfig";
+import { app, auth, db } from "../firebaseConfig";
 import {
   doc,
   getDoc,
@@ -33,7 +32,7 @@ interface AuthContextType {
     password: string,
     role: string,
     displayName: string,
-    extraData?: Record<string, any> // 🆕 new optional parameter
+    extraData?: Record<string, any> // ðŸ†• new optional parameter
   ) => Promise<string>;
 }
 
@@ -118,8 +117,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const resetPassword = async (id: string) => {
     const normalizedId = id.trim();
-    if (!normalizedId) throw new Error("Enter your User ID first.");
-    await sendPasswordResetEmail(auth, normalizedId.includes("@") ? normalizedId.toLowerCase() : idToEmail(normalizedId));
+    if (!normalizedId) throw new Error("Enter your school ID or email first.");
+    const requestReset = httpsCallable<{ identifier: string }, { status: string }>(getFunctions(app, "africa-south1"), "requestPasswordReset");
+    await requestReset({ identifier: normalizedId });
   };
 
   /**
@@ -132,7 +132,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     password: string,
     roleName: string,
     displayNameParam: string,
-    extraData: Record<string, any> = {} // 🆕 optional extras
+    extraData: Record<string, any> = {} // ðŸ†• optional extras
   ) => {
     if (!displayNameParam?.trim()) {
       throw new Error("Display name is required.");
@@ -185,7 +185,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     let signupStep = "creating the authentication account";
 
     try {
-      // 1️⃣ Create Firebase Auth user
+      // 1ï¸âƒ£ Create Firebase Auth user
       const uc = await createUserWithEmailAndPassword(
         secondaryAuth,
         email,
@@ -193,7 +193,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       );
       createdUser = uc.user;
 
-      // 2️⃣ Add the user and role profile atomically
+      // 2ï¸âƒ£ Add the user and role profile atomically
       signupStep = "saving the user profile";
       const batch = writeBatch(db);
       batch.set(doc(db, "users", createdUser.uid), {
@@ -205,10 +205,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         createdAt: serverTimestamp(),
         status: "active",
         tenantId: TENANT_ID,
-        ...extraData, // 🆕 add dropdown data (class, stream, subject, etc.)
+        ...extraData, // ðŸ†• add dropdown data (class, stream, subject, etc.)
       });
 
-      // 3️⃣ Role-specific collections
+      // 3ï¸âƒ£ Role-specific collections
       const baseProfile = {
         userId: createdUser.uid,
         tenantId: TENANT_ID,
@@ -259,7 +259,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       await batch.commit();
 
-      // 3️⃣ Sync displayName in Auth
+      // 3ï¸âƒ£ Sync displayName in Auth
       try {
         await updateProfile(createdUser, { displayName: displayNameParam });
       } catch (uErr) {
@@ -353,3 +353,4 @@ export const useAuth = () => {
   if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 };
+

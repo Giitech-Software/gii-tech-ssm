@@ -1,6 +1,7 @@
 import { collection, doc, documentId, getDoc, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { readCachedData, writeCachedData } from "./offlineStore";
+import { TENANT_ID } from "../config/tenant";
 
 const CACHE_SCOPE = "parent-data";
 
@@ -83,9 +84,10 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 async function fetchByStudentIds(collectionName: string, studentIds: string[]) {
+  if (!studentIds.length) return [] as RawRecord[];
   const snapshots = await Promise.all(
     chunkIds(studentIds).map((ids) =>
-      getDocs(query(collection(db, collectionName), where("studentId", "in", ids)))
+      getDocs(query(collection(db, collectionName), where("tenantId", "==", TENANT_ID), where("studentId", "in", ids)))
     )
   );
   return snapshots.flatMap((snapshot) =>
@@ -94,19 +96,23 @@ async function fetchByStudentIds(collectionName: string, studentIds: string[]) {
 }
 
 export async function fetchParentStudentIds(userId: string) {
-  const snapshot = await getDocs(
-    query(collection(db, "parents"), where("userId", "==", userId))
-  );
-  if (!snapshot.empty) return (snapshot.docs[0].data().studentIds || []) as string[];
-
-  const legacyProfile = await getDoc(doc(db, "parents", userId));
-  return legacyProfile.exists() ? ((legacyProfile.data().studentIds || []) as string[]) : [];
+  try {
+    const snapshot = await getDocs(
+      query(collection(db, "parents"), where("userId", "==", userId))
+    );
+    if (!snapshot.empty) return (snapshot.docs[0].data().studentIds || []) as string[];
+    const legacyProfile = await getDoc(doc(db, "parents", userId));
+    return legacyProfile.exists() ? ((legacyProfile.data().studentIds || []) as string[]) : [];
+  } catch {
+    return [];
+  }
 }
 
 async function fetchStudents(studentIds: string[]) {
+  if (!studentIds.length) return [] as ParentStudent[];
   const snapshots = await Promise.all(
     chunkIds(studentIds).map((ids) =>
-      getDocs(query(collection(db, "students"), where(documentId(), "in", ids)))
+      getDocs(query(collection(db, "students"), where("tenantId", "==", TENANT_ID), where(documentId(), "in", ids)))
     )
   );
   return snapshots.flatMap((snapshot) =>
@@ -122,12 +128,14 @@ async function fetchStudents(studentIds: string[]) {
 }
 
 async function fetchPublishedReports(studentIds: string[]) {
+  if (!studentIds.length) return [] as RawRecord[];
   const snapshots = await Promise.all(
     chunkIds(studentIds).map((ids) =>
       getDocs(
         query(
           collection(db, "studentReports"),
           where("studentId", "in", ids),
+          where("tenantId", "==", TENANT_ID),
           where("published", "==", true)
         )
       )
@@ -145,7 +153,7 @@ function studentName(students: ParentStudent[], studentId: string) {
 export async function fetchParentData(userId: string): Promise<ParentData> {
   try {
     const studentIds = await fetchParentStudentIds(userId);
-    const [students, grades, attendance, charges, payments, reports] = await Promise.all([
+    const results = await Promise.allSettled([
       fetchStudents(studentIds),
       fetchByStudentIds("grades", studentIds),
       fetchByStudentIds("attendance", studentIds),
@@ -153,6 +161,13 @@ export async function fetchParentData(userId: string): Promise<ParentData> {
       fetchByStudentIds("feePayments", studentIds),
       fetchPublishedReports(studentIds),
     ]);
+    const value = <T,>(index: number, fallback: T): T => results[index].status === "fulfilled" ? results[index].value as T : fallback;
+    const students = value(0, [] as ParentStudent[]);
+    const grades = value(1, [] as RawRecord[]);
+    const attendance = value(2, [] as RawRecord[]);
+    const charges = value(3, [] as RawRecord[]);
+    const payments = value(4, [] as RawRecord[]);
+    const reports = value(5, [] as RawRecord[]);
     const ledgers = new Map<string, ParentLedger>();
 
     studentIds.forEach((studentId) => {

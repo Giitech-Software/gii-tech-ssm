@@ -31,6 +31,8 @@ export default function SuperAdminAccountsPage() {
   const [streamId, setStreamId] = useState("");
   const [departmentId, setDepartmentId] = useState("");
   const [subject, setSubject] = useState("");
+  const [bulkRows, setBulkRows] = useState("");
+  const [bulkProgress, setBulkProgress] = useState("");
   const [editing, setEditing] = useState<ManagedAccount | null>(null);
   const [editingRole, setEditingRole] = useState<ManagedAccountRole>("student");
   const [armedDeleteUid, setArmedDeleteUid] = useState("");
@@ -114,6 +116,24 @@ export default function SuperAdminAccountsPage() {
     }
   };
 
+  const importStudents = async () => {
+    if (offline) return setError("Connect to the internet before importing student accounts.");
+    const rows = bulkRows.split(/\r?\n/).map((row) => row.trim()).filter(Boolean);
+    const parsed = rows.map((row) => row.split(",").map((value) => value.trim())).filter((row) => row.length >= 2);
+    if (!parsed.length) return setError("Paste one student per line: Name, Password, Login ID (optional).");
+    setSaving(true); setError(""); setMessage("");
+    try {
+      for (let index = 0; index < parsed.length; index += 1) {
+        const [name, temporaryPassword, loginId] = parsed[index];
+        if (!name || !temporaryPassword || temporaryPassword.length < 6) throw new Error(`Row ${index + 1}: name and a password of at least 6 characters are required.`);
+        setBulkProgress(`Creating ${index + 1} of ${parsed.length}...`);
+        await createManagedAccount({ id: loginId || undefined, displayName: name, password: temporaryPassword, role: "student", extra: { classId, streamId, departmentId } });
+      }
+      setBulkRows(""); setBulkProgress(""); await load(); setMessage(`${parsed.length} student accounts imported successfully.`);
+    } catch (importError) { setError(importError instanceof Error ? importError.message : "Unable to import student accounts."); setBulkProgress(""); }
+    finally { setSaving(false); }
+  };
+
   const beginEdit = (account: ManagedAccount) => {
     if (!roles.includes(account.role as ManagedAccountRole)) return;
     setEditing(account);
@@ -178,6 +198,16 @@ export default function SuperAdminAccountsPage() {
         {role === "student" && <><Label>Department</Label><Choices options={(directory?.departments || []).map((item) => item.id)} labels={(directory?.departments || []).map((item) => item.name)} selected={departmentId} setSelected={setDepartmentId} /><Label>Class</Label><Choices options={(directory?.classes || []).map((item) => item.classId || item.id)} labels={(directory?.classes || []).map((item) => item.name)} selected={classId} setSelected={(value) => { setClassId(value); setStreamId(""); }} /><Label>Stream</Label><Choices options={(directory?.streams || []).filter((item) => !classId || item.classId === classId).map((item) => item.streamId || item.id)} labels={(directory?.streams || []).filter((item) => !classId || item.classId === classId).map((item) => item.name)} selected={streamId} setSelected={setStreamId} /></>}
         {(role === "teacher" || role === "staff") && <><Label>Department</Label><Choices options={(directory?.departments || []).map((item) => item.id)} labels={(directory?.departments || []).map((item) => item.name)} selected={departmentId} setSelected={setDepartmentId} />{role === "teacher" && <TextInput className="mt-3 rounded-2xl bg-slate-50 px-4 py-4 text-base" onChangeText={setSubject} placeholder="Primary subject" placeholderTextColor="#94a3b8" value={subject} />}</>}
         <Pressable className="mt-4 items-center rounded-2xl bg-primary px-4 py-4" disabled={saving || offline} onPress={create}><Text className="text-sm font-bold text-white">{saving ? "Saving..." : offline ? "Connect to create account" : "Create account"}</Text></Pressable>
+      </View>
+      <View className="mt-5 rounded-3xl border border-primary bg-white p-5">
+        <Text className="text-lg font-extrabold text-slate-900">Import students in bulk</Text>
+        <Text className="mt-2 text-sm leading-5 text-slate-500">Paste one student per line using: Name, temporary password, login ID (optional). The selected class and stream above will be applied to every row.</Text>
+        <TextInput multiline className="mt-4 min-h-32 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base text-slate-900" onChangeText={setBulkRows} placeholder="Ama Mensah, welcome1, STU001\nKojo Mensah, welcome2, STU002" placeholderTextColor="#94a3b8" textAlignVertical="top" value={bulkRows} />
+        <Text className="mt-3 text-xs font-bold uppercase tracking-widest text-slate-500">Class and stream for imported students</Text>
+        <Choices options={(directory?.classes || []).map((item) => item.classId || item.id)} labels={(directory?.classes || []).map((item) => item.name)} selected={classId} setSelected={(value) => { setClassId(value); setStreamId(""); }} />
+        <Choices options={(directory?.streams || []).filter((item) => !classId || item.classId === classId).map((item) => item.streamId || item.id)} labels={(directory?.streams || []).filter((item) => !classId || item.classId === classId).map((item) => item.name)} selected={streamId} setSelected={setStreamId} />
+        {!!bulkProgress && <Text className="mt-3 text-sm font-semibold text-primary">{bulkProgress}</Text>}
+        <Pressable className="mt-3 items-center rounded-2xl bg-primary px-4 py-4" disabled={saving || offline} onPress={importStudents}><Text className="text-sm font-bold text-white">{saving ? "Importing..." : "Import students"}</Text></Pressable>
       </View>
       <Text className="mt-6 text-lg font-extrabold text-slate-900">Account directory</Text>
       <TextInput autoCapitalize="none" className="mt-3 rounded-2xl bg-white px-4 py-4 text-base" onChangeText={setSearch} placeholder="Search name, ID, or email" placeholderTextColor="#94a3b8" value={search} />

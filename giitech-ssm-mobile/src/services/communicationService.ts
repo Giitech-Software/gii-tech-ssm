@@ -3,6 +3,7 @@ import { db } from "../firebaseConfig";
 import { getQueuedWrites, readCachedData, writeCachedData } from "./offlineStore";
 import { fetchParentStudentIds } from "./parentDetailService";
 import { fetchStudentProfile } from "./studentDetailService";
+import { TENANT_ID } from "../config/tenant";
 
 type TimestampLike = {
   seconds?: number;
@@ -162,10 +163,10 @@ export function fetchNotifications(userId: string, role: string) {
     const studentIds = await notificationStudentIds(userId, role);
     const notificationCollection = collection(db, "notifications");
     const snapshots = await Promise.all([
-      getDocs(query(notificationCollection, where("recipientUserId", "==", userId))),
-      getDocs(query(notificationCollection, where("recipientRoles", "array-contains", role))),
+      getDocs(query(notificationCollection, where("tenantId", "==", TENANT_ID), where("recipientUserId", "==", userId))),
+      getDocs(query(notificationCollection, where("tenantId", "==", TENANT_ID), where("recipientRoles", "array-contains", role))),
       ...chunks(["all", ...studentIds]).map((targets) =>
-        getDocs(query(notificationCollection, where("target", "in", targets)))
+        getDocs(query(notificationCollection, where("tenantId", "==", TENANT_ID), where("target", "in", targets)))
       ),
     ]);
     const notifications = new Map<string, WorkflowNotification>();

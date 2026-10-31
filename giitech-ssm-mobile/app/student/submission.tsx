@@ -308,14 +308,21 @@ export default function StudentSubmissionPage() {
             </Text>
           )}
           <Pressable
-            className="mt-5 items-center rounded-2xl bg-sky-700 px-4 py-4 active:bg-sky-800"
-            disabled={submitting}
+            className={`mt-5 items-center rounded-2xl px-4 py-4 ${submitting || !assignment ? "bg-slate-300" : "bg-sky-700 active:bg-sky-800"}`}
+            disabled={submitting || !assignment}
             onPress={submit}
           >
             {submitting ? (
-              <ActivityIndicator color="#ffffff" />
+              <View className="flex-row items-center">
+                <ActivityIndicator color="#ffffff" />
+                <Text className="ml-2 text-base font-bold text-white">Submitting...</Text>
+              </View>
             ) : (
-              <Text className="text-base font-bold text-white">Submit response</Text>
+              <Text className={`text-base font-bold ${assignment ? "text-white" : "text-slate-500"}`}>
+                {assignment
+                  ? "Submit"
+                  : "Loading assignment..."}
+              </Text>
             )}
           </Pressable>
         </>

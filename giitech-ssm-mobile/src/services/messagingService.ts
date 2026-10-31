@@ -1,4 +1,4 @@
-import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
+import { arrayUnion, collection, doc, getDocs, orderBy, query, updateDoc, where } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { getQueuedWrites, readCachedData, writeCachedData } from "./offlineStore";
 
@@ -184,4 +184,10 @@ export async function fetchMessageInbox(userId: string, senderEmail: string): Pr
 export function findConversation(inbox: MessageInbox | null, recipient: string) {
   const normalizedRecipient = normalizeEmail(recipient);
   return inbox?.conversations.find((conversation) => conversation.recipient === normalizedRecipient) || null;
+}
+
+export async function markConversationRead(messages: ChatMessage[], viewerEmail: string) {
+  const unread = messages.filter((message) => normalizeEmail(message.sender) !== normalizeEmail(viewerEmail) && !message.read);
+  await Promise.all(unread.filter((message) => !message.pending).map((message) => updateDoc(doc(db, "messages", message.id), { read: true, readBy: arrayUnion(viewerEmail) })));
+  return unread.length;
 }

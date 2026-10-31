@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useRouter } from "expo-router";
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { TenantIdentityCard } from "./TenantIdentityCard";
 
 export function ParentPageShell({
   title,
@@ -20,7 +21,7 @@ export function ParentPageShell({
         <Pressable className="mb-5 self-start rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm" onPress={router.back}>
           <Text className="text-sm font-bold text-primary">‹  Back to dashboard</Text>
         </Pressable>
-        <View className="rounded-3xl border border-blue-900 bg-primary p-6 shadow-lg shadow-blue-900/20">
+        <TenantIdentityCard /><View className="rounded-3xl border border-blue-900 bg-primary p-6 shadow-lg shadow-blue-900/20">
           <Text className="text-xs font-bold uppercase tracking-widest text-sky-200">
             Parent dashboard
           </Text>

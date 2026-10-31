@@ -27,6 +27,7 @@ export type TeacherAssignment = {
   dueDate: string;
   type: string;
   pending: boolean;
+  questions?: { question: string; answer: string; options: string[]; questionType: string; number?: number }[];
 };
 
 export type TeacherSubmissionResponse = {
@@ -178,6 +179,7 @@ function assignmentFromData(id: string, data: Record<string, unknown>, pending =
     termId: String(data.termId || ""),
     dueDate: asIsoDate(data.dueDate),
     type: String(data.type || "essay"),
+    questions: Array.isArray(data.questions) ? data.questions.map((item, index) => { const value = asRecord(item); return { question: String(value.question || ""), answer: String(value.answer || ""), options: Array.isArray(value.options) ? value.options.map(String) : [], questionType: String(value.questionType || "multiple-choice"), number: Number(value.number || index + 1) }; }) : [],
     pending,
   };
 }
@@ -321,7 +323,7 @@ export function fetchTeacherClasses(userId: string) {
 export function fetchTeacherAssignments(userId: string) {
   return withCache<TeacherAssignment[]>("teacher-assignments", userId, async () => {
     const [snapshot, queue] = await Promise.all([
-      getDocs(query(collection(db, "assignments"), where("teacherId", "==", userId))),
+      getDocs(query(collection(db, "assignments"), where("tenantId", "==", TENANT_ID), where("teacherId", "==", userId))),
       getQueuedWrites(),
     ]);
     const assignments = new Map(
@@ -525,7 +527,7 @@ export function fetchTeacherClassRegister(userId: string, classId: string) {
 
 export function fetchTeacherExamAssessments(userId: string) {
   return withCache<TeacherExamAssessment[]>("teacher-exams", userId, async () => {
-    const snapshot = await getDocs(collection(db, "exams"));
+    const snapshot = await getDocs(query(collection(db, "exams"), where("tenantId", "==", TENANT_ID)));
     return snapshot.docs
       .map((item) => examFromData(item.id, item.data()))
       .sort((left, right) => right.startDate.localeCompare(left.startDate));

@@ -210,7 +210,7 @@ const SharedLayout = () => {
       to={item.to}
       title={item.label}
       className={({ isActive }) =>
-        `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition ${
+          `flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] transition ${
           isActive ? "bg-blue-50 font-semibold text-primary" : "text-slate-600 hover:bg-slate-50"
         }`
       }

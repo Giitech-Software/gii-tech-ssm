@@ -9,6 +9,7 @@ import {
 } from "react";
 import { AppState } from "react-native";
 import { useAuth } from "./AuthContext";
+import { TENANT_ID } from "../config/tenant";
 import { getQueuedWrites } from "../services/offlineStore";
 import {
   flushAttachmentUploads,
@@ -82,7 +83,10 @@ export function SyncProvider({ children }: { children: ReactNode }) {
   const queueWrite = useCallback(
     async (input: UserQueueWriteInput) => {
       if (!user) throw new Error("Sign in before saving offline changes.");
-      await persistQueuedWrite({ ...input, ownerUid: user.uid });
+      const scopedData = input.path.startsWith("terms/") || input.path.startsWith("exams/") || input.path.startsWith("streams/") || input.path.startsWith("departments/")
+        ? { tenantId: TENANT_ID, ...(input.data || {}) }
+        : input.data;
+      await persistQueuedWrite({ ...input, data: scopedData, ownerUid: user.uid });
       await refreshPendingCount();
       const result = await syncNow();
       return result && result.pending === 0 ? "synced" : "pending";

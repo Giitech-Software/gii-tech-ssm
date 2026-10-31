@@ -1,5 +1,6 @@
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 import { getQueuedWrites, readCachedData, writeCachedData } from "./offlineStore";
 
 export type DirectoryStatus = "active" | "inactive" | "archived";
@@ -38,6 +39,7 @@ export type StudentDirectoryRecord = {
 
 export type StaffDirectoryRecord = {
   id: string;
+  collectionName: "teachers" | "staff";
   teacherId: string;
   staffId?: string;
   displayName: string;
@@ -86,9 +88,10 @@ function studentFromData(id: string, data: Record<string, unknown>, pending = fa
   };
 }
 
-function staffFromData(id: string, data: Record<string, unknown>, pending = false): StaffDirectoryRecord {
+function staffFromData(id: string, data: Record<string, unknown>, pending = false, collectionName: "teachers" | "staff" = "teachers"): StaffDirectoryRecord {
   return {
     id,
+    collectionName,
     teacherId: String(data.teacherId || data.staffId || id),
     staffId: data.staffId ? String(data.staffId) : undefined,
     displayName: String(data.displayName || data.name || "Staff member"),
@@ -97,6 +100,7 @@ function staffFromData(id: string, data: Record<string, unknown>, pending = fals
     subject: String(data.subject || data.subjectId || ""),
     phone: String(data.phone || ""),
     status: asStatus(data.status),
+    attendanceEnabled: data.attendanceEnabled !== false,
     pending,
   };
 }
@@ -158,17 +162,17 @@ export async function fetchAdminDirectory(userId: string): Promise<AdminResult<A
   try {
     const [studentSnapshot, staffSnapshot, nonTeachingStaffSnapshot, departmentSnapshot, classSnapshot, streamSnapshot] =
       await Promise.all([
-        getDocs(collection(db, "students")),
-        getDocs(collection(db, "teachers")),
-        getDocs(collection(db, "staff")),
-        getDocs(collection(db, "departments")),
-        getDocs(collection(db, "classes")),
-        getDocs(collection(db, "streams")),
+        getDocs(query(collection(db, "students"), where("tenantId", "==", TENANT_ID))),
+        getDocs(query(collection(db, "teachers"), where("tenantId", "==", TENANT_ID))),
+        getDocs(query(collection(db, "staff"), where("tenantId", "==", TENANT_ID))),
+        getDocs(query(collection(db, "departments"), where("tenantId", "==", TENANT_ID))),
+        getDocs(query(collection(db, "classes"), where("tenantId", "==", TENANT_ID))),
+        getDocs(query(collection(db, "streams"), where("tenantId", "==", TENANT_ID))),
       ]);
     const students = new Map(
       studentSnapshot.docs.map((item) => [item.id, studentFromData(item.id, item.data())])
     );
-    const staff = new Map([...staffSnapshot.docs, ...nonTeachingStaffSnapshot.docs].map((item) => [String(item.data().userId || item.id), staffFromData(item.id, item.data())]));
+    const staff = new Map([...staffSnapshot.docs.map((item) => ({ item, collectionName: "teachers" as const })), ...nonTeachingStaffSnapshot.docs.map((item) => ({ item, collectionName: "staff" as const }))].map(({ item, collectionName }) => [String(item.data().userId || item.id), staffFromData(item.id, item.data(), false, collectionName)]));
     const departments = new Map(
       departmentSnapshot.docs.map((item) => [item.id, optionFromData(item.id, item.data())])
     );
@@ -222,6 +226,17 @@ export async function fetchAdminDirectory(userId: string): Promise<AdminResult<A
       source: "cache",
     };
   }
+}
+
+export async function fetchAdminClassOptions(): Promise<Pick<AdminDirectoryData, "classes" | "streams">> {
+  const [classSnapshot, streamSnapshot] = await Promise.all([
+    getDocs(query(collection(db, "classes"), where("tenantId", "==", TENANT_ID))),
+    getDocs(query(collection(db, "streams"), where("tenantId", "==", TENANT_ID))),
+  ]);
+  return {
+    classes: classSnapshot.docs.map((item) => optionFromData(item.id, item.data())).sort((a, b) => a.name.localeCompare(b.name)),
+    streams: streamSnapshot.docs.map((item) => optionFromData(item.id, item.data())).sort((a, b) => a.name.localeCompare(b.name)),
+  };
 }
 
 export async function fetchAdminDashboardSummary(userId: string): Promise<AdminDashboardSummary> {

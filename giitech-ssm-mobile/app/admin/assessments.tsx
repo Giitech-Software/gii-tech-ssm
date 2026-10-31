@@ -6,6 +6,7 @@ import { useAuth } from "../../src/contexts/AuthContext";
 import { useSync } from "../../src/contexts/SyncContext";
 import { assessmentDocumentId, currentAcademicYear, fetchAdminAssessments, type AdminAssessmentData, type TermStatus } from "../../src/services/adminAssessmentService";
 import { classNameFor, fetchAdminDirectory, type AdminDirectoryData } from "../../src/services/adminService";
+import { TENANT_ID } from "../../src/config/tenant";
 
 const statuses: TermStatus[] = ["planned", "active", "closed"];
 export default function AdminAssessmentsPage() {

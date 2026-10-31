@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { ArrowRight, Bell, RefreshCw } from "lucide-react";
+import { AlertTriangle, ArrowRight, Bell, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -46,6 +46,7 @@ export default function RoleDashboard({ role }: RoleDashboardProps) {
 
   if (!data && loading) return <div className="surface flex min-h-64 items-center justify-center text-sm text-slate-500"><RefreshCw className="mr-2 animate-spin text-accent1" size={17} />Loading dashboard...</div>;
   if (!data) return <p className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-700">{error}</p>;
+  const emergencyAlert = data.notifications.find((item) => item.category === "alert");
 
   return (
     <div className="space-y-6">
@@ -57,6 +58,7 @@ export default function RoleDashboard({ role }: RoleDashboardProps) {
         </div>
         <button title="Refresh dashboard" aria-label="Refresh dashboard" disabled={loading} onClick={() => void load()} className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/30 bg-white/10 text-white transition hover:bg-white/20 disabled:opacity-60"><RefreshCw className={loading ? "animate-spin" : ""} size={16} /></button>
       </header>
+      {emergencyAlert && <Link to={emergencyAlert.route || "/notifications"} className="flex items-start gap-3 rounded-2xl border border-red-300 bg-red-50 p-4 text-red-950 shadow-sm transition hover:border-red-400 hover:bg-red-100"><AlertTriangle className="mt-0.5 shrink-0 text-red-600" size={22} aria-hidden="true" /><span className="min-w-0"><span className="block text-xs font-black uppercase tracking-[0.16em] text-red-700">Emergency alert</span><span className="mt-1 block text-base font-bold">{emergencyAlert.title}</span><span className="mt-1 block text-sm text-red-900">{emergencyAlert.message}</span></span><ArrowRight className="ml-auto mt-1 shrink-0 text-red-600" size={18} aria-hidden="true" /></Link>}
       {error && <p className="border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{error}</p>}
       <section className="grid grid-cols-2 gap-4 md:grid-cols-4 2xl:grid-cols-5">
         {data.metrics.map((metric) => <div key={metric.label} className="surface surface-hover border-primary/20 p-5"><p className="eyebrow">{metric.label}</p><p className="mt-2 text-2xl font-black tracking-tight text-dark">{metric.value}</p><p className="mt-1 text-xs text-slate-500">{metric.detail}</p></div>)}

@@ -1,5 +1,6 @@
 import { deleteDoc, doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { db } from "../firebaseConfig";
+import { TENANT_ID } from "../config/tenant";
 import {
   addQueuedWrite,
   getQueuedWrites,
@@ -29,7 +30,7 @@ async function applyWrite(write: QueuedWrite) {
     return;
   }
 
-  const data = { ...(write.data || {}) };
+  const data: Record<string, unknown> = { ...(write.data || {}), tenantId: TENANT_ID };
   write.serverTimestampFields?.forEach((field) => {
     data[field] = serverTimestamp();
   });

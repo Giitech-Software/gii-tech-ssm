@@ -1,7 +1,7 @@
 // src/firebaseConfig.ts
 import { initializeApp } from "firebase/app";
 import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
-import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
+import { initializeFirestore, persistentLocalCache, persistentSingleTabManager } from "firebase/firestore";
 import { getStorage } from "firebase/storage"; // ✅ Add this line
 
 export const firebaseConfig = {
@@ -24,9 +24,8 @@ setPersistence(auth, browserLocalPersistence).catch((err) => {
 });
 
 // Firestore setup
-export const db = getFirestore(app);
-enableIndexedDbPersistence(db).catch((err) => {
-  console.warn("Failed to enable IndexedDB persistence:", err);
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({ tabManager: persistentSingleTabManager(undefined) }),
 });
 
 // ✅ Add Firebase Storage instance

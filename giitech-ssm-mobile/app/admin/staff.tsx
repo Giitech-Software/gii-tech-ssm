@@ -60,7 +60,7 @@ export default function AdminStaffPage() {
     setMessage("");
     try {
       const result = await queueWrite({
-        path: `teachers/${profile.id}`,
+        path: `${profile.collectionName}/${profile.id}`,
         type: "set",
         merge: true,
         serverTimestampFields: ["updatedAt"],

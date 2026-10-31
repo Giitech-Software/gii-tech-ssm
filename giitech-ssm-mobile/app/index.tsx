@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+﻿import { useCallback, useEffect, useState } from "react";
 import type { ComponentProps } from "react";
 import { useRouter } from "expo-router";
 import {
@@ -35,14 +35,14 @@ import {
 
 type WebLoginProps = { id: string; password: string; error: string; resetSent: boolean; loading: boolean; showPassword: boolean; setId: (value: string) => void; setPassword: (value: string) => void; setShowPassword: (value: boolean) => void; onLogin: () => void; onReset: () => void };
 
-function SimpleLogin(props: WebLoginProps & { onSignup: () => void }) { return <View className="flex-1 items-center justify-center bg-slate-100 px-4 py-10"><View className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-7 shadow-xl sm:p-10"><Text className="text-xs font-bold uppercase tracking-widest text-primary">Secure school portal</Text><Text className="mt-2 text-3xl font-black text-slate-900">Welcome back</Text><Text className="mt-2 text-sm text-slate-500">Sign in with the school ID issued by your administrator.</Text>{!!props.error&&<Text className="mt-6 rounded-xl bg-red-50 p-3 text-sm text-red-700">{props.error}</Text>}{!!props.resetSent&&<Text className="mt-6 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700">Password reset instructions sent to the account email.</Text>}<Text className="mt-8 text-sm font-semibold text-slate-900">User ID</Text><TextInput value={props.id} onChangeText={props.setId} className="mt-2 rounded-xl border border-slate-300 px-3 py-3 text-slate-900" placeholder="Enter your ID (e.g. STU001)" placeholderTextColor="#94a3b8"/><Text className="mt-5 text-sm font-semibold text-slate-900">Password</Text><View className="mt-2 flex-row items-center rounded-xl border border-slate-300 px-3"><TextInput value={props.password} onChangeText={props.setPassword} secureTextEntry={!props.showPassword} className="flex-1 py-3 text-slate-900" placeholder="Enter your password" placeholderTextColor="#94a3b8"/><Pressable onPress={()=>props.setShowPassword(!props.showPassword)}><MaterialCommunityIcons color="#64748b" name={props.showPassword?"eye-off-outline":"eye-outline"} size={20}/></Pressable></View><Pressable disabled={props.loading} onPress={props.onLogin} className="mt-6 items-center rounded-xl bg-primary px-4 py-3">{props.loading?<ActivityIndicator color="#fff"/>:<Text className="font-bold text-white">Login</Text>}</Pressable><Pressable disabled={props.loading} onPress={props.onReset}><Text className="mt-5 text-center text-sm font-bold text-primary">Forgot password?</Text></Pressable><Pressable disabled={props.loading} onPress={props.onSignup}><Text className="mt-4 text-center text-sm font-bold text-slate-700">Request an account</Text></Pressable></View></View> }
+function SimpleLogin(props: WebLoginProps & { onSignup: () => void }) { return <View className="flex-1 items-center justify-center bg-slate-100 px-4 py-10"><View className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-7 shadow-xl sm:p-10"><Text className="text-xs font-bold uppercase tracking-widest text-primary">Secure school portal</Text><Text className="mt-2 text-3xl font-black text-slate-900">Welcome back</Text><Text className="mt-2 text-sm text-slate-500">Sign in with the school ID issued by your administrator.</Text>{!!props.error&&<Text className="mt-6 rounded-xl bg-red-50 p-3 text-sm text-red-700">{props.error}</Text>}{!!props.resetSent&&<Text className="mt-6 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700">Password reset instructions sent to the account email.</Text>}<Text className="mt-8 text-sm font-semibold text-slate-900">School ID or email</Text><TextInput value={props.id} onChangeText={props.setId} className="mt-2 rounded-xl border border-slate-300 px-3 py-3 text-slate-900" placeholder="Enter your school ID or email" placeholderTextColor="#94a3b8"/><Text className="mt-5 text-sm font-semibold text-slate-900">Password</Text><View className="mt-2 flex-row items-center rounded-xl border border-slate-300 px-3"><TextInput value={props.password} onChangeText={props.setPassword} secureTextEntry={!props.showPassword} className="flex-1 py-3 text-slate-900" placeholder="Enter your password" placeholderTextColor="#94a3b8"/><Pressable onPress={()=>props.setShowPassword(!props.showPassword)}><MaterialCommunityIcons color="#64748b" name={props.showPassword?"eye-off-outline":"eye-outline"} size={20}/></Pressable></View><Pressable disabled={props.loading} onPress={props.onLogin} className="mt-6 items-center rounded-xl bg-primary px-4 py-3">{props.loading?<ActivityIndicator color="#fff"/>:<Text className="font-bold text-white">Login</Text>}</Pressable><Pressable disabled={props.loading} onPress={props.onReset}><Text className="mt-5 text-center text-sm font-bold text-primary">Forgot password?</Text></Pressable><Pressable disabled={props.loading} onPress={props.onSignup}><Text className="mt-4 text-center text-sm font-bold text-slate-700">Request an account</Text></Pressable></View></View> }
 
 function WebLoginFixed({ id, password, error, resetSent, loading, showPassword, setId, setPassword, setShowPassword, onLogin, onReset }: WebLoginProps) {
-  return <View style={{ flex: 1, backgroundColor: "#020617", alignItems: "center", justifyContent: "center", padding: 40 }}><View style={{ flexDirection: "row", width: "100%", maxWidth: 1024, overflow: "hidden", borderRadius: 24, backgroundColor: "#fff" }}><View style={{ flex: 1, backgroundColor: "#1e3a8a", padding: 40 }}><Text className="text-xs font-bold uppercase tracking-widest text-sky-200">ASTEM-SSM</Text><Text className="mt-8 text-4xl font-black leading-tight text-white">Your school,{"\n"}connected.</Text><Text className="mt-5 text-sm leading-6 text-blue-100">A secure workspace for teaching, learning, attendance, and school operations.</Text><Text className="mt-20 text-xs text-blue-200">School management, designed for clarity.</Text></View><View style={{ flex: 1, padding: 40 }}><Text className="text-xs font-bold uppercase tracking-widest text-primary">Secure school portal</Text><Text className="mt-2 text-3xl font-black text-slate-900">Welcome back</Text><Text className="mt-2 text-sm text-slate-500">Sign in with the school ID issued by your administrator.</Text>{!!error&&<Text className="mt-6 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</Text>}{!!resetSent&&<Text className="mt-6 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700">Password reset instructions sent to the account email.</Text>}<Text className="mt-8 text-sm font-semibold text-slate-900">User ID</Text><TextInput value={id} onChangeText={setId} className="mt-2 rounded-xl border border-slate-300 px-3 py-3 text-slate-900" placeholder="Enter your ID (e.g. STU001)" placeholderTextColor="#94a3b8"/><Text className="mt-5 text-sm font-semibold text-slate-900">Password</Text><View className="mt-2 flex-row items-center rounded-xl border border-slate-300 px-3"><TextInput value={password} onChangeText={setPassword} secureTextEntry={!showPassword} className="flex-1 py-3 text-slate-900" placeholder="Enter your password" placeholderTextColor="#94a3b8"/><Pressable onPress={()=>setShowPassword(!showPassword)}><MaterialCommunityIcons color="#64748b" name={showPassword?"eye-off-outline":"eye-outline"} size={20}/></Pressable></View><Pressable disabled={loading} onPress={onLogin} className="mt-6 items-center rounded-xl bg-primary px-4 py-3">{loading?<ActivityIndicator color="#fff"/>:<Text className="font-bold text-white">Login</Text>}</Pressable><Pressable disabled={loading} onPress={onReset}><Text className="mt-5 text-center text-sm font-bold text-primary">Forgot password?</Text></Pressable></View></View></View>;
+  return <View style={{ flex: 1, backgroundColor: "#020617", alignItems: "center", justifyContent: "center", padding: 40 }}><View style={{ flexDirection: "row", width: "100%", maxWidth: 1024, overflow: "hidden", borderRadius: 24, backgroundColor: "#fff" }}><View style={{ flex: 1, backgroundColor: "#1e3a8a", padding: 40 }}><Text className="text-xs font-bold uppercase tracking-widest text-sky-200">ASTEM-SSM</Text><Text className="mt-8 text-4xl font-black leading-tight text-white">Your school,{"\n"}connected.</Text><Text className="mt-5 text-sm leading-6 text-blue-100">A secure workspace for teaching, learning, attendance, and school operations.</Text><Text className="mt-20 text-xs text-blue-200">School management, designed for clarity.</Text></View><View style={{ flex: 1, padding: 40 }}><Text className="text-xs font-bold uppercase tracking-widest text-primary">Secure school portal</Text><Text className="mt-2 text-3xl font-black text-slate-900">Welcome back</Text><Text className="mt-2 text-sm text-slate-500">Sign in with the school ID issued by your administrator.</Text>{!!error&&<Text className="mt-6 rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</Text>}{!!resetSent&&<Text className="mt-6 rounded-xl bg-emerald-50 p-3 text-sm text-emerald-700">Password reset instructions sent to the account email.</Text>}<Text className="mt-8 text-sm font-semibold text-slate-900">School ID or email</Text><TextInput value={id} onChangeText={setId} className="mt-2 rounded-xl border border-slate-300 px-3 py-3 text-slate-900" placeholder="Enter your school ID or email" placeholderTextColor="#94a3b8"/><Text className="mt-5 text-sm font-semibold text-slate-900">Password</Text><View className="mt-2 flex-row items-center rounded-xl border border-slate-300 px-3"><TextInput value={password} onChangeText={setPassword} secureTextEntry={!showPassword} className="flex-1 py-3 text-slate-900" placeholder="Enter your password" placeholderTextColor="#94a3b8"/><Pressable onPress={()=>setShowPassword(!showPassword)}><MaterialCommunityIcons color="#64748b" name={showPassword?"eye-off-outline":"eye-outline"} size={20}/></Pressable></View><Pressable disabled={loading} onPress={onLogin} className="mt-6 items-center rounded-xl bg-primary px-4 py-3">{loading?<ActivityIndicator color="#fff"/>:<Text className="font-bold text-white">Login</Text>}</Pressable><Pressable disabled={loading} onPress={onReset}><Text className="mt-5 text-center text-sm font-bold text-primary">Forgot password?</Text></Pressable></View></View></View>;
 }
 
 function WebLogin({ id, password, error, resetSent, loading, showPassword, setId, setPassword, setShowPassword, onLogin, onReset }: WebLoginProps) {
-  return <View className="relative flex-1 items-center justify-center overflow-hidden bg-slate-950 px-4 py-10"><View className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-sky-500/20" /><View className="absolute -bottom-32 -right-20 h-96 w-96 rounded-full bg-emerald-400/10" /><View className="relative w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl lg:flex-row"><View className="bg-primary p-10 lg:w-1/2"><Text className="text-xs font-bold uppercase tracking-widest text-sky-200">ASTEM-SSM</Text><Text className="mt-8 text-4xl font-black leading-tight text-white">Your school,{"\n"}connected.</Text><Text className="mt-5 text-sm leading-6 text-blue-100">A secure workspace for teaching, learning, attendance, and school operations.</Text><Text className="mt-20 text-xs text-blue-200">School management, designed for clarity.</Text></View><View className="p-7 sm:p-10 lg:w-1/2"><Text className="text-xs font-bold uppercase tracking-widest text-primary">Secure school portal</Text><Text className="mt-2 text-3xl font-black tracking-tight text-slate-900">Welcome back</Text><Text className="mt-2 text-sm text-slate-500">Sign in with the school ID issued by your administrator.</Text>{!!error&&<Text className="mt-6 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</Text>}{!!resetSent&&<Text className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">Password reset instructions sent to the account email.</Text>}<Text className="mt-8 text-sm font-semibold text-slate-900">User ID</Text><TextInput value={id} onChangeText={setId} className="mt-2 rounded-xl border border-slate-300 px-3 py-3 text-slate-900" placeholder="Enter your ID (e.g. STU001)" placeholderTextColor="#94a3b8"/><Text className="mt-5 text-sm font-semibold text-slate-900">Password</Text><View className="mt-2 flex-row items-center rounded-xl border border-slate-300 px-3"><TextInput value={password} onChangeText={setPassword} onSubmitEditing={onLogin} secureTextEntry={!showPassword} className="flex-1 py-3 text-slate-900" placeholder="Enter your password" placeholderTextColor="#94a3b8"/><Pressable onPress={()=>setShowPassword(!showPassword)}><MaterialCommunityIcons color="#64748b" name={showPassword?"eye-off-outline":"eye-outline"} size={20}/></Pressable></View><Pressable disabled={loading} onPress={onLogin} className="mt-6 items-center rounded-xl bg-primary px-4 py-3">{loading?<ActivityIndicator color="#fff"/>:<Text className="font-bold text-white">Login</Text>}</Pressable><Pressable disabled={loading} onPress={onReset}><Text className="mt-5 text-center text-sm font-bold text-primary">Forgot password?</Text></Pressable></View></View></View>;
+  return <View className="relative flex-1 items-center justify-center overflow-hidden bg-slate-950 px-4 py-10"><View className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-sky-500/20" /><View className="absolute -bottom-32 -right-20 h-96 w-96 rounded-full bg-emerald-400/10" /><View className="relative w-full max-w-5xl overflow-hidden rounded-3xl border border-white/10 bg-white shadow-2xl lg:flex-row"><View className="bg-primary p-10 lg:w-1/2"><Text className="text-xs font-bold uppercase tracking-widest text-sky-200">ASTEM-SSM</Text><Text className="mt-8 text-4xl font-black leading-tight text-white">Your school,{"\n"}connected.</Text><Text className="mt-5 text-sm leading-6 text-blue-100">A secure workspace for teaching, learning, attendance, and school operations.</Text><Text className="mt-20 text-xs text-blue-200">School management, designed for clarity.</Text></View><View className="p-7 sm:p-10 lg:w-1/2"><Text className="text-xs font-bold uppercase tracking-widest text-primary">Secure school portal</Text><Text className="mt-2 text-3xl font-black tracking-tight text-slate-900">Welcome back</Text><Text className="mt-2 text-sm text-slate-500">Sign in with the school ID issued by your administrator.</Text>{!!error&&<Text className="mt-6 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</Text>}{!!resetSent&&<Text className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">Password reset instructions sent to the account email.</Text>}<Text className="mt-8 text-sm font-semibold text-slate-900">School ID or email</Text><TextInput value={id} onChangeText={setId} className="mt-2 rounded-xl border border-slate-300 px-3 py-3 text-slate-900" placeholder="Enter your school ID or email" placeholderTextColor="#94a3b8"/><Text className="mt-5 text-sm font-semibold text-slate-900">Password</Text><View className="mt-2 flex-row items-center rounded-xl border border-slate-300 px-3"><TextInput value={password} onChangeText={setPassword} onSubmitEditing={onLogin} secureTextEntry={!showPassword} className="flex-1 py-3 text-slate-900" placeholder="Enter your password" placeholderTextColor="#94a3b8"/><Pressable onPress={()=>setShowPassword(!showPassword)}><MaterialCommunityIcons color="#64748b" name={showPassword?"eye-off-outline":"eye-outline"} size={20}/></Pressable></View><Pressable disabled={loading} onPress={onLogin} className="mt-6 items-center rounded-xl bg-primary px-4 py-3">{loading?<ActivityIndicator color="#fff"/>:<Text className="font-bold text-white">Login</Text>}</Pressable><Pressable disabled={loading} onPress={onReset}><Text className="mt-5 text-center text-sm font-bold text-primary">Forgot password?</Text></Pressable></View></View></View>;
 }
 
 const studentTools = [
@@ -81,12 +81,13 @@ const teacherTools = [
 
 const staffTools = [
   ["QR attendance", "Scan student identity cards.", "./shared/qr-attendance"],
-  ["Staff Check-in/out", "Record your staff check-in, check-out, return, and verification.", "./staff/attendance"],
+  ["My Attendance", "Record your staff check-in, check-out, return, and verification.", "./staff/attendance"],
   ["QR staff verification", "Verify attendance with your staff identity card.", "./staff/qr-attendance"],
   ["My financial records", "Review payslips, loans, and welfare history.", "./staff/finance"],
 ] as const;
 
 const adminTools = [
+  ["School branding", "Upload the logo shown to users of this school.", "./admin/school-branding"],
   ["Student Attendance", "Record the daily student register and student ID/QR attendance.", "./admin/student-attendance"],
   ["Staff Attendance", "Review and record staff check-in, check-out, and return.", "./admin/staff-attendance"],
   ["Attendance Administration", "Manage attendance identity, policy, and analytics.", "./admin/attendance-administration"],
@@ -117,7 +118,7 @@ const adminTools = [
   ["Classes", "Create class placement options.", "./admin/classes"],
   ["Streams", "Manage class streams.", "./admin/streams"],
   ["Activity logs", "Review administrative audit history.", "./admin/activity"],
-  ["Communications", "Publish school notices and maintain the academic calendar.", "./admin/communications"],
+  ["Notices & announcements", "Publish school notices and maintain the academic calendar.", "./admin/communications"],
   ["Bulk SMS / WhatsApp", "Queue messages for staff phone numbers.", "./admin/bulk-messaging"],
   ["Promotions", "Move students into their next placement.", "./admin/promotions"],
   ["Learner progress", "Record strengths, learning needs, interventions, and next steps.", "./admin/term-comments"],
@@ -141,6 +142,7 @@ const adminTools = [
 ] as const;
 
 const superAdminTools = [
+  ["School management", "Manage tenant schools, administrators, and status.", "./superadmin/schools"],
   ["User management", "Review login identities and access roles.", "./superadmin/accounts"],
   ["Create user", "Provision a new school account.", "./superadmin/accounts"],
   ["Signup Requests", "Review and approve pending account requests.", "./admin/signup-requests"],
@@ -221,7 +223,7 @@ function DashboardCards({ cards }: { cards: DashboardCard[] }) {
 
 function AdminToolSection({ title, items, onOpen }: { title: string; items: readonly (readonly [string, string, string])[]; onOpen: (route: string) => void }) {
   if (!items.length) return null;
-  return <View className="mt-6"><Text className="text-xs font-black uppercase tracking-widest text-primary">{title}</Text><View className="mt-3 gap-3">{items.map(([label, detail, route]) => <Pressable className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm active:bg-blue-50" key={route} onPress={() => onOpen(route)}><View className="flex-row items-center justify-between"><Text className="flex-1 text-base font-extrabold text-slate-900">{label}</Text><Text className="ml-3 text-lg font-bold text-accent1">›</Text></View><Text className="mt-1 text-sm leading-5 text-slate-500">{detail}</Text></Pressable>)}</View></View>;
+  return <View className="mt-6"><Text className="text-xs font-black uppercase tracking-widest text-primary">{title}</Text><View className="mt-3 gap-3">{items.map(([label, detail, route]) => <Pressable className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm active:bg-blue-50" key={route} onPress={() => onOpen(route)}><View className="flex-row items-center justify-between"><Text className="flex-1 text-base font-extrabold text-slate-900">{label}</Text><Text className="ml-3 text-lg font-bold text-accent1">â€º</Text></View><Text className="mt-1 text-sm leading-5 text-slate-500">{detail}</Text></Pressable>)}</View></View>;
 }
 
 void AdminToolSection;
@@ -251,7 +253,7 @@ function AdminCategorySection({ title, items, onOpen, active, onToggle }: { titl
     "Academic terms": "calendar-month-outline",
     "Assessment setup": "clipboard-edit-outline",
     "Grading configuration": "format-list-numbered",
-    Communications: "bullhorn-outline",
+    "Notices & announcements": "bullhorn-outline",
     Promotions: "account-arrow-up-outline",
     "Family links": "account-switch-outline",
     "Activity logs": "clipboard-text-clock-outline",
@@ -375,9 +377,8 @@ export default function Index() {
     try {
       setParentSummary(await fetchParentDashboardDetail(user.uid));
     } catch (loadError) {
-      setSummaryError(
-        loadError instanceof Error ? loadError.message : "Unable to load your family dashboard."
-      );
+      setParentSummary({ students: 0, attendanceRate: 0, reports: 0, outstandingBalance: 0, balances: [], recentGrades: [], recentReports: [], attendanceConcerns: [], source: "live" });
+      setSummaryError("Family data is temporarily unavailable. Please refresh shortly.");
     } finally {
       setSummaryLoading(false);
     }
@@ -452,16 +453,20 @@ export default function Index() {
     setResetSent(false);
     try {
       await login(id, password);
-    } catch {
-      setError("Sign-in failed. Check your school ID and password.");
+    } catch (value) {
+      const code = String((value as { code?: string })?.code || "");
+      setError(code === "auth/network-request-failed" || String(value).includes("network-request-failed") ? "No internet connection. Check your network and try again." : value instanceof Error && value.message ? value.message : "Sign-in failed. Check your school ID and password.");
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleReset = async () => {
+    router.push("/reset-password" as never);
+    return;
+    /*
     if (!id.trim()) {
-      setError("Enter your school ID first.");
+      setError("Enter your school ID or email first.");
       return;
     }
     setSubmitting(true);
@@ -470,11 +475,13 @@ export default function Index() {
     try {
       await resetPassword(id);
       setResetSent(true);
-    } catch {
-      setError("Unable to send reset instructions. Check your school ID.");
+    } catch (value) {
+      const code = String((value as { code?: string })?.code || "");
+      setError(code === "auth/user-not-found" ? "No account was found for that school ID or email." : value instanceof Error ? value.message : "Unable to send reset instructions.");
     } finally {
       setSubmitting(false);
     }
+    */
   };
 
   if (loading) {
@@ -512,7 +519,7 @@ export default function Index() {
           </View>
 
           <View className="w-full self-center rounded-3xl border border-slate-200 bg-light p-6 shadow-2xl lg:max-w-5xl lg:p-10">
-            <Text className="text-sm font-black tracking-tight text-primary">ASTEM-SSM • <Text className="font-bold">Secure school portal</Text></Text>
+            <Text className="text-sm font-black tracking-tight text-primary">ASTEM-SSM â€¢ <Text className="font-bold">Secure school portal</Text></Text>
             <Text className="mt-2 text-3xl font-black tracking-tight text-slate-900">Welcome back</Text>
             <Text className="mt-2 text-sm leading-5 text-slate-500">
               Sign in with the school ID issued by your administrator.
@@ -526,7 +533,7 @@ export default function Index() {
               autoCorrect={false}
               className="mt-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-4 text-base text-dark"
               onChangeText={setId}
-              placeholder="Enter your ID (e.g. STU001)"
+              placeholder="Enter your school ID or email"
               placeholderTextColor="#94a3b8"
               value={id}
             />
@@ -876,12 +883,12 @@ export default function Index() {
                 ))}
                 <View className="mt-6 flex-row items-center rounded-2xl border border-blue-200 bg-blue-50 p-4 shadow-sm"><MaterialCommunityIcons color="#1E3A8A" name="view-dashboard-outline" size={25} /><View className="ml-3"><Text className="text-base font-extrabold text-slate-900">Administration tools</Text><Text className="mt-1 text-xs text-slate-600">Choose a section to reveal its tools.</Text></View></View>
                 <AdminCategorySection active={activeAdminCategory === "people"} onToggle={() => setActiveAdminCategory(activeAdminCategory === "people" ? null : "people")} title="People & identity" items={adminTools.filter(([label]) => ["Students", "Create Student", "Signup Requests", "Staff", "Departments", "Family links", "Student QR identity", "Staff QR identity", "Face enrollment", "Graduated / Archive", "Graduation archive"].includes(label))} onOpen={openRoute} />
-                <AdminCategorySection active={activeAdminCategory === "setup"} onToggle={() => setActiveAdminCategory(activeAdminCategory === "setup" ? null : "setup")} title="School setup" items={adminTools.filter(([label]) => ["Academic years", "Academic terms", "Classes", "Streams", "Subjects per class", "Grading configuration", "Assessment setup"].includes(label))} onOpen={openRoute} />
-                <AdminCategorySection active={activeAdminCategory === "communications"} onToggle={() => setActiveAdminCategory(activeAdminCategory === "communications" ? null : "communications")} title="Communications" items={adminTools.filter(([label]) => ["Communications", "Bulk SMS / WhatsApp", "Activity logs"].includes(label))} onOpen={openRoute} />
+                <AdminCategorySection active={activeAdminCategory === "setup"} onToggle={() => setActiveAdminCategory(activeAdminCategory === "setup" ? null : "setup")} title="School setup" items={adminTools.filter(([label]) => ["School branding", "Academic years", "Academic terms", "Classes", "Streams", "Subjects per class", "Grading configuration", "Assessment setup"].includes(label))} onOpen={openRoute} />
+                <AdminCategorySection active={activeAdminCategory === "communications"} onToggle={() => setActiveAdminCategory(activeAdminCategory === "communications" ? null : "communications")} title="Communications" items={adminTools.filter(([label]) => ["Notices & announcements", "Bulk SMS / WhatsApp", "Activity logs"].includes(label))} onOpen={openRoute} />
                 <AdminCategorySection active={activeAdminCategory === "learning"} onToggle={() => setActiveAdminCategory(activeAdminCategory === "learning" ? null : "learning")} title="Teaching & learning" items={adminTools.filter(([label]) => ["Classwork and homework", "Tests and assessments", "Exam/Test score entry", "Learner gradebook", "Student submissions", "Assignment grades", "Learner progress", "Promotions", "Report publishing"].includes(label))} onOpen={openRoute} />
                 <AdminCategorySection active={activeAdminCategory === "reports"} onToggle={() => setActiveAdminCategory(activeAdminCategory === "reports" ? null : "reports")} title="Reports & insights" items={adminTools.filter(([label]) => ["Reports", "Institutional analytics", "Student rankings", "Staff movement report", "Staff finance report", "SSNIT compliance"].includes(label))} onOpen={openRoute} />
-                <AdminCategorySection active={activeAdminCategory === "operations"} onToggle={() => setActiveAdminCategory(activeAdminCategory === "operations" ? null : "operations")} title="Attendance, finance & operations" items={adminTools.filter(([label]) => ["Student Attendance", "Staff Attendance", "Attendance Administration", "Staff attendance policy", "QR attendance", "Fee structures", "Finance ledger", "Payment intents", "Staff finance", "Staff loan repayments", "School library"].includes(label))} onOpen={openRoute} />
-ااااااا              </>
+                <AdminCategorySection active={activeAdminCategory === "attendance"} onToggle={() => setActiveAdminCategory(activeAdminCategory === "attendance" ? null : "attendance")} title="Attendance" items={adminTools.filter(([label]) => ["Student Attendance", "Staff Attendance", "Attendance Administration", "Staff attendance policy", "QR attendance"].includes(label))} onOpen={openRoute} />
+                <AdminCategorySection active={activeAdminCategory === "operations"} onToggle={() => setActiveAdminCategory(activeAdminCategory === "operations" ? null : "operations")} title="Finance & operations" items={adminTools.filter(([label]) => ["Fee structures", "Finance ledger", "Payment intents", "Staff finance", "Staff loan repayments"].includes(label))} onOpen={openRoute} />            </>
             )}
           </View>
         )}
@@ -966,3 +973,4 @@ export default function Index() {
     </SafeAreaView>
   );
 }
+

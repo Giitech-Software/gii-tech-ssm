@@ -10,6 +10,7 @@ import {
   fetchMessageInbox,
   findConversation,
   formatMessageDate,
+  markConversationRead,
   validateRecipientEmail,
   type MessageInbox,
 } from "../../src/services/messagingService";
@@ -52,6 +53,11 @@ export default function ConversationPage() {
   }, [load]);
 
   const conversation = findConversation(inbox, recipientEmail);
+
+  useEffect(() => {
+    if (!user?.email || !conversation?.messages.length) return;
+    void markConversationRead(conversation.messages, user.email).then(() => load()).catch(() => undefined);
+  }, [conversation?.messages, load, user?.email]);
 
   const send = async () => {
     if (!user?.email || !recipientEmail || !text.trim()) return;

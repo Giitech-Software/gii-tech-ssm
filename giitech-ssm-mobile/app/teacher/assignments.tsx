@@ -4,6 +4,7 @@ import { StudentDataState } from "../../src/components/StudentDataState";
 import { TeacherPageShell } from "../../src/components/TeacherPageShell";
 import { useAuth } from "../../src/contexts/AuthContext";
 import { useSync } from "../../src/contexts/SyncContext";
+import { TENANT_ID } from "../../src/config/tenant";
 import {
   assignmentDocumentId,
   fetchTeacherAssignments,
@@ -28,6 +29,7 @@ export default function TeacherAssignmentsPage() {
   const [classId, setClassId] = useState("");
   const [type, setType] = useState("essay");
   const [questions, setQuestions] = useState<{ question: string; answer: string; options: string[]; questionType: string }[]>([]);
+  const [editing, setEditing] = useState<TeacherAssignment | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [offline, setOffline] = useState(false);
@@ -72,6 +74,7 @@ export default function TeacherAssignmentsPage() {
         merge: false,
         serverTimestampFields: ["createdAt"],
         data: {
+          tenantId: TENANT_ID,
           title: title.trim(),
           subject: subject.trim(),
           description: description.trim(),
@@ -111,6 +114,15 @@ export default function TeacherAssignmentsPage() {
     }
   };
 
+  const saveEdit = async () => {
+    if (!editing || !user) return;
+    setSaving(true); setError(""); setMessage("");
+    try {
+      const result = await queueWrite({ path: `assignments/${editing.id}`, type: "set", merge: true, data: { tenantId: TENANT_ID, title: editing.title.trim(), description: editing.description.trim(), dueDate: editing.dueDate, questions: (editing.questions || []).map((item, index) => ({ ...item, number: index + 1, options: item.options.filter(Boolean) })) } });
+      setEditing(null); setMessage(result === "synced" ? "Assignment updated." : "Assignment update saved offline and queued."); await load();
+    } catch (saveError) { setError(saveError instanceof Error ? saveError.message : "Unable to update assignment."); } finally { setSaving(false); }
+  };
+
   return (
     <TeacherPageShell subtitle="Create coursework and review assignments already issued to your classes." title="Assignments">
       <StudentDataState error={error} loading={loading} offline={offline} onRefresh={load} />
@@ -143,6 +155,7 @@ export default function TeacherAssignmentsPage() {
           <Text className="text-sm font-bold text-white">{saving ? "Saving..." : "Save and add another"}</Text>
         </Pressable>
       </View>
+      {!!editing && <View className="mt-6 rounded-3xl border-2 border-primary/20 bg-blue-50 p-5"><View className="flex-row items-center justify-between"><View className="flex-1"><Text className="text-lg font-extrabold text-slate-900">Edit assignment</Text><Text className="mt-1 text-sm text-slate-600">Update instructions and questions.</Text></View><Pressable onPress={() => setEditing(null)} className="rounded-xl bg-white px-3 py-2"><Text className="font-bold text-slate-700">Cancel</Text></Pressable></View><TextInput className="mt-4 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-base text-slate-900" value={editing.title} onChangeText={value => setEditing({ ...editing, title: value })} placeholder="Assignment title" /><TextInput multiline textAlignVertical="top" className="mt-3 min-h-32 rounded-2xl border border-slate-200 bg-white px-4 py-4 text-base leading-6 text-slate-900" value={editing.description} onChangeText={value => setEditing({ ...editing, description: value })} placeholder="Instructions / description" />{(editing.questions || []).map((question, index) => <View key={index} className="mt-4 rounded-2xl border border-slate-200 bg-white p-4"><Text className="font-bold text-slate-700">Question {index + 1}</Text><TextInput multiline textAlignVertical="top" className="mt-3 min-h-24 rounded-xl border border-slate-200 px-3 py-3 text-base" value={question.question} onChangeText={value => setEditing({ ...editing, questions: editing.questions?.map((item, position) => position === index ? { ...item, question: value } : item) })} placeholder="Question text" /><TextInput className="mt-3 rounded-xl border border-slate-200 px-3 py-3 text-base" value={question.answer} onChangeText={value => setEditing({ ...editing, questions: editing.questions?.map((item, position) => position === index ? { ...item, answer: value } : item) })} placeholder="Correct answer" />{question.options.map((option, optionIndex) => <TextInput key={optionIndex} className="mt-3 rounded-xl border border-slate-200 px-3 py-3 text-base" value={option} onChangeText={value => setEditing({ ...editing, questions: editing.questions?.map((item, position) => position === index ? { ...item, options: item.options.map((entry, choice) => choice === optionIndex ? value : entry) } : item) })} placeholder={`Option ${optionIndex + 1}`} />)}</View>)}<Pressable onPress={() => setEditing({ ...editing, questions: [...(editing.questions || []), { question: "", answer: "", options: ["", "", "", ""], questionType: "multiple-choice", number: (editing.questions || []).length + 1 }] })} className="mt-4 rounded-2xl border-2 border-dashed border-primary p-4"><Text className="text-center font-bold text-primary">+ Add question</Text></Pressable><Pressable disabled={saving} onPress={() => void saveEdit()} className="mt-4 rounded-2xl bg-primary p-4"><Text className="text-center font-bold text-white">{saving ? "Saving..." : "Save assignment changes"}</Text></Pressable></View>}
       <Text className="mt-7 text-lg font-extrabold text-slate-900">Existing assignments</Text>
       {!loading && !assignments.length && !error && <Text className="mt-6 text-center text-sm text-slate-500">No assignments yet.</Text>}
       <View className="mt-3">
@@ -156,7 +169,9 @@ export default function TeacherAssignmentsPage() {
               {assignment.pending && <Text className="rounded-full bg-amber-100 px-3 py-2 text-xs font-bold text-amber-800">Queued</Text>}
             </View>
             {!!assignment.description && <Text className="mt-3 text-sm leading-5 text-slate-600">{assignment.description}</Text>}
+            {!!assignment.questions?.length && <Text className="mt-3 text-xs font-bold text-slate-500">{assignment.questions.length} question(s)</Text>}
             <Text className="mt-4 text-xs font-bold uppercase tracking-wider text-slate-500">Due {formatDueDate(assignment.dueDate)} | {assignment.type}</Text>
+            {!assignment.pending && <Pressable disabled={saving} onPress={() => setEditing({ ...assignment, questions: assignment.questions || [] })} className="mt-4 items-center rounded-2xl bg-blue-50 px-4 py-3"><Text className="text-sm font-bold text-primary">Edit instructions and questions</Text></Pressable>}
             {assignment.pending ? (
               <Text className="mt-4 text-xs font-semibold text-amber-700">
                 Sync this assignment before removing it.

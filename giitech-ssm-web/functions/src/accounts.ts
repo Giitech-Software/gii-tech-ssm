@@ -85,6 +85,43 @@ async function sendCredentialEmail(to: string, id: string, password: string, sch
   return "sent";
 }
 
+async function sendPasswordResetEmail(to: string, resetLink: string) {
+  if (!to || !gmailClientId.value() || !gmailClientSecret.value() || !gmailRefreshToken.value()) return "not-configured";
+  const { google } = await import("googleapis");
+  const authClient = new google.auth.OAuth2(gmailClientId.value(), gmailClientSecret.value());
+  authClient.setCredentials({ refresh_token: gmailRefreshToken.value() });
+  const gmail = google.gmail({ version: "v1", auth: authClient });
+  const body = [`From: ${gmailSender}`, `To: ${to}`, "Subject: Reset your ASTEM-SSM password", "Content-Type: text/plain; charset=utf-8", "", "We received a request to reset your ASTEM-SSM password.", "", `Open this secure link to choose a new password: ${resetLink}`, "", "If you did not request this, you can safely ignore this email."].join("\r\n");
+  await gmail.users.messages.send({ userId: "me", requestBody: { raw: Buffer.from(body).toString("base64url") } });
+  return "sent";
+}
+
+export const requestPasswordReset = onCall({ region, secrets: [gmailClientId, gmailClientSecret, gmailRefreshToken] }, async (request) => {
+  const identifier = String(asRecord(request.data).identifier || "").trim().toLowerCase();
+  if (!identifier) throw new HttpsError("invalid-argument", "Enter your school ID or email address.");
+  try {
+    const users = getFirestore().collection("users");
+    const snapshot = identifier.includes("@")
+      ? await users.where("contactEmail", "==", identifier).limit(1).get()
+      : await users.where("id", "==", identifier.toUpperCase()).limit(1).get();
+    if (snapshot.empty) throw new HttpsError("not-found", "No account was found for that school ID or email address.");
+    const profile = snapshot.docs[0].data();
+    const authUser = await getAuth().getUser(String(profile.uid || snapshot.docs[0].id));
+    if (!authUser.email) throw new HttpsError("failed-precondition", "This account does not have a recovery email.");
+    const destination = String(profile.contactEmail || (identifier.includes("@") ? identifier : "")).trim().toLowerCase();
+    if (!destination) throw new HttpsError("failed-precondition", "This account does not have a recovery email.");
+    const resetLink = await getAuth().generatePasswordResetLink(authUser.email);
+    if (await sendPasswordResetEmail(destination, resetLink) !== "sent") throw new HttpsError("failed-precondition", "Email delivery is not configured.");
+    logger.info("Password reset link delivered", { accountId: String(profile.id || ""), destination });
+    return { status: "sent" };
+  } catch (error) {
+    if (error instanceof HttpsError) throw error;
+    const detail = error instanceof Error ? error.message : String(error);
+    logger.error("Password reset delivery failed", { identifierType: identifier.includes("@") ? "email" : "school-id", error: detail });
+    throw new HttpsError("internal", "We could not send the password reset email. Please try again later.");
+  }
+});
+
 async function assertSuperAdmin(uid?: string) {
   if (!uid) throw new HttpsError("unauthenticated", "Sign in is required.");
   const profile = await getFirestore().collection("users").doc(uid).get();
@@ -143,6 +180,11 @@ export const submitSignupRequest = onCall({ region }, async (request) => {
   const db = getFirestore();
   const tenantSnapshot = await db.collection("tenants").doc(requestedTenantId).get();
   if (!requestedTenantId || !tenantSnapshot.exists || tenantSnapshot.data()?.status !== "active") throw new HttpsError("not-found", "That school code is not active or does not exist.");
+  const [existingProfile, existingRequest] = await Promise.all([
+    db.collection("users").where("contactEmail", "==", email).limit(1).get(),
+    db.collection("signupRequests").where("email", "==", email).limit(10).get(),
+  ]);
+  if (!existingProfile.empty || existingRequest.docs.some((item) => item.data().status === "pending")) throw new HttpsError("already-exists", "An account or pending signup request already uses this email address.");
   const reference = db.collection("signupRequests").doc();
   await reference.set({
     requestId: reference.id,

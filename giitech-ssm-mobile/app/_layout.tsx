@@ -1,11 +1,23 @@
 import { Stack, usePathname, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { AppState, View, type AppStateStatus } from "react-native";
+import { AppState, Text, TextInput, View, type AppStateStatus } from "react-native";
 import { useCallback, useEffect, useRef, type ReactNode } from "react";
+import { useFonts } from "expo-font";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "../global.css";
+
+const defaultTextStyle = { fontFamily: "Inter", fontSize: 15 };
+(Text as typeof Text & { defaultProps?: { style?: typeof defaultTextStyle } }).defaultProps = { style: defaultTextStyle };
+(TextInput as typeof TextInput & { defaultProps?: { style?: typeof defaultTextStyle } }).defaultProps = { style: defaultTextStyle };
 import { AuthProvider, useAuth } from "../src/contexts/AuthContext";
 import { SyncProvider } from "../src/contexts/SyncContext";
+
+const interFonts = {
+  Inter: require("../assets/fonts/Inter-Regular.ttf"),
+  InterMedium: require("../assets/fonts/Inter-Medium.ttf"),
+  InterSemiBold: require("../assets/fonts/Inter-SemiBold.ttf"),
+  InterBold: require("../assets/fonts/Inter-Bold.ttf"),
+};
 
 function RouteGuard() {
   const pathname = usePathname();
@@ -105,6 +117,8 @@ function InactivityGuard({ children }: { children: ReactNode }) {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts(interFonts);
+  if (!fontsLoaded) return null;
   return (
     <AuthProvider>
       <SyncProvider>

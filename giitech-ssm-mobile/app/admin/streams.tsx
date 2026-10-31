@@ -4,7 +4,8 @@ import { AdminPageShell } from "../../src/components/AdminPageShell";
 import { StudentDataState } from "../../src/components/StudentDataState";
 import { useAuth } from "../../src/contexts/AuthContext";
 import { useSync } from "../../src/contexts/SyncContext";
-import { academicDocumentId, classNameFor, fetchAdminDirectory, type AdminDirectoryData } from "../../src/services/adminService";
+import { TENANT_ID } from "../../src/config/tenant";
+import { academicDocumentId, classNameFor, fetchAdminClassOptions, type AdminDirectoryData } from "../../src/services/adminService";
 
 export default function AdminStreamsPage() {
   const { user } = useAuth();
@@ -22,9 +23,9 @@ export default function AdminStreamsPage() {
     setLoading(true);
     setError("");
     try {
-      const result = await fetchAdminDirectory(user.uid);
-      setDirectory(result.data);
-      setOffline(result.source === "cache");
+      const result = await fetchAdminClassOptions();
+      setDirectory((current) => ({ students: current?.students || [], staff: current?.staff || [], departments: current?.departments || [], ...result }));
+      setOffline(false);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Unable to load streams.");
     } finally {
@@ -39,7 +40,7 @@ export default function AdminStreamsPage() {
     setError("");
     try {
       const streamId = academicDocumentId("STR");
-      const result = await queueWrite({ path: `streams/${streamId}`, type: "set", merge: false, serverTimestampFields: ["createdAt"], data: { streamId, name: name.trim(), classId } });
+      const result = await queueWrite({ path: `streams/${streamId}`, type: "set", merge: false, serverTimestampFields: ["createdAt"], data: { tenantId: TENANT_ID, streamId, name: name.trim(), classId } });
       setName("");
       setClassId("");
       setMessage(result === "synced" ? "Stream created." : "Stream saved offline and queued.");

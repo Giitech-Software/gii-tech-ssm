@@ -1,0 +1,10 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+
+export default function ResetPasswordPage() {
+  const { resetPassword } = useAuth();
+  const [identifier, setIdentifier] = useState(""); const [message, setMessage] = useState(""); const [error, setError] = useState(""); const [loading, setLoading] = useState(false);
+  const submit = async (event: React.FormEvent) => { event.preventDefault(); setLoading(true); setMessage(""); setError(""); try { await resetPassword(identifier); setIdentifier(""); setMessage("Password reset link sent. Check your inbox and follow the instructions to create a new password."); } catch (value) { setError(value instanceof Error ? value.message : "Unable to send the password reset link."); } finally { setLoading(false); } };
+  return <main className="flex min-h-screen items-center justify-center bg-slate-950 px-4 py-10"><section className="w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl"><p className="eyebrow">Account recovery</p><h1 className="mt-2 text-3xl font-black text-slate-900">Reset your password</h1><p className="mt-2 text-sm leading-6 text-slate-500">Enter your school ID or email address. We’ll send a secure password reset link to the email connected to your account.</p>{message && <p className="mt-5 rounded-xl bg-emerald-50 p-4 text-sm leading-6 text-emerald-700">{message}</p>}{error && <p className="mt-5 rounded-xl bg-red-50 p-4 text-sm leading-6 text-red-700">{error}</p>}<form onSubmit={submit} className="mt-6 space-y-4"><label className="block text-sm font-semibold text-slate-700">School ID or email<input required value={identifier} onChange={event => setIdentifier(event.target.value)} className="input mt-1" placeholder="STU001 or you@example.com" /></label><button disabled={loading} className="btn-primary w-full py-3">{loading ? "Sending reset link..." : "Send reset link"}</button></form><Link to="/login" className="mt-5 block text-center text-sm font-bold text-primary">Back to login</Link></section></main>;
+}

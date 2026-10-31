@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Link, Navigate, Outlet, Route, Routes } from "
 import type { JSX } from "react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Login from "./pages/BrandedLogin";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import Signup from "./pages/SuperAdmin/CreateUser";
 import FeesPage from "./pages/Admin/FeesPage";
 import FinanceLedgerPage from "./pages/Admin/FinanceLedgerPage";
@@ -148,6 +149,7 @@ export default function App() {
       <Router>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/signup" element={<div className="relative"><Link to="/login" className="fixed left-5 top-5 z-10 rounded-xl bg-white px-4 py-2 text-sm font-bold text-slate-700 shadow">Back to login</Link><SignupPage /></div>} />
 
           <Route

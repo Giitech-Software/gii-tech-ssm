@@ -8,7 +8,7 @@ export { createAbsenteeAlert } from "./attendanceAlerts";
 export { scheduledStudentAttendanceFinalizer } from "./attendanceFinalizer";
 export { initiateMobileMoneyPayment, mobileMoneyWebhook, reconcilePaymentIntent } from "./paymentGateway";
 export { generateAiAssessmentSuggestion } from "./aiAssessment";
-export { createManagedUser, createTenantWithAdmin, manageTenants, deleteManagedUser, updateManagedUserRole, submitSignupRequest, fetchSignupOptions, fetchSignupRequests, decideSignupRequest } from "./accounts";
+export { createManagedUser, createTenantWithAdmin, manageTenants, deleteManagedUser, updateManagedUserRole, submitSignupRequest, fetchSignupOptions, fetchSignupRequests, decideSignupRequest, requestPasswordReset } from "./accounts";
 export { scheduledLibraryOverdueSync } from "./library";
 export { verifyAttendanceFace, enrollAttendanceFace } from "./rekognition";
 export { backfillAstemTenant } from "./tenantMigration";

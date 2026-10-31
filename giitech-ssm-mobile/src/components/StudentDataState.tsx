@@ -26,6 +26,12 @@ export function StudentDataState({ error, loading, offline, onRefresh }: Student
           )}
         </Pressable>
       </View>
+      {loading && (
+        <View className="mt-4 flex-row items-center justify-center rounded-2xl bg-white p-4">
+          <ActivityIndicator size="small" color="#075985" />
+          <Text className="ml-2 text-sm font-semibold text-slate-500">Loading...</Text>
+        </View>
+      )}
       {offline && (
         <Text className="mt-4 rounded-2xl bg-amber-50 p-4 text-sm font-semibold text-amber-800">
           You are viewing data saved during your last successful connection.

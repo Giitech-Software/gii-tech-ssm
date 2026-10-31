@@ -58,6 +58,7 @@ export default function MessagesPage() {
       </View>
 
       <Text className="mt-7 text-lg font-extrabold text-slate-900">Inbox</Text>
+      {!!inbox?.conversations.reduce((total, item) => total + item.unreadCount, 0) && <Text className="mt-2 self-start rounded-full bg-red-600 px-3 py-1 text-xs font-black text-white">{inbox.conversations.reduce((total, item) => total + item.unreadCount, 0)} unread messages</Text>}
       {!loading && !inbox?.conversations.length && !error && (
         <Text className="mt-6 text-center text-sm text-slate-500">No messages yet.</Text>
       )}

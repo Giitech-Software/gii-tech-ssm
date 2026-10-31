@@ -111,7 +111,7 @@ export async function deleteManagedAccount(uid: string) {
   }
 }
 
-export async function submitSignupRequest(input: { role: "parent" | "teacher" | "student" | "staff"; displayName: string; phone?: string; email?: string; extra?: Record<string, unknown> }) {
+export async function submitSignupRequest(input: { role: "parent" | "teacher" | "student" | "staff"; displayName: string; phone?: string; email?: string; schoolCode?: string; extra?: Record<string, unknown> }) {
   const call = httpsCallable<typeof input, { requestId: string; status: string }>(functions, "submitSignupRequest");
   return (await call(input)).data;
 }
@@ -122,6 +122,8 @@ export async function fetchSignupRequests() {
 }
 
 export async function decideSignupRequest(requestId: string, decision: "approve" | "reject", password?: string) {
-  const call = httpsCallable<{ requestId: string; decision: string; password?: string }, { status: string; id?: string; temporaryPassword?: string }>(functions, "decideSignupRequest");
+  const call = httpsCallable<{ requestId: string; decision: string; password?: string }, { status: string; id?: string; temporaryPassword?: string; deliveryStatus?: string; deliveryError?: string }>(functions, "decideSignupRequest");
   return (await call({ requestId, decision, password })).data;
 }
+export type MobileTenantRecord = { id: string; tenantId: string; schoolCode?: string; schoolName?: string; contactEmail?: string; phone?: string; status?: string; admin?: { id: string; displayName?: string; contactEmail?: string; email?: string } | null };
+export async function manageTenants(input: Record<string, unknown>) { const call = httpsCallable<Record<string, unknown>, { tenants?: MobileTenantRecord[]; status?: string; temporaryPassword?: string; deliveryStatus?: string }>(functions, "manageTenants"); return (await call(input)).data; }
