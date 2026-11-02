@@ -22,6 +22,10 @@ body { @apply m-0 bg-slate-50 text-slate-900 antialiased; }
   button, a { @apply transition-colors; }
 }
 @layer components {
+  /* Keep the QR camera preview aligned with the user's real-world movement. */
+  video {
+    transform: scaleX(-1);
+  }
   .surface { @apply rounded-2xl border border-slate-200/80 bg-white shadow-sm; }
   .surface-hover { @apply transition duration-200 hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md; }
   .section-title { @apply text-lg font-bold tracking-tight text-slate-900; }

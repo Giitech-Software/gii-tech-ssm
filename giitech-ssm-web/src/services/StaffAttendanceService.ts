@@ -17,6 +17,8 @@ export type StaffAttendanceRecord = {
   userId?: string;
   verificationMethod?: "web-session" | "webauthn" | "qr" | "biometric" | "qr+biometric" | "rekognition-face-match";
   verifiedAt?: string;
+  recordedBy?: string;
+  recordedFor?: string;
 };
 export type StaffAttendanceSettings = { startTime: string; closingTime: string; graceMinutes: number; staffQrEnabled: boolean; staffBiometricEnabled: boolean; verificationMode: "biometric" | "qr" | "facial" | "both" | "disabled" };
 
@@ -56,6 +58,16 @@ export async function saveStaffAttendance(staffId: string, date: string, status:
     verifiedAt: new Date().toISOString(),
     updatedAt: serverTimestamp(),
   }, { merge: true });
+}
+
+export async function recordStaffAttendanceOnBehalf(staffId: string, action: "check-in" | "check-out", note: string, actorId: string, date = new Date().toISOString().slice(0, 10)) {
+  if (!staffId || !actorId) throw new Error("A staff member and recording administrator are required.");
+  const reference = doc(db, "staffAttendance", `${staffId}_${date}`);
+  const existing = await getDoc(reference);
+  const now = new Date().toISOString();
+  if (action === "check-in" && existing.data()?.checkInAt) throw new Error("This staff member has already checked in today.");
+  if (action === "check-out" && !existing.data()?.checkInAt) throw new Error("Check-in must be recorded before check-out.");
+  await setDoc(reference, { tenantId: TENANT_ID, staffId, userId: existing.data()?.userId || staffId, date, ...(action === "check-in" ? { status: "present", checkInAt: now.slice(11, 16) } : { checkOutAt: now.slice(11, 16) }), note: note.trim(), verificationMethod: "web-session", recordedBy: actorId, recordedFor: staffId, updatedAt: serverTimestamp() }, { merge: true });
 }
 
 export async function recordStaffMovement(staffId: string, date: string, type: "out" | "in", reason: string, userId = staffId) { const settings = await getStaffAttendanceSettings(); const reference = doc(db, "staffAttendance", `${staffId}_${date}`); const existing = await getDoc(reference); const now = new Date(); const currentMinutes = now.getHours() * 60 + now.getMinutes(); const closingMinutes = Number(settings.closingTime.split(":")[0]) * 60 + Number(settings.closingTime.split(":")[1]); const events = (existing.data()?.movementEvents || []) as StaffAttendanceRecord["movementEvents"]; await setDoc(reference, { tenantId: TENANT_ID, staffId, userId, date, movementEvents: [...(events || []), { type, time: now.toISOString(), reason: reason.trim(), earlyDeparture: type === "out" && currentMinutes < closingMinutes }], updatedAt: serverTimestamp() }, { merge: true }); }

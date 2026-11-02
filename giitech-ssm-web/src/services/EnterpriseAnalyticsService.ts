@@ -1,11 +1,11 @@
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { TENANT_ID } from "../config/tenant";
 import { fetchStaffDirectory, fetchStudentDirectory } from "./DirectoryService";
 
 export type EnterprisePeriod = { id: string; name?: string; startDate?: string; endDate?: string; academicYearId?: string };
 export type EnterpriseAnalytics = {
-  students: Array<{ period: string; active: number; total: number }>;
+  students: Array<{ period: string; active: number; withdrawn: number; total: number; withdrawalRate: number }>;
   performance: Array<{ period: string; assessment: string; average: number; entries: number; passRate: number }>;
   attendance: Array<{ period: string; present: number; late: number; excused: number; absent: number; rate: number }>;
   staff: Array<{ period: string; present: number; absent: number; late: number; total: number; turnout: number }>;
@@ -23,13 +23,14 @@ const periodFor = (rawDate: unknown, terms: EnterprisePeriod[], years: Enterpris
 };
 
 export async function fetchEnterpriseAnalytics(): Promise<EnterpriseAnalytics> {
+  const tenantCollection = (name: string) => query(collection(db, name), where("tenantId", "==", TENANT_ID));
   const [students, staff, yearsSnapshot, termsSnapshot, gradesSnapshot, examsSnapshot, attendanceSnapshot, staffAttendanceSnapshot] = await Promise.all([
-    fetchStudentDirectory(), fetchStaffDirectory(), getDocs(collection(db, "academicYears")), getDocs(collection(db, "terms")), getDocs(collection(db, "grades")), getDocs(collection(db, "exams")), getDocs(collection(db, "attendance")), getDocs(collection(db, "staffAttendance")),
+    fetchStudentDirectory(), fetchStaffDirectory(), getDocs(tenantCollection("academicYears")), getDocs(tenantCollection("terms")), getDocs(tenantCollection("grades")), getDocs(tenantCollection("exams")), getDocs(tenantCollection("attendance")), getDocs(tenantCollection("staffAttendance")),
   ]);
   const years = yearsSnapshot.docs.map(item => ({ id: item.id, ...item.data() } as EnterprisePeriod));
   const terms = termsSnapshot.docs.map(item => ({ id: item.id, ...item.data() } as EnterprisePeriod));
   const periodNames = [...years.map(item => text(item.name)), ...terms.map(item => text(item.name))];
-  const studentRows = periodNames.map(period => { const matching = students.filter(student => { const record = student as typeof student & { term?: string }; return text(record.academicYear, "") === period || text(record.term, "") === period; }); const active = matching.filter(student => String(student.status || "active").toLowerCase() === "active").length; return { period, active, total: matching.length }; }).filter(item => item.total);
+  const studentRows = periodNames.map(period => { const matching = students.filter(student => { const record = student as typeof student & { term?: string }; return text(record.academicYear, "") === period || text(record.term, "") === period; }); const active = matching.filter(student => String(student.status || "active").toLowerCase() === "active").length; const withdrawn = matching.filter(student => String(student.status || "").toLowerCase() === "withdrawn" || String((student as typeof student & { lifecycleStatus?: string }).lifecycleStatus || "").toLowerCase() === "withdrawn").length; return { period, active, withdrawn, total: matching.length, withdrawalRate: Math.round((withdrawn / Math.max(1, matching.length)) * 100) }; }).filter(item => item.total);
   const exams = examsSnapshot.docs.map(item => ({ id: item.id, ...item.data() }) as Record<string, unknown> & { id: string }).filter(scoped);
   const examNames = new Map(exams.map(item => [String(item.id), text(item.name, "Assessment")]));
   const performanceMap = new Map<string, { total: number; count: number; pass: number }>();

@@ -79,6 +79,7 @@ import StaffLoanRepaymentsPage from "./pages/Admin/StaffLoanRepaymentsPage";
 import StaffFinanceSelfServicePage from "./pages/Staff/StaffFinancePage";
 import StaffFinanceReportPage from "./pages/Admin/StaffFinanceReportPage";
 import StaffPayslipsPage from "./pages/Staff/StaffPayslipsPage";
+import StaffPayrollPrintPage from "./pages/Admin/StaffPayrollPrintPage";
 import SsnitReportPage from "./pages/Admin/SsnitReportPage";
 import SsnitRemittancePage from "./pages/Admin/SsnitRemittancePage";
 import StaffAttendanceSettingsPage from "./pages/Admin/StaffAttendanceSettingsPage";
@@ -185,6 +186,7 @@ export default function App() {
               <Route path="staff/qr-attendance" element={<Navigate to="/staff/attendance" replace />} />
               <Route path="staff/messages" element={<TeacherMessagesPage />} />
               <Route path="staff/finance" element={<StaffFinanceSelfServicePage />} />
+              <Route path="staff/attendance-capture" element={<StaffAttendanceReportPage />} />
               <Route path="staff/payslips" element={<StaffPayslipsPage />} />
             </Route>
 
@@ -200,6 +202,7 @@ export default function App() {
               <Route path="admin/streams" element={<StreamPage />} />
               <Route path="admin/students" element={<StudentsDirectoryPage />} />
               <Route path="admin/staff" element={<StaffDirectoryPage />} />
+              <Route path="admin/staff-payroll-print" element={<StaffPayrollPrintPage />} />
               <Route path="admin/create-staff" element={<Signup />} />
               <Route path="admin/staff-attendance" element={<StaffAttendanceReportPage />} />
               <Route path="admin/attendance" element={<Navigate to="/admin/student-attendance" replace />} />

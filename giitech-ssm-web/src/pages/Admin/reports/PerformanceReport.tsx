@@ -15,6 +15,8 @@ const PerformanceReport: React.FC = () => {
   const [selectedExam, setSelectedExam] = useState("");
   const [performance, setPerformance] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingFilters, setLoadingFilters] = useState(true);
+  const [error, setError] = useState("");
 
   // Load dropdown data
   useEffect(() => {
@@ -25,12 +27,19 @@ const PerformanceReport: React.FC = () => {
           fetchStudents(),
           fetchExams(),
         ]);
-        setClasses(classData);
+        const classMap = new Map<string, any>();
+        [...(classData as any[]), ...(studentData as any[]).map((student) => ({ classId: student.classId, name: student.className || student.classId }))].forEach((item: any) => {
+          const id = String(item.classId || item.id || "");
+          if (id) classMap.set(id, { ...item, classId: id, name: item.name || item.className || id });
+        });
+        setClasses([...classMap.values()]);
         setStudents(studentData);
         setExams(examData);
       } catch (err) {
         console.error("Error loading performance report data:", err);
-        alert("Failed to load dropdown data. Please refresh.");
+        setError("Unable to load performance report filters. Please refresh and try again.");
+      } finally {
+        setLoadingFilters(false);
       }
     };
     loadData();
@@ -39,11 +48,11 @@ const PerformanceReport: React.FC = () => {
   // Load performance data
   const loadReport = async () => {
     if (!selectedClass || !selectedExam) {
-      alert("Please select both a class and an exam.");
+      setError("Select both a class and an exam before generating the report.");
       return;
     }
 
-    setLoading(true);
+    setLoading(true); setError("");
     try {
       const data = await fetchPerformanceData(
         selectedClass,
@@ -53,16 +62,14 @@ const PerformanceReport: React.FC = () => {
       setPerformance(data);
     } catch (err) {
       console.error("Error fetching performance data:", err);
-      alert("Failed to load performance data.");
+      setError("Unable to load performance data for the selected filters.");
     } finally {
       setLoading(false);
     }
   };
 
   // Filter students to selected class only
-  const filteredStudents = students.filter(
-    (s) => s.classId === selectedClass
-  );
+  const filteredStudents = students.filter((s) => String(s.classId || "") === selectedClass);
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md">
@@ -70,11 +77,13 @@ const PerformanceReport: React.FC = () => {
         Performance Report
       </h2>
 
+      {error && <p className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mb-4">
         {/* Class */}
         <select
           value={selectedClass}
+          disabled={loadingFilters}
           onChange={(e) => {
             setSelectedClass(e.target.value);
             setSelectedStudent(""); // reset student filter
@@ -83,8 +92,8 @@ const PerformanceReport: React.FC = () => {
         >
           <option value="">Select Class</option>
           {classes.map((cls) => (
-            <option key={cls.classId} value={cls.classId}>
-              {cls.name}
+            <option key={cls.classId || cls.id} value={cls.classId || cls.id}>
+              {cls.name || cls.className || cls.classId || cls.id}
             </option>
           ))}
         </select>
@@ -98,8 +107,8 @@ const PerformanceReport: React.FC = () => {
         >
           <option value="">All Students</option>
           {filteredStudents.map((s) => (
-            <option key={s.studentId} value={s.studentId}>
-              {s.name}
+              <option key={s.studentId || s.id} value={s.studentId || s.id}>
+              {s.name || s.displayName || s.studentName || s.studentId || s.id}
             </option>
           ))}
         </select>

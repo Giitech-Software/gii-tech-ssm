@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import { Archive, Pencil, Search, UserPlus, Users, X } from "lucide-react";
+import { Archive, Pencil, Search, UserPlus, Users, X, UserMinus } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
   fetchAcademicOptions,
   fetchStudentDirectory,
   updateStudentProfile,
   graduateStudentClass,
+  withdrawStudent,
   type AcademicOption,
   type StudentDirectoryRecord,
 } from "../../services/DirectoryService";
@@ -84,9 +85,10 @@ export default function StudentsDirectoryPage() {
   };
 
   const archiveStudent = async (student: StudentDirectoryRecord) => {
-    if (!window.confirm(`Archive ${student.displayName}'s student record?`)) return;
-    await updateStudentProfile(student.id, { status: "archived" });
-    await logActivity(user?.uid || "", "archive_student_profile", { studentId: student.studentId || student.id });
+    const reason = window.prompt(`Why is ${student.displayName} withdrawing?`, "");
+    if (reason === null || !window.confirm(`Move ${student.displayName}'s record to the withdrawn archive?`)) return;
+    await withdrawStudent(student.id, user?.uid || "", reason);
+    await logActivity(user?.uid || "", "withdraw_student_profile", { studentId: student.studentId || student.id, reason });
     await loadData();
   };
 
@@ -142,6 +144,7 @@ export default function StudentsDirectoryPage() {
           <option value="">All statuses</option>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
+          <option value="withdrawn">Withdrawn</option>
           <option value="archived">Archived</option>
         </select>
         {classId && <div className="flex gap-2 sm:col-span-3"><input value={graduationYear} onChange={(event) => setGraduationYear(event.target.value)} className="input" placeholder="Graduation year" /><button disabled={saving} onClick={() => void graduateClass()} className="btn-primary whitespace-nowrap">Graduate selected class</button></div>}
@@ -160,8 +163,8 @@ export default function StudentsDirectoryPage() {
                 <td className="px-4 py-3"><p className="font-medium text-slate-900">{student.displayName}</p><p className="text-xs text-slate-500">{student.studentId || student.id} | {student.email || "No email"}</p></td>
                 <td className="px-4 py-3"><p>{className(student)}</p><p className="text-xs text-slate-500">{streamName(student)}</p></td>
                 <td className="px-4 py-3 text-slate-600">{student.parentId || "-"}</td>
-                <td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs font-medium ${statusOf(student) === "active" ? "bg-green-50 text-green-700" : "bg-slate-100 text-slate-600"}`}>{statusOf(student)}</span></td>
-                <td className="px-4 py-3"><div className="flex justify-end gap-1"><button title="Edit student" onClick={() => setEditing(student)} className="rounded-md p-2 text-primary hover:bg-primary"><Pencil size={16} /></button>{statusOf(student) !== "archived" && <button title="Archive student" onClick={() => archiveStudent(student)} className="rounded-md p-2 text-red-600 hover:bg-red-50"><Archive size={16} /></button>}</div></td>
+                <td className="px-4 py-3"><span className={`rounded-full px-2 py-1 text-xs font-medium ${statusOf(student) === "active" ? "bg-green-50 text-green-700" : statusOf(student) === "withdrawn" ? "bg-amber-50 text-amber-700" : "bg-slate-100 text-slate-600"}`}>{statusOf(student)}</span></td>
+                <td className="px-4 py-3"><div className="flex justify-end gap-1"><button title="Edit student" onClick={() => setEditing(student)} className="rounded-md p-2 text-primary hover:bg-primary"><Pencil size={16} /></button>{statusOf(student) === "active" && <button title="Mark student withdrawn" onClick={() => void archiveStudent(student)} className="rounded-md p-2 text-amber-600 hover:bg-amber-50"><UserMinus size={16} /></button>}{statusOf(student) === "withdrawn" && <span title="Withdrawn record retained for reporting" className="rounded-md p-2 text-slate-400"><Archive size={16} /></span>}</div></td>
               </tr>
             ))}
             {loading && <tr><td colSpan={5} className="px-4 py-10 text-center text-slate-500">Loading students...</td></tr>}
@@ -180,7 +183,7 @@ export default function StudentsDirectoryPage() {
               <Field label="Class"><select value={editing.classId || ""} onChange={(event) => setEditing({ ...editing, classId: event.target.value, streamId: "" })} className="w-full rounded-md border px-3 py-2"><option value="">Unassigned</option>{options.classes.map((item) => <option key={item.id} value={item.classId || item.id}>{item.name}</option>)}</select></Field>
               <Field label="Stream"><select value={editing.streamId || editing.stream || ""} onChange={(event) => setEditing({ ...editing, streamId: event.target.value, stream: event.target.value })} className="w-full rounded-md border px-3 py-2"><option value="">Unassigned</option>{options.streams.filter((item) => !editing.classId || item.classId === editing.classId).map((item) => <option key={item.id} value={item.streamId || item.id}>{item.name}</option>)}</select></Field>
               <Field label="Gender"><select value={editing.gender || ""} onChange={(event) => setEditing({ ...editing, gender: event.target.value })} className="w-full rounded-md border px-3 py-2"><option value="">Not specified</option><option value="female">Female</option><option value="male">Male</option></select></Field>
-              <Field label="Status"><select value={statusOf(editing)} onChange={(event) => setEditing({ ...editing, status: event.target.value as StudentDirectoryRecord["status"] })} className="w-full rounded-md border px-3 py-2"><option value="active">Active</option><option value="inactive">Inactive</option><option value="archived">Archived</option></select></Field>
+              <Field label="Status"><select value={statusOf(editing)} onChange={(event) => setEditing({ ...editing, status: event.target.value as StudentDirectoryRecord["status"] })} className="w-full rounded-md border px-3 py-2"><option value="active">Active</option><option value="inactive">Inactive</option><option value="withdrawn">Withdrawn</option><option value="archived">Archived</option></select></Field>
             </div>
             <div className="flex justify-end gap-2 border-t px-5 py-4"><button onClick={() => setEditing(null)} className="rounded-md border px-4 py-2 text-sm">Cancel</button><button disabled={saving} onClick={saveStudent} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-white disabled:opacity-60">{saving ? "Saving..." : "Save Changes"}</button></div>
           </div>

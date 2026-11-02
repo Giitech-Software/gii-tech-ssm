@@ -13,6 +13,9 @@ export { scheduledLibraryOverdueSync } from "./library";
 export { verifyAttendanceFace, enrollAttendanceFace } from "./rekognition";
 export { backfillAstemTenant } from "./tenantMigration";
 export { processBulkMessage } from "./twilioMessaging";
+export { twilioMessageStatus } from "./twilioMessaging";
+export { fanOutBulkInAppMessage } from "./twilioMessaging";
+export { sendPushNotification } from "./pushNotifications";
 
 initializeApp();
 

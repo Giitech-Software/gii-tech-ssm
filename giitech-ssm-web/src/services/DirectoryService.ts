@@ -3,7 +3,7 @@ import type { DocumentData, QuerySnapshot } from "firebase/firestore";
 import { db } from "../firebaseConfig";
 import { TENANT_ID } from "../config/tenant";
 
-export type DirectoryStatus = "active" | "inactive" | "archived";
+export type DirectoryStatus = "active" | "inactive" | "withdrawn" | "archived";
 
 export interface StudentDirectoryRecord {
   id: string;
@@ -22,6 +22,8 @@ export interface StudentDirectoryRecord {
   admissionDate?: string;
   academicYear?: string;
   status?: DirectoryStatus;
+  withdrawalDate?: string;
+  withdrawalReason?: string;
 }
 
 export interface StaffDirectoryRecord {
@@ -39,6 +41,7 @@ export interface StaffDirectoryRecord {
   phone?: string;
   ssnitNumber?: string;
   attendanceEnabled?: boolean;
+  attendanceRecorderEnabled?: boolean;
   status?: DirectoryStatus;
 }
 
@@ -103,6 +106,17 @@ export async function graduateStudentClass(classId: string, graduationYear: stri
   return students.length;
 }
 
+export async function withdrawStudent(id: string, withdrawnBy: string, reason = "") {
+  await updateDoc(doc(db, "students", id), {
+    status: "withdrawn",
+    lifecycleStatus: "withdrawn",
+    withdrawalDate: new Date().toISOString().slice(0, 10),
+    withdrawalReason: reason.trim(),
+    withdrawnBy,
+    updatedAt: serverTimestamp(),
+  });
+}
+
 export async function updateStaffProfile(
   id: string,
   changes: Partial<StaffDirectoryRecord>
@@ -111,5 +125,9 @@ export async function updateStaffProfile(
   delete profile.id;
   const collectionName = profile.collectionName || "teachers";
   delete profile.collectionName;
+  const userId = profile.userId;
   await updateDoc(doc(db, collectionName, id), { ...profile, updatedAt: serverTimestamp() });
+  if (userId && Object.prototype.hasOwnProperty.call(profile, "attendanceRecorderEnabled")) {
+    await updateDoc(doc(db, "users", String(userId)), { attendanceRecorderEnabled: profile.attendanceRecorderEnabled, updatedAt: serverTimestamp() });
+  }
 }

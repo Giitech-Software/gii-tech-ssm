@@ -46,6 +46,10 @@ service cloud.firestore {
       return hasRole("staff");
     }
 
+    function canRecordStaffAttendance() {
+      return isAdminStaff() || (signedIn() && userProfile().get("attendanceRecorderEnabled", false) == true);
+    }
+
     function sameTenant(data) {
       return signedIn() && hasUserProfile() &&
         ((isSuperAdmin() && data.get("tenantId", "") == "astem-ssm-001") ||
@@ -107,6 +111,7 @@ service cloud.firestore {
         (isAdmin() && resource.data.get("tenantId", "") == userProfile().get("tenantId", "")));
       allow create: if isSuperAdmin() || (isAdmin() && request.resource.data.role == "staff");
       allow update: if isSuperAdmin() ||
+        (isAdmin() && resource.data.get("tenantId", "") == userProfile().get("tenantId", "") && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["attendanceRecorderEnabled", "updatedAt"])) ||
         (signedIn() && request.auth.uid == userId &&
           request.resource.data.diff(resource.data).affectedKeys().hasOnly(["displayName", "notificationPreferences", "pushTokens"]));
       allow delete: if isSuperAdmin();
@@ -123,7 +128,7 @@ service cloud.firestore {
     }
 
     match /staff/{staffId} {
-      allow read: if sameTenant(resource.data) && (isAdminStaff() || (isStaff() && resource.data.userId == request.auth.uid));
+      allow read: if sameTenant(resource.data) && (isAdminStaff() || canRecordStaffAttendance() || (isStaff() && resource.data.userId == request.auth.uid));
       allow write: if sameTenant(request.resource.data) && isAdminStaff();
     }
 
@@ -265,8 +270,8 @@ service cloud.firestore {
     }
 
     match /staffAttendance/{attendanceId} {
-      allow read: if sameTenant(resource.data) && (isAdminStaff() || (isStaff() && (resource.data.userId == request.auth.uid || resource.data.staffId == request.auth.uid)));
-      allow create, update: if sameTenant(request.resource.data) && (isAdminStaff() || (isStaff() && request.resource.data.userId == request.auth.uid));
+      allow read: if sameTenant(resource.data) && (canRecordStaffAttendance() || (isStaff() && (resource.data.userId == request.auth.uid || resource.data.staffId == request.auth.uid)));
+      allow create, update: if sameTenant(request.resource.data) && (canRecordStaffAttendance() || (isStaff() && request.resource.data.userId == request.auth.uid));
       allow delete: if sameTenant(resource.data) && isAdminStaff();
     }
 

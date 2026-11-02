@@ -10,11 +10,12 @@ import { TENANT_ID } from "../config/tenant";
  */
 export const fetchAttendanceSummary = async (classId: string) => {
   try {
-    const q = query(collection(db, "attendance"), where("classId", "==", classId));
+    const q = query(collection(db, "attendance"), where("tenantId", "==", TENANT_ID));
     const snapshot = await getDocs(q);
     const records: any[] = [];
 
     snapshot.forEach((doc) => {
+      if (doc.data().classId !== classId) return;
       records.push({ id: doc.id, ...doc.data() });
     });
 
@@ -59,12 +60,13 @@ export const attendanceRecordId = (studentId: string, date: string) => `${studen
  */
 export const getAttendanceByClass = async (classId: string) => {
   try {
-    const q = query(collection(db, "attendance"), where("classId", "==", classId));
+    const q = query(collection(db, "attendance"), where("tenantId", "==", TENANT_ID));
     const snapshot = await getDocs(q);
     const records: any[] = [];
 
     snapshot.forEach((doc) => {
       const data = doc.data();
+      if (data.classId !== classId) return;
       records.push({
         id: doc.id,
         studentId: data.studentId,
@@ -93,12 +95,13 @@ export const getAttendanceByClass = async (classId: string) => {
  */
 export const getStudentsByClass = async (classId: string) => {
   try {
-    const q = query(collection(db, "students"), where("classId", "==", classId));
+    const q = query(collection(db, "students"), where("tenantId", "==", TENANT_ID));
     const snapshot = await getDocs(q);
     const students: any[] = [];
 
     snapshot.forEach((doc) => {
       const data = doc.data();
+      if (data.classId !== classId) return;
       students.push({
         id: doc.id,
         studentId: data.studentId || doc.id,
@@ -161,8 +164,8 @@ export const markAttendanceForClass = async (
 
 /** Returns records for a class and date range, including legacy records. */
 export const getAttendanceHistory = async (classId: string, startDate: string, endDate: string) => {
-  const snapshot = await getDocs(query(collection(db, "attendance"), where("classId", "==", classId)));
-  return snapshot.docs.map(item => ({ id: item.id, ...item.data(), status: normaliseStatus(item.data()) }))
+  const snapshot = await getDocs(query(collection(db, "attendance"), where("tenantId", "==", TENANT_ID)));
+  return snapshot.docs.filter(item => item.data().classId === classId).map(item => ({ id: item.id, ...item.data(), status: normaliseStatus(item.data()) }))
     .filter((item: any) => String(item.date || "") >= startDate && String(item.date || "") <= endDate)
     .sort((a: any, b: any) => String(b.date).localeCompare(String(a.date)));
 };
